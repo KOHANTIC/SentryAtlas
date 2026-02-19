@@ -4,7 +4,7 @@ region: nyc
 services:
   - name: backend
     github:
-      repo: Kohantic/SentryAtlas
+      repo: KOHANTIC/SentryAtlas
       branch: main
       deploy_on_push: true
     dockerfile_path: backend/Dockerfile
@@ -24,7 +24,7 @@ services:
 
   - name: frontend
     github:
-      repo: Kohantic/SentryAtlas
+      repo: KOHANTIC/SentryAtlas
       branch: main
       deploy_on_push: true
     dockerfile_path: frontend/Dockerfile
@@ -40,7 +40,7 @@ services:
 static_sites:
   - name: landing
     github:
-      repo: Kohantic/SentryAtlas
+      repo: KOHANTIC/SentryAtlas
       branch: main
       deploy_on_push: true
     source_dir: /landing

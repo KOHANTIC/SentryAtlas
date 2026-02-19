@@ -4,7 +4,7 @@ Thanks for your interest in contributing! Here's how you can help.
 
 ## Reporting Bugs
 
-Open a [bug report](https://github.com/Kohantic/SentryAtlas/issues/new?template=bug_report.md) with:
+Open a [bug report](https://github.com/KOHANTIC/SentryAtlas/issues/new?template=bug_report.md) with:
 
 - A clear description of the problem
 - Steps to reproduce
@@ -13,7 +13,7 @@ Open a [bug report](https://github.com/Kohantic/SentryAtlas/issues/new?template=
 
 ## Suggesting Features
 
-Open a [feature request](https://github.com/Kohantic/SentryAtlas/issues/new?template=feature_request.md) describing the problem you'd like solved and your proposed approach.
+Open a [feature request](https://github.com/KOHANTIC/SentryAtlas/issues/new?template=feature_request.md) describing the problem you'd like solved and your proposed approach.
 
 ## Development Setup
 
@@ -26,7 +26,7 @@ Open a [feature request](https://github.com/Kohantic/SentryAtlas/issues/new?temp
 ### Getting Started
 
 ```bash
-git clone https://github.com/Kohantic/SentryAtlas.git
+git clone https://github.com/KOHANTIC/SentryAtlas.git
 cd SentryAtlas
 ```
 

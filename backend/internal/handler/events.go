@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kohantic/SentryAtlas/backend/internal/adapters"
-	"github.com/Kohantic/SentryAtlas/backend/internal/models"
-	"github.com/Kohantic/SentryAtlas/backend/internal/service"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
 )
 
 type EventsHandler struct {

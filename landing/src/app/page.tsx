@@ -1,5 +1,5 @@
 const MAP_URL = "https://map.sentryatlas.com";
-const GITHUB_URL = "https://github.com/Kohantic/SentryAtlas";
+const GITHUB_URL = "https://github.com/KOHANTIC/SentryAtlas";
 
 const DATA_SOURCES = [
   {

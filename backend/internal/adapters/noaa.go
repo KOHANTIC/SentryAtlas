@@ -8,30 +8,30 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kohantic/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 )
 
 const noaaBaseURL = "https://api.weather.gov/alerts/active"
 
 // NWS event keywords -> our event type
 var noaaEventTypeMap = map[string]string{
-	"tornado":         "tornado",
-	"flood":           "flood",
-	"flash flood":     "flood",
-	"hurricane":       "hurricane",
-	"typhoon":         "hurricane",
-	"tropical storm":  "storm",
-	"severe storm":    "storm",
-	"thunderstorm":    "storm",
-	"winter storm":    "winter_storm",
-	"blizzard":        "winter_storm",
-	"ice storm":       "winter_storm",
-	"tsunami":         "tsunami",
-	"earthquake":      "earthquake",
-	"volcano":         "volcano",
-	"wildfire":        "wildfire",
-	"fire":            "wildfire",
-	"red flag":        "wildfire",
+	"tornado":        "tornado",
+	"flood":          "flood",
+	"flash flood":    "flood",
+	"hurricane":      "hurricane",
+	"typhoon":        "hurricane",
+	"tropical storm": "storm",
+	"severe storm":   "storm",
+	"thunderstorm":   "storm",
+	"winter storm":   "winter_storm",
+	"blizzard":       "winter_storm",
+	"ice storm":      "winter_storm",
+	"tsunami":        "tsunami",
+	"earthquake":     "earthquake",
+	"volcano":        "volcano",
+	"wildfire":       "wildfire",
+	"fire":           "wildfire",
+	"red flag":       "wildfire",
 }
 
 type NOAAAdapter struct {

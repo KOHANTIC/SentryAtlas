@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Kohantic/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 )
 
 const usgsBaseURL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -150,9 +150,9 @@ type usgsResponse struct {
 }
 
 type usgsFeature struct {
-	ID         string             `json:"id"`
-	Geometry   usgsGeometry       `json:"geometry"`
-	Properties usgsProperties     `json:"properties"`
+	ID         string         `json:"id"`
+	Geometry   usgsGeometry   `json:"geometry"`
+	Properties usgsProperties `json:"properties"`
 }
 
 type usgsGeometry struct {

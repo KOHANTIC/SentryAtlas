@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Kohantic/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 )
 
 type Adapter interface {

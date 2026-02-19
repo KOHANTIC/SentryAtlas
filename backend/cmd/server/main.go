@@ -14,11 +14,11 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
-	"github.com/Kohantic/SentryAtlas/backend/internal/adapters"
-	"github.com/Kohantic/SentryAtlas/backend/internal/cache"
-	"github.com/Kohantic/SentryAtlas/backend/internal/handler"
-	"github.com/Kohantic/SentryAtlas/backend/internal/models"
-	"github.com/Kohantic/SentryAtlas/backend/internal/service"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/cache"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/handler"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 	adapterList := []adapters.Adapter{
 		adapters.NewUSGSAdapter(httpClient),
 		adapters.NewEONETAdapter(httpClient),
-		adapters.NewNOAAAdapter(httpClient, "SentryAtlas/1.0 (github.com/Kohantic/SentryAtlas)"),
+		adapters.NewNOAAAdapter(httpClient, "SentryAtlas/1.0 (github.com/KOHANTIC/SentryAtlas)"),
 		adapters.NewGDACSAdapter(httpClient),
 	}
 

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Kohantic/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 )
 
 const gdacsBaseURL = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH"
@@ -172,8 +172,8 @@ func parseGDACSFeature(f gdacsFeature) models.Event {
 		UpdatedAt: updatedAt,
 		URL:       f.Properties.URL.Report,
 		Metadata: map[string]any{
-			"alert_level":  f.Properties.AlertLevel,
-			"country":      f.Properties.Country,
+			"alert_level":   f.Properties.AlertLevel,
+			"country":       f.Properties.Country,
 			"severity_unit": f.Properties.SeverityUnit,
 		},
 	}

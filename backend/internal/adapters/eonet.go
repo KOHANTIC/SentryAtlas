@@ -7,21 +7,21 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Kohantic/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 )
 
 const eonetBaseURL = "https://eonet.gsfc.nasa.gov/api/v3/events"
 
 // EONET category ID -> our event type
 var eonetCategoryMap = map[string]string{
-	"wildfires":     "wildfire",
-	"volcanoes":     "volcano",
-	"severeStorms":  "storm",
-	"seaLakeIce":    "iceberg",
-	"earthquakes":   "earthquake",
-	"floods":        "flood",
-	"landslides":    "landslide",
-	"drought":       "drought",
+	"wildfires":    "wildfire",
+	"volcanoes":    "volcano",
+	"severeStorms": "storm",
+	"seaLakeIce":   "iceberg",
+	"earthquakes":  "earthquake",
+	"floods":       "flood",
+	"landslides":   "landslide",
+	"drought":      "drought",
 }
 
 // Reverse map: our event type -> EONET category ID
@@ -151,15 +151,15 @@ type eonetResponse struct {
 }
 
 type eonetEvent struct {
-	ID                   string           `json:"id"`
-	Title                string           `json:"title"`
-	Description          string           `json:"description"`
-	Link                 string           `json:"link"`
-	Closed               *string          `json:"closed"`
-	Categories           []eonetCategory  `json:"categories"`
-	Geometry             []eonetGeometry  `json:"geometry"`
-	MagnitudeValue       *float64         `json:"magnitudeValue"`
-	MagnitudeUnit        string           `json:"magnitudeUnit"`
+	ID             string          `json:"id"`
+	Title          string          `json:"title"`
+	Description    string          `json:"description"`
+	Link           string          `json:"link"`
+	Closed         *string         `json:"closed"`
+	Categories     []eonetCategory `json:"categories"`
+	Geometry       []eonetGeometry `json:"geometry"`
+	MagnitudeValue *float64        `json:"magnitudeValue"`
+	MagnitudeUnit  string          `json:"magnitudeUnit"`
 }
 
 type eonetCategory struct {

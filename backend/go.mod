@@ -1,4 +1,4 @@
-module github.com/Kohantic/SentryAtlas/backend
+module github.com/KOHANTIC/SentryAtlas/backend
 
 go 1.25.1
 
