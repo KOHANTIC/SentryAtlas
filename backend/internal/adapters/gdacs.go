@@ -166,7 +166,7 @@ func parseGDACSFeature(f gdacsFeature) models.Event {
 		Severity:  severity,
 		StartedAt: startedAt,
 		UpdatedAt: updatedAt,
-		URL:       f.Properties.URL,
+		URL:       f.Properties.URL.Report,
 		Metadata: map[string]any{
 			"alert_level":  f.Properties.AlertLevel,
 			"country":      f.Properties.Country,
@@ -208,12 +208,32 @@ type gdacsProperties struct {
 	EventType    string      `json:"eventtype"`
 	EventID      json.Number `json:"eventid"`
 	Name         string      `json:"name"`
-	Description  string  `json:"description"`
-	AlertLevel   string  `json:"alertlevel"`
-	Severity     float64 `json:"severity"`
-	SeverityUnit string  `json:"severityunit"`
-	Country      string  `json:"country"`
-	FromDate     string  `json:"fromdate"`
-	ToDate       string  `json:"todate"`
-	URL          string  `json:"url"`
+	Description  string      `json:"description"`
+	AlertLevel   string      `json:"alertlevel"`
+	Severity     float64     `json:"severity"`
+	SeverityUnit string      `json:"severityunit"`
+	Country      string      `json:"country"`
+	FromDate     string      `json:"fromdate"`
+	ToDate       string      `json:"todate"`
+	URL          gdacsURL    `json:"url"`
+}
+
+type gdacsURL struct {
+	Report string `json:"report"`
+}
+
+func (u *gdacsURL) UnmarshalJSON(data []byte) error {
+	// Handle both string and object forms
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		u.Report = s
+		return nil
+	}
+	type alias gdacsURL
+	var obj alias
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return err
+	}
+	*u = gdacsURL(obj)
+	return nil
 }

@@ -63,11 +63,6 @@ func (a *NOAAAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]mo
 	q := req.URL.Query()
 	q.Set("status", "actual")
 	q.Set("message_type", "alert")
-
-	if params.Limit > 0 {
-		q.Set("limit", fmt.Sprintf("%d", params.Limit))
-	}
-
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := a.client.Do(req)
@@ -128,8 +123,8 @@ func parseNOAAFeature(f noaaFeature) models.Event {
 	}
 
 	var coords []float64
-	if f.Geometry != nil && len(f.Geometry.Coordinates) >= 2 {
-		coords = f.Geometry.Coordinates[:2]
+	if f.Geometry != nil {
+		coords = f.Geometry.centroid()
 	}
 
 	var startedAt, updatedAt time.Time
@@ -193,8 +188,43 @@ type noaaFeature struct {
 }
 
 type noaaGeometry struct {
-	Type        string    `json:"type"`
-	Coordinates []float64 `json:"coordinates"`
+	Type        string          `json:"type"`
+	Coordinates json.RawMessage `json:"coordinates"`
+}
+
+// centroid returns a [lon, lat] pair from the raw GeoJSON coordinates,
+// computing a simple centroid for Polygon rings.
+func (g *noaaGeometry) centroid() []float64 {
+	switch g.Type {
+	case "Point":
+		var pt []float64
+		if err := json.Unmarshal(g.Coordinates, &pt); err == nil && len(pt) >= 2 {
+			return pt[:2]
+		}
+	case "Polygon":
+		var rings [][][]float64
+		if err := json.Unmarshal(g.Coordinates, &rings); err == nil && len(rings) > 0 && len(rings[0]) > 0 {
+			var sumLon, sumLat float64
+			for _, pt := range rings[0] {
+				sumLon += pt[0]
+				sumLat += pt[1]
+			}
+			n := float64(len(rings[0]))
+			return []float64{sumLon / n, sumLat / n}
+		}
+	case "MultiPolygon":
+		var polys [][][][]float64
+		if err := json.Unmarshal(g.Coordinates, &polys); err == nil && len(polys) > 0 && len(polys[0]) > 0 && len(polys[0][0]) > 0 {
+			var sumLon, sumLat float64
+			for _, pt := range polys[0][0] {
+				sumLon += pt[0]
+				sumLat += pt[1]
+			}
+			n := float64(len(polys[0][0]))
+			return []float64{sumLon / n, sumLat / n}
+		}
+	}
+	return nil
 }
 
 type noaaProperties struct {
