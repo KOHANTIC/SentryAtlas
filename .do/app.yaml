@@ -1,5 +1,23 @@
 name: sentryatlas
-region: nyc
+region: sfo
+
+ingress:
+  rules:
+    - match:
+        path:
+          prefix: /api
+      component:
+        name: backend
+    - match:
+        path:
+          prefix: /health
+      component:
+        name: backend
+    - match:
+        path:
+          prefix: /
+      component:
+        name: frontend
 
 services:
   - name: backend
@@ -35,14 +53,4 @@ services:
     envs:
       - key: NEXT_PUBLIC_API_URL
         value: "${backend.PUBLIC_URL}"
-        type: BUILD_TIME
-
-static_sites:
-  - name: landing
-    github:
-      repo: KOHANTIC/SentryAtlas
-      branch: main
-      deploy_on_push: true
-    source_dir: /landing
-    build_command: npm install && npm run build
-    output_dir: out
+        scope: BUILD_TIME
