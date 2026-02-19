@@ -1,0 +1,37 @@
+spec:
+  name: sentryatlas
+  region: nyc
+
+  services:
+    - name: backend
+      dockerfile_path: backend/Dockerfile
+      source_dir: /backend
+      http_port: 8080
+      health_check:
+        http_path: /health
+      instance_size_slug: apps-s-1vcpu-0.5gb
+      instance_count: 1
+      envs:
+        - key: PORT
+          value: "8080"
+        - key: CACHE_TTL_MINUTES
+          value: "5"
+        - key: FETCH_TIMEOUT_SECONDS
+          value: "45"
+
+    - name: frontend
+      dockerfile_path: frontend/Dockerfile
+      source_dir: /frontend
+      http_port: 3000
+      instance_size_slug: apps-s-1vcpu-1gb
+      instance_count: 1
+      envs:
+        - key: NEXT_PUBLIC_API_URL
+          value: "${backend.PUBLIC_URL}"
+          type: BUILD_TIME
+
+  static_sites:
+    - name: landing
+      source_dir: /landing
+      build_command: npm install && npm run build
+      output_dir: out
