@@ -46,8 +46,7 @@ export interface EventsGeoJSON {
   features: GeoJSONFeature[];
 }
 
-export interface FilterState {
-  types: EventType[];
+export interface FetchParams {
   since?: string;
   bbox?: [number, number, number, number];
 }

@@ -1,22 +1,44 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useEvents } from "@/hooks/useEvents";
 import FilterPanel from "@/components/FilterPanel";
 import EventDetail from "@/components/EventDetail";
 import Legend from "@/components/Legend";
-import type { FilterState, EventProperties } from "@/lib/types";
-import { EVENT_TYPES } from "@/lib/types";
+import type { FetchParams, EventProperties, EventType } from "@/lib/types";
+import { getSinceDate } from "@/lib/time";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 export default function Home() {
-  const [filters, setFilters] = useState<FilterState>({ types: [...EVENT_TYPES] });
+  const [fetchParams, setFetchParams] = useState<FetchParams>({
+    since: getSinceDate("7d"),
+  });
+  const [visibleTypes, setVisibleTypes] = useState<EventType[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventProperties | null>(null);
   const boundsTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-  const { data, isLoading, error } = useEvents(filters);
+  const { data, loadedTypes, isLoading, error } = useEvents(fetchParams);
+
+  useEffect(() => {
+    if (loadedTypes.length === 0) return;
+    setVisibleTypes((prev) => {
+      const combined = new Set([...prev, ...loadedTypes]);
+      return combined.size !== prev.length ? [...combined] : prev;
+    });
+  }, [loadedTypes]);
+
+  const displayData = useMemo(() => {
+    if (!data?.features.length) return data;
+    const typeSet = new Set(visibleTypes);
+    return {
+      type: "FeatureCollection" as const,
+      features: data.features.filter((f) =>
+        typeSet.has(f.properties.event_type)
+      ),
+    };
+  }, [data, visibleTypes]);
 
   const handleSelectEvent = useCallback(
     (event: EventProperties | null) => setSelectedEvent(event),
@@ -27,20 +49,31 @@ export default function Home() {
     (bbox: [number, number, number, number]) => {
       if (boundsTimerRef.current) clearTimeout(boundsTimerRef.current);
       boundsTimerRef.current = setTimeout(() => {
-        setFilters((prev) => ({ ...prev, bbox }));
-      }, 300);
+        setFetchParams((prev) => ({ ...prev, bbox }));
+      }, 2000);
     },
     []
   );
 
-  const eventCount = data?.features?.length ?? 0;
+  const handleSinceChange = useCallback((since?: string) => {
+    setVisibleTypes([]);
+    setFetchParams((prev) => ({ ...prev, since }));
+  }, []);
+
+  const eventCount = displayData?.features?.length ?? 0;
+  const totalCount = data?.features?.length ?? 0;
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
-      <MapView data={data} onSelectEvent={handleSelectEvent} onBoundsChange={handleBoundsChange} />
+      <MapView data={displayData} onSelectEvent={handleSelectEvent} onBoundsChange={handleBoundsChange} />
 
       <div className="absolute top-4 left-4 z-10">
-        <FilterPanel filters={filters} onChange={setFilters} />
+        <FilterPanel
+          visibleTypes={visibleTypes}
+          onVisibleTypesChange={setVisibleTypes}
+          since={fetchParams.since}
+          onSinceChange={handleSinceChange}
+        />
       </div>
 
       {selectedEvent && (
@@ -80,8 +113,8 @@ export default function Home() {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              {eventCount > 0
-                ? `Loading events... (${eventCount} loaded)`
+              {totalCount > 0
+                ? `Loading events... (${totalCount} loaded)`
                 : "Loading events..."}
             </div>
           )}

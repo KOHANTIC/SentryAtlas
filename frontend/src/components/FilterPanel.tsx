@@ -1,67 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { EVENT_TYPES, EventType, FilterState } from "@/lib/types";
+import { EVENT_TYPES, EventType } from "@/lib/types";
 import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from "@/lib/mapStyles";
+import { TIME_PRESETS, getSinceDate, getActivePreset } from "@/lib/time";
 
 interface FilterPanelProps {
-  filters: FilterState;
-  onChange: (filters: FilterState) => void;
+  visibleTypes: EventType[];
+  onVisibleTypesChange: (types: EventType[]) => void;
+  since?: string;
+  onSinceChange: (since?: string) => void;
 }
 
-const TIME_PRESETS = [
-  { label: "24h", value: "24h" },
-  { label: "7d", value: "7d" },
-  { label: "30d", value: "30d" },
-] as const;
-
-type TimePreset = (typeof TIME_PRESETS)[number]["value"];
-
-function getSinceDate(preset: TimePreset): string {
-  const now = new Date();
-  switch (preset) {
-    case "24h":
-      return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-    case "7d":
-      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    case "30d":
-      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  }
-}
-
-function getActivePreset(since?: string): TimePreset | null {
-  if (!since) return null;
-  const sinceMs = new Date(since).getTime();
-  const nowMs = Date.now();
-  const diff = nowMs - sinceMs;
-  const hour = 60 * 60 * 1000;
-  if (Math.abs(diff - 24 * hour) < hour) return "24h";
-  if (Math.abs(diff - 7 * 24 * hour) < hour) return "7d";
-  if (Math.abs(diff - 30 * 24 * hour) < 2 * hour) return "30d";
-  return null;
-}
-
-export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
+export default function FilterPanel({
+  visibleTypes,
+  onVisibleTypesChange,
+  since,
+  onSinceChange,
+}: FilterPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const activePreset = getActivePreset(filters.since);
+  const activePreset = getActivePreset(since);
 
   const toggleType = (type: EventType) => {
-    const current = filters.types;
-    const next = current.includes(type)
-      ? current.filter((t) => t !== type)
-      : [...current, type];
-    onChange({ ...filters, types: next });
+    const next = visibleTypes.includes(type)
+      ? visibleTypes.filter((t) => t !== type)
+      : [...visibleTypes, type];
+    onVisibleTypesChange(next);
   };
 
-  const selectAll = () => onChange({ ...filters, types: [...EVENT_TYPES] });
-  const clearAll = () => onChange({ ...filters, types: [] });
+  const selectAll = () => onVisibleTypesChange([...EVENT_TYPES]);
+  const clearAll = () => onVisibleTypesChange([]);
 
-  const setTimePreset = (preset: TimePreset) => {
+  const setTimePreset = (preset: (typeof TIME_PRESETS)[number]["value"]) => {
     const isActive = activePreset === preset;
-    onChange({
-      ...filters,
-      since: isActive ? undefined : getSinceDate(preset),
-    });
+    onSinceChange(isActive ? undefined : getSinceDate(preset));
   };
 
   if (collapsed) {
@@ -160,7 +132,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
 
         <div className="space-y-0.5">
           {EVENT_TYPES.map((type) => {
-            const active = filters.types.includes(type);
+            const active = visibleTypes.includes(type);
             return (
               <button
                 key={type}

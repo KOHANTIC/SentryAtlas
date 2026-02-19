@@ -2,19 +2,20 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { streamEvents } from "@/lib/api";
-import { EventsGeoJSON, GeoJSONFeature, FilterState } from "@/lib/types";
+import type { EventsGeoJSON, GeoJSONFeature, FetchParams, EventType } from "@/lib/types";
 
 interface UseEventsResult {
   data: EventsGeoJSON | null;
+  loadedTypes: EventType[];
   isLoading: boolean;
   error: string | null;
-  refetch: () => void;
 }
 
 const EMPTY_GEOJSON: EventsGeoJSON = { type: "FeatureCollection", features: [] };
 
-export function useEvents(filters: FilterState): UseEventsResult {
+export function useEvents(params: FetchParams): UseEventsResult {
   const [data, setData] = useState<EventsGeoJSON | null>(null);
+  const [loadedTypes, setLoadedTypes] = useState<EventType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -27,25 +28,34 @@ export function useEvents(filters: FilterState): UseEventsResult {
     setIsLoading(true);
     setError(null);
     setData(EMPTY_GEOJSON);
-
-    if (filters.types.length === 0) {
-      setIsLoading(false);
-      return;
-    }
+    setLoadedTypes([]);
 
     const accumulated = new Map<string, GeoJSONFeature>();
+    const discoveredTypes = new Set<EventType>();
 
     try {
       await streamEvents(
-        filters,
+        params,
         (features) => {
+          if (controller.signal.aborted) return;
+
+          let hasNewTypes = false;
           for (const f of features) {
             accumulated.set(f.properties.id, f);
+            if (!discoveredTypes.has(f.properties.event_type)) {
+              discoveredTypes.add(f.properties.event_type);
+              hasNewTypes = true;
+            }
           }
+
           setData({
             type: "FeatureCollection",
             features: Array.from(accumulated.values()),
           });
+
+          if (hasNewTypes) {
+            setLoadedTypes(Array.from(discoveredTypes));
+          }
         },
         controller.signal
       );
@@ -58,12 +68,12 @@ export function useEvents(filters: FilterState): UseEventsResult {
         setIsLoading(false);
       }
     }
-  }, [filters]);
+  }, [params]);
 
   useEffect(() => {
     load();
     return () => abortRef.current?.abort();
   }, [load]);
 
-  return { data, isLoading, error, refetch: load };
+  return { data, loadedTypes, isLoading, error };
 }
