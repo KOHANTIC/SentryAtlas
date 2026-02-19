@@ -59,6 +59,24 @@ export default function Legend() {
           </svg>
         </button>
       </div>
+
+      <div className="px-3 py-2 border-b border-gray-200/60">
+        <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+          Severity Intensity
+        </span>
+        <div
+          className="mt-1.5 h-2.5 rounded-full"
+          style={{
+            background:
+              "linear-gradient(to right, #16a34a, #a3e635, #facc15, #f97316, #dc2626)",
+          }}
+        />
+        <div className="flex justify-between mt-1">
+          <span className="text-[10px] text-gray-400">Low</span>
+          <span className="text-[10px] text-gray-400">High</span>
+        </div>
+      </div>
+
       <div className="px-3 py-2 space-y-1">
         {EVENT_TYPES.map((type) => (
           <div key={type} className="flex items-center gap-2">

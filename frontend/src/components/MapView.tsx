@@ -3,8 +3,7 @@
 import { useRef, useEffect, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import {
-  CLUSTER_LAYER,
-  CLUSTER_COUNT_LAYER,
+  HEATMAP_LAYER,
   UNCLUSTERED_POINT_LAYER,
   MAP_STYLE_URL,
   INITIAL_VIEW,
@@ -77,13 +76,9 @@ export default function MapView({ data, onSelectEvent }: MapViewProps) {
     map.addSource("events", {
       type: "geojson",
       data: { type: "FeatureCollection", features: [] },
-      cluster: true,
-      clusterMaxZoom: 14,
-      clusterRadius: 50,
     });
 
-    map.addLayer(CLUSTER_LAYER);
-    map.addLayer(CLUSTER_COUNT_LAYER);
+    map.addLayer(HEATMAP_LAYER);
     map.addLayer(UNCLUSTERED_POINT_LAYER);
   }, []);
 
@@ -108,25 +103,6 @@ export default function MapView({ data, onSelectEvent }: MapViewProps) {
 
     map.on("load", () => {
       setupLayers(map);
-    });
-
-    map.on("click", "clusters", async (e) => {
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: ["clusters"],
-      });
-      if (!features.length) return;
-
-      const clusterId = features[0].properties?.cluster_id;
-      const source = map.getSource("events") as maplibregl.GeoJSONSource;
-      const zoom = await source.getClusterExpansionZoom(clusterId);
-      const geometry = features[0].geometry;
-
-      if (geometry.type === "Point") {
-        map.easeTo({
-          center: geometry.coordinates as [number, number],
-          zoom,
-        });
-      }
     });
 
     map.on("click", "unclustered-point", (e) => {
@@ -167,12 +143,6 @@ export default function MapView({ data, onSelectEvent }: MapViewProps) {
         .addTo(map);
     });
 
-    map.on("mouseenter", "clusters", () => {
-      map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mouseleave", "clusters", () => {
-      map.getCanvas().style.cursor = "";
-    });
     map.on("mouseenter", "unclustered-point", () => {
       map.getCanvas().style.cursor = "pointer";
     });

@@ -1,7 +1,7 @@
 import type { EventType } from "./types";
 import type {
   CircleLayerSpecification,
-  SymbolLayerSpecification,
+  HeatmapLayerSpecification,
   DataDrivenPropertyValueSpecification,
 } from "maplibre-gl";
 
@@ -56,47 +56,51 @@ const colorMatchExpression = [
   "#888888",
 ] as unknown as DataDrivenPropertyValueSpecification<string>;
 
-export const CLUSTER_LAYER: CircleLayerSpecification = {
-  id: "clusters",
-  type: "circle",
+export const HEATMAP_LAYER = {
+  id: "events-heat",
+  type: "heatmap",
   source: "events",
-  filter: ["has", "point_count"],
   paint: {
-    "circle-color": [
-      "step",
-      ["get", "point_count"],
-      "#51bbd6",
-      10,
-      "#f1f075",
-      50,
-      "#f28cb1",
+    "heatmap-weight": [
+      "match",
+      ["get", "severity"],
+      "extreme", 1,
+      "severe", 0.75,
+      "moderate", 0.5,
+      "minor", 0.25,
+      0.3,
     ],
-    "circle-radius": ["step", ["get", "point_count"], 18, 10, 24, 50, 32],
-    "circle-stroke-width": 2,
-    "circle-stroke-color": "#ffffff",
+    "heatmap-intensity": [
+      "interpolate", ["linear"], ["zoom"],
+      0, 1,
+      9, 3,
+    ],
+    "heatmap-color": [
+      "interpolate", ["linear"], ["heatmap-density"],
+      0, "rgba(0,0,0,0)",
+      0.1, "#16a34a",
+      0.3, "#a3e635",
+      0.5, "#facc15",
+      0.7, "#f97316",
+      1, "#dc2626",
+    ],
+    "heatmap-radius": [
+      "interpolate", ["linear"], ["zoom"],
+      0, 15,
+      9, 30,
+    ],
+    "heatmap-opacity": [
+      "interpolate", ["linear"], ["zoom"],
+      7, 0.8,
+      9, 0,
+    ],
   },
-};
-
-export const CLUSTER_COUNT_LAYER: SymbolLayerSpecification = {
-  id: "cluster-count",
-  type: "symbol",
-  source: "events",
-  filter: ["has", "point_count"],
-  layout: {
-    "text-field": "{point_count_abbreviated}",
-    "text-size": 13,
-    "text-font": ["Open Sans Bold"],
-  },
-  paint: {
-    "text-color": "#1a1a2e",
-  },
-};
+} as unknown as HeatmapLayerSpecification;
 
 export const UNCLUSTERED_POINT_LAYER: CircleLayerSpecification = {
   id: "unclustered-point",
   type: "circle",
   source: "events",
-  filter: ["!", ["has", "point_count"]],
   paint: {
     "circle-color": colorMatchExpression,
     "circle-radius": [
@@ -112,7 +116,16 @@ export const UNCLUSTERED_POINT_LAYER: CircleLayerSpecification = {
     ],
     "circle-stroke-width": 2,
     "circle-stroke-color": "#ffffff",
-    "circle-opacity": 0.9,
+    "circle-opacity": [
+      "interpolate", ["linear"], ["zoom"],
+      6, 0,
+      8, 0.9,
+    ],
+    "circle-stroke-opacity": [
+      "interpolate", ["linear"], ["zoom"],
+      6, 0,
+      8, 1,
+    ],
   },
 };
 
