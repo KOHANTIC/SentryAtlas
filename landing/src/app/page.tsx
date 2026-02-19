@@ -274,8 +274,12 @@ export default function Home() {
       </section>
 
       {/* Data Sources */}
-      <section className="py-24 px-6 bg-brand-black">
-        <div className="max-w-5xl mx-auto">
+      <section className="relative py-24 px-6 bg-brand-black overflow-hidden">
+        <div
+          className="absolute -inset-16 bg-no-repeat bg-center bg-cover opacity-[0.1] pointer-events-none"
+          style={{ backgroundImage: "url('/contour-lines.svg')" }}
+        />
+        <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-brand-neutral mb-4">
               Powered by public data
