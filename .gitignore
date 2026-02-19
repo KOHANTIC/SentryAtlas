@@ -1,0 +1,36 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build output
+backend/server
+backend/tmp/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Go coverage
+*.out
+*.prof
+
+# Environment
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Node (frontend)
+node_modules/
+dist/
+.cache/
