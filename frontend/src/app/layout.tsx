@@ -8,7 +8,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Disaster Watch",
+  title: "SentryAtlas",
   description:
     "Real-time disaster monitoring map aggregating data from USGS, EONET, NOAA, and GDACS",
   icons: {
