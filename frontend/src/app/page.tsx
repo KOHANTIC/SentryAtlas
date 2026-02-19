@@ -97,8 +97,8 @@ export default function Home() {
 
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
         <span className="text-[11px] text-brand-neutral/80 bg-brand-black px-2 py-1 rounded-full">
-          Made with ♥️ by the{" "}
-          <span className="font-bold text-brand-accent">KOHANTIC</span>{" "}
+          Made with ♥ by the{" "}
+          <a href="https://kohantic.com" target="_blank" rel="noopener noreferrer" className="font-bold text-brand-accent hover:underline">KOHANTIC</a>{" "}
           team
         </span>
       </div>
