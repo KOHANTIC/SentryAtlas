@@ -47,6 +47,7 @@ export interface EventsGeoJSON {
 }
 
 export interface FetchParams {
+  types: EventType[];
   since?: string;
   bbox?: [number, number, number, number];
 }
