@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kohantic/disaster-watch/backend/internal/models"
+	"github.com/Kohantic/SentryAtlas/backend/internal/models"
 )
 
 const eonetBaseURL = "https://eonet.gsfc.nasa.gov/api/v3/events"

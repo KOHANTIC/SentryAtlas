@@ -1,4 +1,4 @@
-module github.com/kohantic/disaster-watch/backend
+module github.com/Kohantic/SentryAtlas/backend
 
 go 1.25.1
 

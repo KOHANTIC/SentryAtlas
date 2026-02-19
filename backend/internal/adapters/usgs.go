@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kohantic/disaster-watch/backend/internal/models"
+	"github.com/Kohantic/SentryAtlas/backend/internal/models"
 )
 
 const usgsBaseURL = "https://earthquake.usgs.gov/fdsnws/event/1/query"

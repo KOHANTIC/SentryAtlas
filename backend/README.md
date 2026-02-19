@@ -1,4 +1,4 @@
-# Disaster Watch — Backend
+# SentryAtlas — Backend
 
 Go API server that aggregates natural disaster data from multiple public sources and exposes it through a single unified endpoint.
 

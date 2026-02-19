@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/kohantic/disaster-watch/backend/internal/models"
+	"github.com/Kohantic/SentryAtlas/backend/internal/models"
 )
 
 type Adapter interface {

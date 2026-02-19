@@ -10,9 +10,9 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	"github.com/kohantic/disaster-watch/backend/internal/adapters"
-	"github.com/kohantic/disaster-watch/backend/internal/cache"
-	"github.com/kohantic/disaster-watch/backend/internal/models"
+	"github.com/Kohantic/SentryAtlas/backend/internal/adapters"
+	"github.com/Kohantic/SentryAtlas/backend/internal/cache"
+	"github.com/Kohantic/SentryAtlas/backend/internal/models"
 )
 
 type EventsService struct {
