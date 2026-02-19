@@ -89,6 +89,10 @@ func (a *GDACSAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]m
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusNoContent {
+		return nil, nil
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("gdacs: unexpected status %d", resp.StatusCode)
 	}
