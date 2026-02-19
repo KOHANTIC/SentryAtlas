@@ -24,22 +24,6 @@ const DATA_SOURCES = [
   },
 ];
 
-const EVENT_TYPES = [
-  "Earthquakes",
-  "Wildfires",
-  "Volcanoes",
-  "Storms",
-  "Floods",
-  "Cyclones",
-  "Tornados",
-  "Hurricanes",
-  "Winter Storms",
-  "Tsunamis",
-  "Droughts",
-  "Icebergs",
-  "Landslides",
-];
-
 function GlobeIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -186,13 +170,17 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-40 pb-24 px-6">
-        <div className="max-w-3xl mx-auto text-center">
+      <section className="relative pt-40 pb-24 px-6 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-no-repeat bg-center bg-cover opacity-[0.2] pointer-events-none"
+          style={{ backgroundImage: "url('/hero-background.svg')" }}
+        />
+        <div className="relative max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 text-xs font-medium text-brand-black/50 bg-brand-black/5 rounded-full px-3 py-1.5 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
             Open source &amp; free forever
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-brand-black leading-[1.1] mb-6">
+          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-brand-black leading-[1.1] mb-6 uppercase">
             Real-time disaster{" "}
             <span className="text-brand-accent">monitoring</span>,{" "}
             <br className="hidden sm:block" />
@@ -224,20 +212,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Event Types Ticker */}
-      <section className="py-8 border-y border-brand-black/5">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {EVENT_TYPES.map((type) => (
-              <span
-                key={type}
-                className="text-xs font-medium text-brand-black/40 bg-brand-black/[0.03] rounded-full px-3 py-1.5"
-              >
-                {type}
-              </span>
-            ))}
-          </div>
-        </div>
+      {/* Event Types Strip */}
+
+      <section className="py-6 border-y border-brand-black/5">
+        <p className="text-center text-sm text-brand-black/40 tracking-wide">
+          Earthquakes &middot; Wildfires &middot; Floods &middot; Storms &middot; Volcanoes &middot; Cyclones &middot; Hurricanes{" "}
+          <span className="text-brand-black/25">&amp; 6 more</span>
+        </p>
       </section>
 
       {/* What Is SentryAtlas */}
