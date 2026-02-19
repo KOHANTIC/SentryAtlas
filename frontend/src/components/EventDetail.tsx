@@ -85,19 +85,7 @@ export default function EventDetail({ event, onClose }: EventDetailProps) {
           </p>
         )}
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          {event.url ? (
-            <a
-              href={event.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2"
-            >
-              View source
-            </a>
-          ) : (
-            <span />
-          )}
+        <div className="pt-2 border-t border-gray-100">
           <span className="text-[11px] text-gray-400">via {event.source}</span>
         </div>
       </div>

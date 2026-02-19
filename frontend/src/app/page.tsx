@@ -7,11 +7,12 @@ import FilterPanel from "@/components/FilterPanel";
 import EventDetail from "@/components/EventDetail";
 import Legend from "@/components/Legend";
 import type { FilterState, EventProperties } from "@/lib/types";
+import { EVENT_TYPES } from "@/lib/types";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 export default function Home() {
-  const [filters, setFilters] = useState<FilterState>({ types: [] });
+  const [filters, setFilters] = useState<FilterState>({ types: [...EVENT_TYPES] });
   const [selectedEvent, setSelectedEvent] = useState<EventProperties | null>(null);
 
   const stableFilters = useMemo(() => filters, [filters]);

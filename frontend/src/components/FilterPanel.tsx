@@ -68,7 +68,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-3 hover:bg-white transition-colors"
+        className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-3 hover:bg-white transition-colors cursor-pointer text-gray-800"
         aria-label="Open filters"
       >
         <svg
@@ -94,7 +94,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
         <h2 className="text-sm font-semibold text-gray-800">Filters</h2>
         <button
           onClick={() => setCollapsed(true)}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           aria-label="Collapse filters"
         >
           <svg
@@ -125,7 +125,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
             <button
               key={preset.value}
               onClick={() => setTimePreset(preset.value)}
-              className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${
+              className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors cursor-pointer ${
                 activePreset === preset.value
                   ? "bg-gray-800 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -145,13 +145,13 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
           <div className="flex gap-2">
             <button
               onClick={selectAll}
-              className="text-[10px] text-blue-600 hover:text-blue-800 font-medium"
+              className="text-[10px] text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
             >
               All
             </button>
             <button
               onClick={clearAll}
-              className="text-[10px] text-blue-600 hover:text-blue-800 font-medium"
+              className="text-[10px] text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
             >
               None
             </button>
@@ -160,12 +160,12 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
 
         <div className="space-y-0.5">
           {EVENT_TYPES.map((type) => {
-            const active = filters.types.length === 0 || filters.types.includes(type);
+            const active = filters.types.includes(type);
             return (
               <button
                 key={type}
                 onClick={() => toggleType(type)}
-                className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-left text-sm transition-colors ${
+                className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-left text-sm transition-colors cursor-pointer ${
                   active
                     ? "text-gray-800 hover:bg-gray-100"
                     : "text-gray-400 hover:bg-gray-50"

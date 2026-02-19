@@ -42,10 +42,6 @@ function buildPopupHTML(props: EventProperties): string {
     magnitudeText = `<div style="font-size:13px;color:#555;margin-top:4px">Magnitude: <strong>${props.magnitude}</strong></div>`;
   }
 
-  const sourceLink = props.url
-    ? `<a href="${props.url}" target="_blank" rel="noopener noreferrer" style="color:#2563eb;font-size:12px;text-decoration:underline">View source</a>`
-    : "";
-
   return `
     <div style="max-width:280px;font-family:system-ui,sans-serif">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
@@ -53,12 +49,11 @@ function buildPopupHTML(props: EventProperties): string {
         <span style="font-size:11px;color:#666;text-transform:uppercase;font-weight:600">${label}</span>
         ${severityBadge}
       </div>
-      <div style="font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px">${props.title}</div>
+      <div style="font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px;color:#1a1a2e">${props.title}</div>
       ${magnitudeText}
       <div style="font-size:12px;color:#777;margin-top:4px">${date}</div>
       ${props.description ? `<div style="font-size:12px;color:#555;margin-top:6px;line-height:1.4">${props.description.slice(0, 200)}${props.description.length > 200 ? "..." : ""}</div>` : ""}
-      <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between">
-        ${sourceLink}
+      <div style="margin-top:8px">
         <span style="font-size:11px;color:#999">via ${props.source}</span>
       </div>
     </div>
