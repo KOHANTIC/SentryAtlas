@@ -55,10 +55,10 @@ export default function Home() {
         <Legend />
       </div>
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
-        <div className="bg-white/90 backdrop-blur-sm rounded-full shadow-lg px-4 py-2 flex items-center gap-3">
+      <div className="absolute top-4 right-4 z-10">
+        <div className="bg-brand-neutral/90 backdrop-blur-sm rounded-full shadow-lg px-4 py-2 flex items-center gap-3">
           {isLoading && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center gap-2 text-xs text-brand-black/50">
               <svg
                 className="animate-spin h-3.5 w-3.5"
                 xmlns="http://www.w3.org/2000/svg"
@@ -88,11 +88,19 @@ export default function Home() {
             <span className="text-xs text-red-600 font-medium">{error}</span>
           )}
           {!isLoading && !error && (
-            <span className="text-xs text-gray-600 font-medium">
+            <span className="text-xs text-brand-black/60 font-medium">
               {eventCount} {eventCount === 1 ? "event" : "events"}
             </span>
           )}
         </div>
+      </div>
+
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
+        <span className="text-[11px] text-brand-neutral/80 bg-brand-black px-2 py-1 rounded-full">
+          Made with ♥️ by the{" "}
+          <span className="font-bold text-brand-accent">KOHANTIC</span>{" "}
+          team
+        </span>
       </div>
     </div>
   );

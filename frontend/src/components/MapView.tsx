@@ -39,22 +39,22 @@ function buildPopupHTML(props: EventProperties): string {
 
   let magnitudeText = "";
   if (props.magnitude != null) {
-    magnitudeText = `<div style="font-size:13px;color:#555;margin-top:4px">Magnitude: <strong>${props.magnitude}</strong></div>`;
+    magnitudeText = `<div style="font-size:13px;color:#24242499;margin-top:4px">Magnitude: <strong>${props.magnitude}</strong></div>`;
   }
 
   return `
     <div style="max-width:280px;font-family:system-ui,sans-serif">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
         <span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0"></span>
-        <span style="font-size:11px;color:#666;text-transform:uppercase;font-weight:600">${label}</span>
+        <span style="font-size:11px;color:#24242499;text-transform:uppercase;font-weight:600">${label}</span>
         ${severityBadge}
       </div>
-      <div style="font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px;color:#1a1a2e">${props.title}</div>
+      <div style="font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px;color:#242424">${props.title}</div>
       ${magnitudeText}
-      <div style="font-size:12px;color:#777;margin-top:4px">${date}</div>
-      ${props.description ? `<div style="font-size:12px;color:#555;margin-top:6px;line-height:1.4">${props.description.slice(0, 200)}${props.description.length > 200 ? "..." : ""}</div>` : ""}
+      <div style="font-size:12px;color:#24242480;margin-top:4px">${date}</div>
+      ${props.description ? `<div style="font-size:12px;color:#24242499;margin-top:6px;line-height:1.4">${props.description.slice(0, 200)}${props.description.length > 200 ? "..." : ""}</div>` : ""}
       <div style="margin-top:8px">
-        <span style="font-size:11px;color:#999">via ${props.source}</span>
+        <span style="font-size:11px;color:#24242466">via ${props.source}</span>
       </div>
     </div>
   `;

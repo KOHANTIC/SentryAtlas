@@ -11,7 +11,7 @@ export default function Legend() {
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs font-medium text-gray-600 hover:bg-white transition-colors flex items-center gap-1.5"
+        className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs font-medium text-brand-black/60 hover:bg-brand-neutral transition-colors flex items-center gap-1.5"
         aria-label="Show legend"
       >
         <svg
@@ -35,12 +35,12 @@ export default function Legend() {
   }
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200/60">
-        <span className="text-xs font-semibold text-gray-700">Legend</span>
+    <div className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-brand-black/10">
+        <span className="text-xs font-semibold text-brand-black">Legend</span>
         <button
           onClick={() => setCollapsed(true)}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-brand-black/40 hover:text-brand-black/70 transition-colors"
           aria-label="Collapse legend"
         >
           <svg
@@ -60,8 +60,8 @@ export default function Legend() {
         </button>
       </div>
 
-      <div className="px-3 py-2 border-b border-gray-200/60">
-        <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+      <div className="px-3 py-2 border-b border-brand-black/10">
+        <span className="text-[10px] font-medium text-brand-black/50 uppercase tracking-wider">
           Severity Intensity
         </span>
         <div
@@ -72,8 +72,8 @@ export default function Legend() {
           }}
         />
         <div className="flex justify-between mt-1">
-          <span className="text-[10px] text-gray-400">Low</span>
-          <span className="text-[10px] text-gray-400">High</span>
+          <span className="text-[10px] text-brand-black/40">Low</span>
+          <span className="text-[10px] text-brand-black/40">High</span>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default function Legend() {
               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
               style={{ backgroundColor: EVENT_TYPE_COLORS[type] }}
             />
-            <span className="text-[11px] text-gray-600">
+            <span className="text-[11px] text-brand-black/60">
               {EVENT_TYPE_LABELS[type]}
             </span>
           </div>

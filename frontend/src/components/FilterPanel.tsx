@@ -40,7 +40,7 @@ export default function FilterPanel({
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-3 hover:bg-white transition-colors cursor-pointer text-gray-800"
+        className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg p-3 hover:bg-brand-neutral transition-colors cursor-pointer text-brand-black"
         aria-label="Open filters"
       >
         <svg
@@ -61,12 +61,12 @@ export default function FilterPanel({
   }
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg w-64 max-h-[calc(100vh-2rem)] overflow-y-auto">
-      <div className="flex items-center justify-between p-3 border-b border-gray-200/60">
-        <h2 className="text-sm font-semibold text-gray-800">Filters</h2>
+    <div className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg w-64 max-h-[calc(100vh-2rem)] overflow-y-auto">
+      <div className="flex items-center justify-between p-3 border-b border-brand-black/10">
+        <h2 className="text-sm font-semibold text-brand-black">Filters</h2>
         <button
           onClick={() => setCollapsed(true)}
-          className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+          className="text-brand-black/40 hover:text-brand-black/70 transition-colors cursor-pointer"
           aria-label="Collapse filters"
         >
           <svg
@@ -86,9 +86,9 @@ export default function FilterPanel({
         </button>
       </div>
 
-      <div className="p-3 border-b border-gray-200/60">
+      <div className="p-3 border-b border-brand-black/10">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <span className="text-xs font-medium text-brand-black/50 uppercase tracking-wider">
             Time Range
           </span>
         </div>
@@ -99,8 +99,8 @@ export default function FilterPanel({
               onClick={() => setTimePreset(preset.value)}
               className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors cursor-pointer ${
                 activePreset === preset.value
-                  ? "bg-gray-800 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-brand-black text-brand-neutral"
+                  : "bg-brand-black/5 text-brand-black/60 hover:bg-brand-black/10"
               }`}
             >
               {preset.label}
@@ -111,19 +111,19 @@ export default function FilterPanel({
 
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <span className="text-xs font-medium text-brand-black/50 uppercase tracking-wider">
             Event Types
           </span>
           <div className="flex gap-2">
             <button
               onClick={selectAll}
-              className="text-[10px] text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+              className="text-[10px] text-brand-accent hover:text-brand-accent/80 font-medium cursor-pointer"
             >
               All
             </button>
             <button
               onClick={clearAll}
-              className="text-[10px] text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+              className="text-[10px] text-brand-accent hover:text-brand-accent/80 font-medium cursor-pointer"
             >
               None
             </button>
@@ -139,12 +139,12 @@ export default function FilterPanel({
                 onClick={() => toggleType(type)}
                 className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-left text-sm transition-colors cursor-pointer ${
                   active
-                    ? "text-gray-800 hover:bg-gray-100"
-                    : "text-gray-400 hover:bg-gray-50"
+                    ? "text-brand-black hover:bg-brand-black/5"
+                    : "text-brand-black/35 hover:bg-brand-black/5"
                 }`}
               >
                 <span
-                  className="w-3 h-3 rounded-full flex-shrink-0 border border-white"
+                  className="w-3 h-3 rounded-full flex-shrink-0 border border-brand-neutral"
                   style={{
                     backgroundColor: active
                       ? EVENT_TYPE_COLORS[type]

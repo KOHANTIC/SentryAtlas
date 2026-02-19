@@ -1,16 +1,10 @@
 @import "tailwindcss";
 @import "maplibre-gl/dist/maplibre-gl.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-brand-neutral: #F2F2F2;
+  --color-brand-black: #242424;
+  --color-brand-accent: #F6AD65;
 }
 
 html,
@@ -22,7 +16,7 @@ body {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-brand-neutral);
+  color: var(--color-brand-black);
   font-family: Arial, Helvetica, sans-serif;
 }
