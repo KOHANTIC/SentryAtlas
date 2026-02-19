@@ -1,35 +1,65 @@
-import { EVENT_TYPES, EventsGeoJSON, FilterState } from "./types";
+import { EVENT_TYPES, GeoJSONFeature, FilterState } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
-const EMPTY_GEOJSON: EventsGeoJSON = { type: "FeatureCollection", features: [] };
-
-export async function fetchEvents(filters: FilterState): Promise<EventsGeoJSON> {
-  if (filters.types.length === 0) {
-    return EMPTY_GEOJSON;
-  }
-
+function buildParams(filters: FilterState): URLSearchParams {
   const params = new URLSearchParams();
-  params.set("format", "geojson");
-
   if (filters.types.length < EVENT_TYPES.length) {
     params.set("types", filters.types.join(","));
   }
-
   if (filters.since) {
     params.set("since", filters.since);
   }
-
   if (filters.bbox) {
     params.set("bbox", filters.bbox.join(","));
   }
+  return params;
+}
 
-  const res = await fetch(`${API_URL}/api/v1/events?${params.toString()}`);
+export async function streamEvents(
+  filters: FilterState,
+  onChunk: (features: GeoJSONFeature[]) => void,
+  signal: AbortSignal
+): Promise<void> {
+  if (filters.types.length === 0) return;
+
+  const params = buildParams(filters);
+  params.set("format", "sse");
+
+  const res = await fetch(`${API_URL}/api/v1/events?${params.toString()}`, {
+    signal,
+  });
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     throw new Error(body?.error ?? `API error: ${res.status}`);
   }
 
-  return res.json();
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop()!;
+
+    for (const part of parts) {
+      let eventType = "";
+      let data = "";
+      for (const line of part.split("\n")) {
+        if (line.startsWith("event: ")) eventType = line.slice(7);
+        else if (line.startsWith("data: ")) data = line.slice(6);
+      }
+      if (eventType === "features" && data) {
+        const geojson = JSON.parse(data);
+        if (geojson.features?.length) {
+          onChunk(geojson.features as GeoJSONFeature[]);
+        }
+      }
+    }
+  }
 }

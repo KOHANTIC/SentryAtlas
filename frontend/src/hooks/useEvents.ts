@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { fetchEvents } from "@/lib/api";
-import { EventsGeoJSON, FilterState } from "@/lib/types";
+import { streamEvents } from "@/lib/api";
+import { EventsGeoJSON, GeoJSONFeature, FilterState } from "@/lib/types";
 
 interface UseEventsResult {
   data: EventsGeoJSON | null;
@@ -10,6 +10,8 @@ interface UseEventsResult {
   error: string | null;
   refetch: () => void;
 }
+
+const EMPTY_GEOJSON: EventsGeoJSON = { type: "FeatureCollection", features: [] };
 
 export function useEvents(filters: FilterState): UseEventsResult {
   const [data, setData] = useState<EventsGeoJSON | null>(null);
@@ -24,12 +26,29 @@ export function useEvents(filters: FilterState): UseEventsResult {
 
     setIsLoading(true);
     setError(null);
+    setData(EMPTY_GEOJSON);
+
+    if (filters.types.length === 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    const accumulated = new Map<string, GeoJSONFeature>();
 
     try {
-      const result = await fetchEvents(filters);
-      if (!controller.signal.aborted) {
-        setData(result);
-      }
+      await streamEvents(
+        filters,
+        (features) => {
+          for (const f of features) {
+            accumulated.set(f.properties.id, f);
+          }
+          setData({
+            type: "FeatureCollection",
+            features: Array.from(accumulated.values()),
+          });
+        },
+        controller.signal
+      );
     } catch (err) {
       if (!controller.signal.aborted) {
         setError(err instanceof Error ? err.message : "Failed to fetch events");

@@ -89,6 +89,53 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 	return allEvents, nil
 }
 
+func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchParams, ch chan<- []models.Event) {
+	cacheKey := buildCacheKey(params)
+	if cached, ok := s.cache.Get(cacheKey); ok {
+		ch <- cached
+		return
+	}
+
+	relevant := s.selectAdapters(params.Types)
+	if len(relevant) == 0 {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, s.timeout)
+	defer cancel()
+
+	var mu sync.Mutex
+	var allEvents []models.Event
+	var wg sync.WaitGroup
+
+	for _, a := range relevant {
+		a := a
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			events, err := a.FetchEvents(ctx, params)
+			if err != nil {
+				slog.Warn("adapter stream failed",
+					"source", a.Source(),
+					"error", err,
+				)
+				return
+			}
+			filtered := filterEvents(events, params)
+			if len(filtered) > 0 {
+				mu.Lock()
+				allEvents = append(allEvents, filtered...)
+				mu.Unlock()
+				ch <- filtered
+			}
+		}()
+	}
+
+	wg.Wait()
+	sortEventsByDate(allEvents)
+	s.cache.Set(cacheKey, allEvents)
+}
+
 func (s *EventsService) selectAdapters(types []string) []adapters.Adapter {
 	var result []adapters.Adapter
 	for _, a := range s.adapters {

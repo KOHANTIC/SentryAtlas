@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -27,6 +28,11 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if format == "sse" {
+		h.streamEvents(w, r, params)
+		return
+	}
+
 	events, err := h.service.GetEvents(r.Context(), params)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to fetch events")
@@ -50,6 +56,39 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+func (h *EventsHandler) streamEvents(w http.ResponseWriter, r *http.Request, params adapters.FetchParams) {
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		writeError(w, http.StatusInternalServerError, "streaming not supported")
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	ch := make(chan []models.Event, 4)
+	go func() {
+		h.service.StreamEvents(r.Context(), params, ch)
+		close(ch)
+	}()
+
+	total := 0
+	for batch := range ch {
+		total += len(batch)
+		data, err := models.MarshalGeoJSON(batch)
+		if err != nil {
+			continue
+		}
+		fmt.Fprintf(w, "event: features\ndata: %s\n\n", data)
+		flusher.Flush()
+	}
+
+	doneData, _ := json.Marshal(map[string]int{"total": total})
+	fmt.Fprintf(w, "event: done\ndata: %s\n\n", doneData)
+	flusher.Flush()
 }
 
 func parseQueryParams(r *http.Request) (adapters.FetchParams, string, error) {
@@ -91,8 +130,8 @@ func parseQueryParams(r *http.Request) (adapters.FetchParams, string, error) {
 	}
 
 	format := q.Get("format")
-	if format != "" && format != "geojson" && format != "json" {
-		return params, "", fmt.Errorf("invalid format: must be 'geojson' or 'json'")
+	if format != "" && format != "geojson" && format != "json" && format != "sse" {
+		return params, "", fmt.Errorf("invalid format: must be 'geojson', 'json', or 'sse'")
 	}
 	if format == "" {
 		format = "geojson"
