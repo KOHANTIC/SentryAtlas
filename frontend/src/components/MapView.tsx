@@ -15,6 +15,7 @@ import type { EventsGeoJSON, EventProperties, Severity } from "@/lib/types";
 interface MapViewProps {
   data: EventsGeoJSON | null;
   onSelectEvent: (properties: EventProperties | null) => void;
+  onBoundsChange: (bbox: [number, number, number, number]) => void;
 }
 
 const SEVERITY_BADGES: Record<Severity, { bg: string; text: string }> = {
@@ -60,10 +61,12 @@ function buildPopupHTML(props: EventProperties): string {
   `;
 }
 
-export default function MapView({ data, onSelectEvent }: MapViewProps) {
+export default function MapView({ data, onSelectEvent, onBoundsChange }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
+  const onBoundsChangeRef = useRef(onBoundsChange);
+  onBoundsChangeRef.current = onBoundsChange;
 
   const setupLayers = useCallback((map: maplibregl.Map) => {
     if (map.getSource("events")) return;
@@ -96,9 +99,22 @@ export default function MapView({ data, onSelectEvent }: MapViewProps) {
       "bottom-right"
     );
 
+    const emitBounds = () => {
+      const bounds = map.getBounds();
+      onBoundsChangeRef.current([
+        bounds.getWest(),
+        bounds.getSouth(),
+        bounds.getEast(),
+        bounds.getNorth(),
+      ]);
+    };
+
     map.on("load", () => {
       setupLayers(map);
+      emitBounds();
     });
+
+    map.on("moveend", emitBounds);
 
     map.on("click", "unclustered-point", (e) => {
       const feature = e.features?.[0];

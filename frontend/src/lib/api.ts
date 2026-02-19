@@ -24,8 +24,6 @@ export async function fetchEvents(filters: FilterState): Promise<EventsGeoJSON> 
     params.set("bbox", filters.bbox.join(","));
   }
 
-  params.set("limit", "500");
-
   const res = await fetch(`${API_URL}/api/v1/events?${params.toString()}`);
 
   if (!res.ok) {

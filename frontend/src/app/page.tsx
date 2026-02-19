@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useEvents } from "@/hooks/useEvents";
 import FilterPanel from "@/components/FilterPanel";
@@ -14,12 +14,22 @@ const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 export default function Home() {
   const [filters, setFilters] = useState<FilterState>({ types: [...EVENT_TYPES] });
   const [selectedEvent, setSelectedEvent] = useState<EventProperties | null>(null);
+  const boundsTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-  const stableFilters = useMemo(() => filters, [filters]);
-  const { data, isLoading, error } = useEvents(stableFilters);
+  const { data, isLoading, error } = useEvents(filters);
 
   const handleSelectEvent = useCallback(
     (event: EventProperties | null) => setSelectedEvent(event),
+    []
+  );
+
+  const handleBoundsChange = useCallback(
+    (bbox: [number, number, number, number]) => {
+      if (boundsTimerRef.current) clearTimeout(boundsTimerRef.current);
+      boundsTimerRef.current = setTimeout(() => {
+        setFilters((prev) => ({ ...prev, bbox }));
+      }, 300);
+    },
     []
   );
 
@@ -27,7 +37,7 @@ export default function Home() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
-      <MapView data={data} onSelectEvent={handleSelectEvent} />
+      <MapView data={data} onSelectEvent={handleSelectEvent} onBoundsChange={handleBoundsChange} />
 
       <div className="absolute top-4 left-4 z-10">
         <FilterPanel filters={filters} onChange={setFilters} />
