@@ -15,16 +15,15 @@ export default function Home() {
     types: [],
     since: getSinceDate("7d"),
   });
-  const boundsTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-
   const { data, isLoading, error } = useEvents(fetchParams);
 
+  const boundsTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const handleBoundsChange = useCallback(
     (bbox: [number, number, number, number]) => {
-      if (boundsTimerRef.current) clearTimeout(boundsTimerRef.current);
-      boundsTimerRef.current = setTimeout(() => {
+      if (boundsTimer.current) clearTimeout(boundsTimer.current);
+      boundsTimer.current = setTimeout(() => {
         setFetchParams((prev) => ({ ...prev, bbox }));
-      }, 2000);
+      }, 300);
     },
     []
   );
