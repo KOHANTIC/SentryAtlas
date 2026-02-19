@@ -14,7 +14,6 @@ import type { EventsGeoJSON, EventProperties, Severity } from "@/lib/types";
 
 interface MapViewProps {
   data: EventsGeoJSON | null;
-  onSelectEvent: (properties: EventProperties | null) => void;
   onBoundsChange: (bbox: [number, number, number, number]) => void;
 }
 
@@ -61,7 +60,7 @@ function buildPopupHTML(props: EventProperties): string {
   `;
 }
 
-export default function MapView({ data, onSelectEvent, onBoundsChange }: MapViewProps) {
+export default function MapView({ data, onBoundsChange }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
@@ -141,8 +140,6 @@ export default function MapView({ data, onSelectEvent, onBoundsChange }: MapView
           : undefined,
       };
 
-      onSelectEvent(parsed);
-
       popupRef.current?.remove();
       popupRef.current = new maplibregl.Popup({
         closeOnClick: true,
@@ -167,7 +164,7 @@ export default function MapView({ data, onSelectEvent, onBoundsChange }: MapView
       map.remove();
       mapRef.current = null;
     };
-  }, [setupLayers, onSelectEvent]);
+  }, [setupLayers]);
 
   useEffect(() => {
     const map = mapRef.current;

@@ -4,9 +4,8 @@ import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useEvents } from "@/hooks/useEvents";
 import FilterPanel from "@/components/FilterPanel";
-import EventDetail from "@/components/EventDetail";
 import Legend from "@/components/Legend";
-import type { FetchParams, EventProperties, EventType } from "@/lib/types";
+import type { FetchParams, EventType } from "@/lib/types";
 import { getSinceDate } from "@/lib/time";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -16,7 +15,6 @@ export default function Home() {
     since: getSinceDate("7d"),
   });
   const [visibleTypes, setVisibleTypes] = useState<EventType[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<EventProperties | null>(null);
   const boundsTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const { data, loadedTypes, isLoading, error } = useEvents(fetchParams);
@@ -40,11 +38,6 @@ export default function Home() {
     };
   }, [data, visibleTypes]);
 
-  const handleSelectEvent = useCallback(
-    (event: EventProperties | null) => setSelectedEvent(event),
-    []
-  );
-
   const handleBoundsChange = useCallback(
     (bbox: [number, number, number, number]) => {
       if (boundsTimerRef.current) clearTimeout(boundsTimerRef.current);
@@ -65,7 +58,7 @@ export default function Home() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
-      <MapView data={displayData} onSelectEvent={handleSelectEvent} onBoundsChange={handleBoundsChange} />
+      <MapView data={displayData} onBoundsChange={handleBoundsChange} />
 
       <div className="absolute top-4 left-4 z-10">
         <FilterPanel
@@ -75,15 +68,6 @@ export default function Home() {
           onSinceChange={handleSinceChange}
         />
       </div>
-
-      {selectedEvent && (
-        <div className="absolute top-4 right-4 z-10">
-          <EventDetail
-            event={selectedEvent}
-            onClose={() => setSelectedEvent(null)}
-          />
-        </div>
-      )}
 
       <div className="absolute bottom-6 left-4 z-10">
         <Legend />
