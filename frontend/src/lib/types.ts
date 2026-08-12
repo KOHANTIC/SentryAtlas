@@ -51,3 +51,15 @@ export interface FetchParams {
   since?: string;
   bbox?: [number, number, number, number];
 }
+
+export interface SourceStatus {
+  source: string;
+  ok: boolean;
+  error?: string;
+}
+
+// Payload of the SSE "done" event that terminates a stream.
+export interface StreamSummary {
+  total: number;
+  sources: SourceStatus[];
+}

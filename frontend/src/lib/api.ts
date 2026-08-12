@@ -1,4 +1,4 @@
-import { GeoJSONFeature, FetchParams } from "./types";
+import { GeoJSONFeature, FetchParams, StreamSummary } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -13,7 +13,8 @@ function buildParams(params: FetchParams): URLSearchParams {
 export async function streamEvents(
   params: FetchParams,
   onChunk: (features: GeoJSONFeature[]) => void,
-  signal: AbortSignal
+  signal: AbortSignal,
+  onDone?: (summary: StreamSummary) => void
 ): Promise<void> {
   if (params.types.length === 0) return;
 
@@ -29,7 +30,11 @@ export async function streamEvents(
     throw new Error(body?.error ?? `API error: ${res.status}`);
   }
 
-  const reader = res.body!.getReader();
+  if (!res.body) {
+    throw new Error("API response has no body");
+  }
+
+  const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
 
@@ -50,9 +55,15 @@ export async function streamEvents(
       }
       if (eventType === "features" && data) {
         const geojson = JSON.parse(data);
-        if (geojson.features?.length) {
-          onChunk(geojson.features as GeoJSONFeature[]);
+        // Unlocated events (e.g. NOAA alerts without a polygon) arrive with
+        // geometry: null and cannot be drawn on the map.
+        const drawable = ((geojson.features ?? []) as { geometry: unknown }[])
+          .filter((f) => f.geometry != null);
+        if (drawable.length) {
+          onChunk(drawable as GeoJSONFeature[]);
         }
+      } else if (eventType === "done" && data) {
+        onDone?.(JSON.parse(data) as StreamSummary);
       }
     }
   }
