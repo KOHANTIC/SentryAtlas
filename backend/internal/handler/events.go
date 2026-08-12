@@ -186,5 +186,7 @@ func parseBBox(s string) (*adapters.BBox, error) {
 func writeError(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	fmt.Fprintf(w, `{"error":"%s"}`, message)
+	// Encoded, not formatted into a template: a message containing a quote
+	// must not be able to break out of the JSON string.
+	_ = json.NewEncoder(w).Encode(map[string]string{"error": message})
 }
