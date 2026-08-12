@@ -124,7 +124,9 @@ export default function MapView({ data, onBoundsChange }: MapViewProps) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const onBoundsChangeRef = useRef(onBoundsChange);
-  onBoundsChangeRef.current = onBoundsChange;
+  useEffect(() => {
+    onBoundsChangeRef.current = onBoundsChange;
+  }, [onBoundsChange]);
 
   const setupLayers = useCallback((map: maplibregl.Map) => {
     if (map.getSource("events")) return;
