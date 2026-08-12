@@ -11,8 +11,10 @@ export default function Legend() {
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs font-medium text-brand-black/60 hover:bg-brand-neutral transition-colors flex items-center gap-1.5"
+        className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs font-medium text-brand-black/60 hover:bg-brand-neutral transition-colors flex items-center gap-1.5 cursor-pointer"
         aria-label="Show legend"
+        aria-expanded={false}
+        aria-controls="map-legend"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -35,13 +37,15 @@ export default function Legend() {
   }
 
   return (
-    <div className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden">
+    <div id="map-legend" className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2 border-b border-brand-black/10">
         <span className="text-xs font-semibold text-brand-black">Legend</span>
         <button
           onClick={() => setCollapsed(true)}
-          className="text-brand-black/40 hover:text-brand-black/70 transition-colors"
+          className="text-brand-black/60 hover:text-brand-black/80 transition-colors cursor-pointer"
           aria-label="Collapse legend"
+          aria-expanded={true}
+          aria-controls="map-legend"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -61,7 +65,7 @@ export default function Legend() {
       </div>
 
       <div className="px-3 py-2 border-b border-brand-black/10">
-        <span className="text-[10px] font-medium text-brand-black/50 uppercase tracking-wider">
+        <span className="text-[10px] font-medium text-brand-black/60 uppercase tracking-wider">
           Severity Intensity
         </span>
         <div
@@ -72,8 +76,8 @@ export default function Legend() {
           }}
         />
         <div className="flex justify-between mt-1">
-          <span className="text-[10px] text-brand-black/40">Low</span>
-          <span className="text-[10px] text-brand-black/40">High</span>
+          <span className="text-[10px] text-brand-black/60">Low</span>
+          <span className="text-[10px] text-brand-black/60">High</span>
         </div>
       </div>
 

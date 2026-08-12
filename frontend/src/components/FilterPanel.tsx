@@ -42,6 +42,8 @@ export default function FilterPanel({
         onClick={() => setCollapsed(false)}
         className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg p-3 hover:bg-brand-neutral transition-colors cursor-pointer text-brand-black"
         aria-label="Open filters"
+        aria-expanded={false}
+        aria-controls="filter-panel"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -61,13 +63,15 @@ export default function FilterPanel({
   }
 
   return (
-    <div className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg w-64 max-h-[calc(100vh-2rem)] overflow-y-auto">
+    <div id="filter-panel" className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg w-64 max-w-full max-h-[calc(100dvh-2rem)] overflow-y-auto">
       <div className="flex items-center justify-between p-3 border-b border-brand-black/10">
         <h2 className="text-sm font-semibold text-brand-black">Filters</h2>
         <button
           onClick={() => setCollapsed(true)}
-          className="text-brand-black/40 hover:text-brand-black/70 transition-colors cursor-pointer"
+          className="text-brand-black/60 hover:text-brand-black/80 transition-colors cursor-pointer"
           aria-label="Collapse filters"
+          aria-expanded={true}
+          aria-controls="filter-panel"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +92,7 @@ export default function FilterPanel({
 
       <div className="p-3 border-b border-brand-black/10">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-brand-black/50 uppercase tracking-wider">
+          <span className="text-xs font-medium text-brand-black/60 uppercase tracking-wider">
             Time Range
           </span>
         </div>
@@ -97,6 +101,7 @@ export default function FilterPanel({
             <button
               key={preset.value}
               onClick={() => setTimePreset(preset.value)}
+              aria-pressed={activePreset === preset.value}
               className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors cursor-pointer ${
                 activePreset === preset.value
                   ? "bg-brand-black text-brand-neutral"
@@ -111,7 +116,7 @@ export default function FilterPanel({
 
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-brand-black/50 uppercase tracking-wider">
+          <span className="text-xs font-medium text-brand-black/60 uppercase tracking-wider">
             Event Types
           </span>
           <div className="flex gap-2">
@@ -137,10 +142,11 @@ export default function FilterPanel({
               <button
                 key={type}
                 onClick={() => toggleType(type)}
+                aria-pressed={active}
                 className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-left text-sm transition-colors cursor-pointer ${
                   active
                     ? "text-brand-black hover:bg-brand-black/5"
-                    : "text-brand-black/35 hover:bg-brand-black/5"
+                    : "text-brand-black/55 hover:bg-brand-black/5"
                 }`}
               >
                 <span
