@@ -1,4 +1,8 @@
-.env
-.env.example
+.env*
+!.env.example
 README.md
 .git
+.DS_Store
+Dockerfile
+*.test
+*.out
