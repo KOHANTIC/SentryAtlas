@@ -5,14 +5,16 @@ import dynamic from "next/dynamic";
 import { useEvents } from "@/hooks/useEvents";
 import FilterPanel from "@/components/FilterPanel";
 import Legend from "@/components/Legend";
-import type { FetchParams, EventType } from "@/lib/types";
+import { EVENT_TYPES, type FetchParams, type EventType } from "@/lib/types";
 import { getSinceDate } from "@/lib/time";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 export default function Home() {
+  // All types visible by default: an empty selection renders a blank world
+  // map with "0 events", which reads as broken to a first-time visitor.
   const [fetchParams, setFetchParams] = useState<FetchParams>({
-    types: [],
+    types: [...EVENT_TYPES],
     since: getSinceDate("7d"),
   });
   const { data, isLoading, error } = useEvents(fetchParams);
