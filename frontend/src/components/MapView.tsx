@@ -24,40 +24,99 @@ const SEVERITY_BADGES: Record<Severity, { bg: string; text: string }> = {
   minor: { bg: "#16a34a", text: "#fff" },
 };
 
-function buildPopupHTML(props: EventProperties): string {
+// el builds a styled element whose text is assigned via textContent.
+// Popup values originate from third-party feeds (GDACS descriptions carry
+// HTML), so nothing feed-sourced may ever be interpolated into markup.
+function el(tag: string, style: string, text?: string): HTMLElement {
+  const node = document.createElement(tag);
+  node.style.cssText = style;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function buildPopupContent(props: EventProperties): HTMLElement {
   const color = EVENT_TYPE_COLORS[props.event_type] ?? "#888";
   const label = EVENT_TYPE_LABELS[props.event_type] ?? props.event_type;
   const date = new Date(props.started_at).toLocaleString();
 
-  let severityBadge = "";
+  const root = el("div", "max-width:280px;font-family:system-ui,sans-serif");
+
+  const header = el(
+    "div",
+    "display:flex;align-items:center;gap:6px;margin-bottom:6px"
+  );
+  header.appendChild(
+    el(
+      "span",
+      `width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0`
+    )
+  );
+  header.appendChild(
+    el(
+      "span",
+      "font-size:11px;color:#24242499;text-transform:uppercase;font-weight:600",
+      label
+    )
+  );
   if (props.severity) {
     const badge = SEVERITY_BADGES[props.severity];
     if (badge) {
-      severityBadge = `<span style="background:${badge.bg};color:${badge.text};padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;text-transform:uppercase">${props.severity}</span>`;
+      header.appendChild(
+        el(
+          "span",
+          `background:${badge.bg};color:${badge.text};padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;text-transform:uppercase`,
+          props.severity
+        )
+      );
     }
   }
+  root.appendChild(header);
 
-  let magnitudeText = "";
+  root.appendChild(
+    el(
+      "div",
+      "font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px;color:#242424",
+      props.title
+    )
+  );
+
   if (props.magnitude != null) {
-    magnitudeText = `<div style="font-size:13px;color:#24242499;margin-top:4px">Magnitude: <strong>${props.magnitude}</strong></div>`;
+    const magnitude = el(
+      "div",
+      "font-size:13px;color:#24242499;margin-top:4px",
+      "Magnitude: "
+    );
+    const value = document.createElement("strong");
+    value.textContent = String(props.magnitude);
+    magnitude.appendChild(value);
+    root.appendChild(magnitude);
   }
 
-  return `
-    <div style="max-width:280px;font-family:system-ui,sans-serif">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-        <span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0"></span>
-        <span style="font-size:11px;color:#24242499;text-transform:uppercase;font-weight:600">${label}</span>
-        ${severityBadge}
-      </div>
-      <div style="font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px;color:#242424">${props.title}</div>
-      ${magnitudeText}
-      <div style="font-size:12px;color:#24242480;margin-top:4px">${date}</div>
-      ${props.description ? `<div style="font-size:12px;color:#24242499;margin-top:6px;line-height:1.4">${props.description.slice(0, 200)}${props.description.length > 200 ? "..." : ""}</div>` : ""}
-      <div style="margin-top:8px">
-        <span style="font-size:11px;color:#24242466">via ${props.source}</span>
-      </div>
-    </div>
-  `;
+  root.appendChild(
+    el("div", "font-size:12px;color:#24242480;margin-top:4px", date)
+  );
+
+  if (props.description) {
+    const truncated =
+      props.description.length > 200
+        ? `${props.description.slice(0, 200)}...`
+        : props.description;
+    root.appendChild(
+      el(
+        "div",
+        "font-size:12px;color:#24242499;margin-top:6px;line-height:1.4",
+        truncated
+      )
+    );
+  }
+
+  const footer = el("div", "margin-top:8px");
+  footer.appendChild(
+    el("span", "font-size:11px;color:#24242466", `via ${props.source}`)
+  );
+  root.appendChild(footer);
+
+  return root;
 }
 
 export default function MapView({ data, onBoundsChange }: MapViewProps) {
@@ -147,7 +206,7 @@ export default function MapView({ data, onBoundsChange }: MapViewProps) {
         offset: 12,
       })
         .setLngLat(coords)
-        .setHTML(buildPopupHTML(parsed))
+        .setDOMContent(buildPopupContent(parsed))
         .addTo(map);
     });
 
