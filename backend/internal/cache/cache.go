@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -11,13 +12,20 @@ type entry[V any] struct {
 }
 
 type Cache[V any] struct {
-	mu      sync.RWMutex
-	items   map[string]entry[V]
-	ttl     time.Duration
-	closeCh chan struct{}
+	mu        sync.RWMutex
+	items     map[string]entry[V]
+	ttl       time.Duration
+	closeCh   chan struct{}
+	closeOnce sync.Once
 }
 
+// New creates a cache whose entries expire after ttl. The ttl must be
+// positive: it drives the janitor ticker, which panics opaquely deep in
+// time.NewTicker otherwise.
 func New[V any](ttl time.Duration) *Cache[V] {
+	if ttl <= 0 {
+		panic(fmt.Sprintf("cache: ttl must be positive, got %v", ttl))
+	}
 	c := &Cache[V]{
 		items:   make(map[string]entry[V]),
 		ttl:     ttl,
@@ -49,8 +57,11 @@ func (c *Cache[V]) Set(key string, value V) {
 	}
 }
 
+// Close stops the janitor goroutine. Safe to call more than once.
 func (c *Cache[V]) Close() {
-	close(c.closeCh)
+	c.closeOnce.Do(func() {
+		close(c.closeCh)
+	})
 }
 
 func (c *Cache[V]) cleanup() {
