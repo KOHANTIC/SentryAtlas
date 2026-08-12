@@ -7,12 +7,14 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/cache"
@@ -25,13 +27,25 @@ func main() {
 	port := envOrDefault("PORT", "8080")
 	cacheTTLMin := envPositiveIntOrDefault("CACHE_TTL_MINUTES", 5)
 	fetchTimeoutSec := envPositiveIntOrDefault("FETCH_TIMEOUT_SECONDS", 30)
+	rateLimitPerMin := envPositiveIntOrDefault("RATE_LIMIT_PER_MINUTE", 60)
+
+	// NWS policy requires an identifying User-Agent with contact info.
+	// Overridable so that forks don't misidentify as SentryAtlas.
+	nwsUserAgent := envOrDefault("NWS_USER_AGENT", "SentryAtlas/1.0 (github.com/KOHANTIC/SentryAtlas)")
+
+	// Comma-separated list of allowed CORS origins. The default is open:
+	// this is a public read-only API.
+	allowedOrigins := strings.Split(envOrDefault("ALLOWED_ORIGINS", "*"), ",")
+	for i := range allowedOrigins {
+		allowedOrigins[i] = strings.TrimSpace(allowedOrigins[i])
+	}
 
 	httpClient := &http.Client{Timeout: time.Duration(fetchTimeoutSec) * time.Second}
 
 	adapterList := []adapters.Adapter{
 		adapters.NewUSGSAdapter(httpClient),
 		adapters.NewEONETAdapter(httpClient),
-		adapters.NewNOAAAdapter(httpClient, "SentryAtlas/1.0 (github.com/KOHANTIC/SentryAtlas)"),
+		adapters.NewNOAAAdapter(httpClient, nwsUserAgent),
 		adapters.NewGDACSAdapter(httpClient),
 	}
 
@@ -58,7 +72,7 @@ func main() {
 	// flushes and breaks progressive delivery.
 	r.Use(middleware.Compress(5, "application/json", "application/geo+json"))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Content-Type"},
 		AllowCredentials: false,
@@ -72,6 +86,9 @@ func main() {
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
+		// Per-IP, after RealIP. /health stays exempt so orchestrator
+		// probes can never be throttled.
+		r.Use(httprate.LimitByIP(rateLimitPerMin, time.Minute))
 		r.Get("/events", eventsHandler.GetEvents)
 	})
 
