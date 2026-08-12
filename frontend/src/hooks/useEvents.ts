@@ -2,12 +2,26 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { streamEvents } from "@/lib/api";
-import type { EventsGeoJSON, GeoJSONFeature, FetchParams } from "@/lib/types";
+import type {
+  EventsGeoJSON,
+  GeoJSONFeature,
+  FetchParams,
+  SourceStatus,
+} from "@/lib/types";
+
+// The backend caches upstream responses for ~5 minutes; refreshing faster
+// than that only re-reads the same cache.
+const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 interface UseEventsResult {
   data: EventsGeoJSON | null;
   isLoading: boolean;
   error: string | null;
+  /** Per-upstream status from the last completed stream. */
+  sources: SourceStatus[] | null;
+  /** When the last stream completed successfully. */
+  lastUpdated: Date | null;
+  refetch: () => void;
 }
 
 const EMPTY_GEOJSON: EventsGeoJSON = { type: "FeatureCollection", features: [] };
@@ -16,6 +30,8 @@ export function useEvents(params: FetchParams): UseEventsResult {
   const [data, setData] = useState<EventsGeoJSON | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sources, setSources] = useState<SourceStatus[] | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
@@ -50,7 +66,11 @@ export function useEvents(params: FetchParams): UseEventsResult {
             features: Array.from(accumulated.values()),
           });
         },
-        controller.signal
+        controller.signal,
+        (summary) => {
+          if (controller.signal.aborted) return;
+          setSources(summary.sources);
+        }
       );
       if (!controller.signal.aborted) {
         // Commit the final result even when the stream produced nothing,
@@ -59,6 +79,7 @@ export function useEvents(params: FetchParams): UseEventsResult {
           type: "FeatureCollection",
           features: Array.from(accumulated.values()),
         });
+        setLastUpdated(new Date());
       }
     } catch (err) {
       if (!controller.signal.aborted) {
@@ -76,5 +97,12 @@ export function useEvents(params: FetchParams): UseEventsResult {
     return () => abortRef.current?.abort();
   }, [load]);
 
-  return { data, isLoading, error };
+  // Live data goes stale quietly: refresh on an interval so "real-time
+  // monitoring" stays true for a tab left open.
+  useEffect(() => {
+    const id = setInterval(load, REFRESH_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [load]);
+
+  return { data, isLoading, error, sources, lastUpdated, refetch: load };
 }
