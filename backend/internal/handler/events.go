@@ -116,7 +116,21 @@ func parseQueryParams(r *http.Request) (adapters.FetchParams, string, error) {
 	var params adapters.FetchParams
 
 	if types := q.Get("types"); types != "" {
-		params.Types = strings.Split(types, ",")
+		// Validated and deduplicated: unknown values are rejected rather
+		// than passed through, because raw user input would otherwise mint
+		// unbounded cache keys (each triggering a fresh upstream fetch).
+		seen := make(map[string]struct{})
+		for _, t := range strings.Split(types, ",") {
+			t = strings.TrimSpace(t)
+			if !models.IsValidEventType(t) {
+				return params, "", fmt.Errorf("invalid type %q: valid types are %s", t, strings.Join(models.EventTypes, ", "))
+			}
+			if _, dup := seen[t]; dup {
+				continue
+			}
+			seen[t] = struct{}{}
+			params.Types = append(params.Types, t)
+		}
 	}
 
 	if bboxStr := q.Get("bbox"); bboxStr != "" {

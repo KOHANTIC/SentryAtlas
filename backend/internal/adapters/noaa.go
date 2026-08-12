@@ -48,7 +48,9 @@ func (a *NOAAAdapter) Source() string {
 }
 
 func (a *NOAAAdapter) SupportedTypes() []string {
-	return []string{"flood", "storm", "tornado", "hurricane", "winter_storm", "tsunami", "wildfire"}
+	// Everything classifyNOAAEvent can emit, including the "weather"
+	// fallback for alerts with no more specific class.
+	return []string{"flood", "storm", "tornado", "hurricane", "winter_storm", "tsunami", "wildfire", "earthquake", "volcano", "weather"}
 }
 
 func (a *NOAAAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {

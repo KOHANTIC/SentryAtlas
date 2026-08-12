@@ -47,7 +47,9 @@ func (a *GDACSAdapter) Source() string {
 }
 
 func (a *GDACSAdapter) SupportedTypes() []string {
-	return []string{"earthquake", "cyclone", "flood", "volcano", "drought", "wildfire"}
+	// "other" is emitted for GDACS codes outside gdacsEventTypeMap;
+	// requesting it fetches the full window and filters server-side.
+	return []string{"earthquake", "cyclone", "flood", "volcano", "drought", "wildfire", "other"}
 }
 
 func (a *GDACSAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {

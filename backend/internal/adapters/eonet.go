@@ -49,7 +49,9 @@ func (a *EONETAdapter) Source() string {
 }
 
 func (a *EONETAdapter) SupportedTypes() []string {
-	return []string{"wildfire", "volcano", "storm", "iceberg", "earthquake", "flood", "landslide", "drought"}
+	// "other" is emitted for EONET categories outside eonetCategoryMap;
+	// requesting it fetches all open events and filters server-side.
+	return []string{"wildfire", "volcano", "storm", "iceberg", "earthquake", "flood", "landslide", "drought", "other"}
 }
 
 func (a *EONETAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {
