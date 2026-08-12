@@ -94,36 +94,57 @@ func (h *EventsHandler) streamEvents(w http.ResponseWriter, r *http.Request, par
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
+	// The server-wide WriteTimeout would cut streams off mid-flight when a
+	// slow upstream pushes the total past it; the stream manages its own
+	// liveness with keep-alive comments instead. Best-effort: if the
+	// ResponseWriter chain doesn't support it, the old timeout applies.
+	_ = http.NewResponseController(w).SetWriteDeadline(time.Time{})
+
 	ch := make(chan service.StreamBatch, 4)
 	go func() {
 		h.service.StreamEvents(r.Context(), params, ch)
 		close(ch)
 	}()
 
+	keepAlive := time.NewTicker(15 * time.Second)
+	defer keepAlive.Stop()
+
 	total := 0
 	sources := make([]models.SourceStatus, 0, 4)
-	for batch := range ch {
-		if batch.Err != nil {
+loop:
+	for {
+		select {
+		case batch, ok := <-ch:
+			if !ok {
+				break loop
+			}
+			if batch.Err != nil {
+				sources = append(sources, models.SourceStatus{
+					Source: batch.Source,
+					Error:  batch.Err.Error(),
+				})
+				continue
+			}
 			sources = append(sources, models.SourceStatus{
 				Source: batch.Source,
-				Error:  batch.Err.Error(),
+				OK:     true,
 			})
-			continue
+			if len(batch.Events) == 0 {
+				continue
+			}
+			total += len(batch.Events)
+			data, err := models.MarshalGeoJSON(batch.Events, nil)
+			if err != nil {
+				continue
+			}
+			fmt.Fprintf(w, "event: features\ndata: %s\n\n", data)
+			flusher.Flush()
+		case <-keepAlive.C:
+			// Comment frame: invisible to SSE parsers, keeps proxies and
+			// load balancers from idling the connection out.
+			fmt.Fprint(w, ": keep-alive\n\n")
+			flusher.Flush()
 		}
-		sources = append(sources, models.SourceStatus{
-			Source: batch.Source,
-			OK:     true,
-		})
-		if len(batch.Events) == 0 {
-			continue
-		}
-		total += len(batch.Events)
-		data, err := models.MarshalGeoJSON(batch.Events, nil)
-		if err != nil {
-			continue
-		}
-		fmt.Fprintf(w, "event: features\ndata: %s\n\n", data)
-		flusher.Flush()
 	}
 
 	doneData, _ := json.Marshal(map[string]any{"total": total, "sources": sources})
