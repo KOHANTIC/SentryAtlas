@@ -69,10 +69,10 @@ export default function Home() {
       </div>
 
       <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
-        <div className="bg-brand-neutral/90 backdrop-blur-sm rounded-full shadow-lg px-4 py-2 flex items-center gap-3">
+        <div className="bg-surface-raised/95 backdrop-blur-sm border border-border shadow-lg px-4 py-2 flex items-center gap-3">
           {isLoading && (
             <div
-              className="flex items-center gap-2 text-xs text-brand-black/60"
+              className="flex items-center gap-2 text-xs text-foreground-muted"
               role="status"
             >
               <svg
@@ -105,7 +105,7 @@ export default function Home() {
           )}
           {error && (
             <div
-              className="flex items-center gap-2 text-xs font-medium text-red-600"
+              className="flex items-center gap-2 text-xs font-medium text-error"
               role="alert"
             >
               <span className="max-w-[40vw] truncate" title={error}>
@@ -120,10 +120,10 @@ export default function Home() {
             </div>
           )}
           {!isLoading && !error && (
-            <span className="text-xs text-brand-black/60 font-medium whitespace-nowrap">
+            <span className="text-xs text-foreground-muted font-medium whitespace-nowrap">
               {eventCount} {eventCount === 1 ? "event" : "events"}
               {lastUpdated && (
-                <span className="text-brand-black/50">
+                <span className="text-foreground-faint">
                   {" "}
                   · {relativeAge(lastUpdated)}
                 </span>
@@ -133,11 +133,11 @@ export default function Home() {
         </div>
 
         {!isLoading && !error && nothingSelected && (
-          <div className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs text-brand-black/70 max-w-56">
+          <div className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56">
             No event types selected — choose some in Filters, or{" "}
             <button
               onClick={() => handleTypesChange([...EVENT_TYPES])}
-              className="font-semibold text-brand-accent hover:underline cursor-pointer"
+              className="font-semibold text-accent-400 hover:underline cursor-pointer"
             >
               show all
             </button>
@@ -146,7 +146,7 @@ export default function Home() {
         )}
 
         {!isLoading && !error && !nothingSelected && eventCount === 0 && (
-          <div className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs text-brand-black/70 max-w-56">
+          <div className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56">
             No events match the current filters in this view. Try a wider time
             range or zoom out.
           </div>
@@ -154,7 +154,7 @@ export default function Home() {
 
         {downSources.length > 0 && (
           <div
-            className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs text-brand-black/70 max-w-56"
+            className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56"
             role="status"
             title={downSources.map((s) => `${s.source}: ${s.error ?? "unavailable"}`).join("\n")}
           >
@@ -168,9 +168,9 @@ export default function Home() {
       </div>
 
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 hidden sm:block">
-        <span className="text-[11px] text-brand-neutral/80 bg-brand-black px-2 py-1 rounded-full whitespace-nowrap">
+        <span className="text-[11px] text-foreground-muted bg-surface-overlay border border-border px-2 py-1 whitespace-nowrap">
           Made with ♥ by the{" "}
-          <a href="https://kohantic.com" target="_blank" rel="noopener noreferrer" className="font-bold text-brand-accent hover:underline">KOHANTIC</a>{" "}
+          <a href="https://kohantic.com" target="_blank" rel="noopener noreferrer" className="font-bold text-accent-400 hover:underline">KOHANTIC</a>{" "}
           team
         </span>
       </div>

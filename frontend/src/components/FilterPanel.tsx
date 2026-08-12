@@ -40,7 +40,7 @@ export default function FilterPanel({
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg p-3 hover:bg-brand-neutral transition-colors cursor-pointer text-brand-black"
+        className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 hover:bg-surface-overlay transition-colors cursor-pointer text-foreground"
         aria-label="Open filters"
         aria-expanded={false}
         aria-controls="filter-panel"
@@ -63,12 +63,12 @@ export default function FilterPanel({
   }
 
   return (
-    <div id="filter-panel" className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg w-64 max-w-full max-h-[calc(100dvh-2rem)] overflow-y-auto">
-      <div className="flex items-center justify-between p-3 border-b border-brand-black/10">
-        <h2 className="text-sm font-semibold text-brand-black">Filters</h2>
+    <div id="filter-panel" className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg w-64 max-w-full max-h-[calc(100dvh-2rem)] overflow-y-auto">
+      <div className="flex items-center justify-between p-3 border-b border-border">
+        <h2 className="text-sm font-semibold text-foreground">Filters</h2>
         <button
           onClick={() => setCollapsed(true)}
-          className="text-brand-black/60 hover:text-brand-black/80 transition-colors cursor-pointer"
+          className="text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
           aria-label="Collapse filters"
           aria-expanded={true}
           aria-controls="filter-panel"
@@ -90,9 +90,9 @@ export default function FilterPanel({
         </button>
       </div>
 
-      <div className="p-3 border-b border-brand-black/10">
+      <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-brand-black/60 uppercase tracking-wider">
+          <span className="text-xs font-medium text-foreground-muted uppercase tracking-wider">
             Time Range
           </span>
         </div>
@@ -104,8 +104,8 @@ export default function FilterPanel({
               aria-pressed={activePreset === preset.value}
               className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors cursor-pointer ${
                 activePreset === preset.value
-                  ? "bg-brand-black text-brand-neutral"
-                  : "bg-brand-black/5 text-brand-black/60 hover:bg-brand-black/10"
+                  ? "bg-accent-400 text-primary-fg"
+                  : "bg-surface-overlay text-foreground-muted hover:bg-border"
               }`}
             >
               {preset.label}
@@ -116,19 +116,19 @@ export default function FilterPanel({
 
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-brand-black/60 uppercase tracking-wider">
+          <span className="text-xs font-medium text-foreground-muted uppercase tracking-wider">
             Event Types
           </span>
           <div className="flex gap-2">
             <button
               onClick={selectAll}
-              className="text-[10px] text-brand-accent hover:text-brand-accent/80 font-medium cursor-pointer"
+              className="text-[10px] text-accent-400 hover:text-accent-300 font-medium cursor-pointer"
             >
               All
             </button>
             <button
               onClick={clearAll}
-              className="text-[10px] text-brand-accent hover:text-brand-accent/80 font-medium cursor-pointer"
+              className="text-[10px] text-accent-400 hover:text-accent-300 font-medium cursor-pointer"
             >
               None
             </button>
@@ -145,12 +145,12 @@ export default function FilterPanel({
                 aria-pressed={active}
                 className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-left text-sm transition-colors cursor-pointer ${
                   active
-                    ? "text-brand-black hover:bg-brand-black/5"
-                    : "text-brand-black/55 hover:bg-brand-black/5"
+                    ? "text-foreground hover:bg-surface-overlay"
+                    : "text-foreground-muted hover:bg-surface-overlay"
                 }`}
               >
                 <span
-                  className="w-3 h-3 rounded-full flex-shrink-0 border border-brand-neutral"
+                  className="w-3 h-3 flex-shrink-0 border border-surface-raised"
                   style={{
                     backgroundColor: active
                       ? EVENT_TYPE_COLORS[type]

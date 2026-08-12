@@ -11,7 +11,7 @@ export default function Legend() {
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 text-xs font-medium text-brand-black/60 hover:bg-brand-neutral transition-colors flex items-center gap-1.5 cursor-pointer"
+        className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg px-3 py-2 text-xs font-medium text-foreground-muted hover:bg-surface-overlay transition-colors flex items-center gap-1.5 cursor-pointer"
         aria-label="Show legend"
         aria-expanded={false}
         aria-controls="map-legend"
@@ -37,12 +37,12 @@ export default function Legend() {
   }
 
   return (
-    <div id="map-legend" className="bg-brand-neutral/90 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-brand-black/10">
-        <span className="text-xs font-semibold text-brand-black">Legend</span>
+    <div id="map-legend" className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+        <span className="text-xs font-semibold text-foreground">Legend</span>
         <button
           onClick={() => setCollapsed(true)}
-          className="text-brand-black/60 hover:text-brand-black/80 transition-colors cursor-pointer"
+          className="text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
           aria-label="Collapse legend"
           aria-expanded={true}
           aria-controls="map-legend"
@@ -64,20 +64,20 @@ export default function Legend() {
         </button>
       </div>
 
-      <div className="px-3 py-2 border-b border-brand-black/10">
-        <span className="text-[10px] font-medium text-brand-black/60 uppercase tracking-wider">
+      <div className="px-3 py-2 border-b border-border">
+        <span className="text-[10px] font-medium text-foreground-muted uppercase tracking-wider">
           Severity Intensity
         </span>
         <div
-          className="mt-1.5 h-2.5 rounded-full"
+          className="mt-1.5 h-2.5 "
           style={{
             background:
               "linear-gradient(to right, #16a34a, #a3e635, #facc15, #f97316, #dc2626)",
           }}
         />
         <div className="flex justify-between mt-1">
-          <span className="text-[10px] text-brand-black/60">Low</span>
-          <span className="text-[10px] text-brand-black/60">High</span>
+          <span className="text-[10px] text-foreground-muted">Low</span>
+          <span className="text-[10px] text-foreground-muted">High</span>
         </div>
       </div>
 
@@ -85,10 +85,10 @@ export default function Legend() {
         {EVENT_TYPES.map((type) => (
           <div key={type} className="flex items-center gap-2">
             <span
-              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+              className="w-2.5 h-2.5 flex-shrink-0"
               style={{ backgroundColor: EVENT_TYPE_COLORS[type] }}
             />
-            <span className="text-[11px] text-brand-black/60">
+            <span className="text-[11px] text-foreground-muted">
               {EVENT_TYPE_LABELS[type]}
             </span>
           </div>
