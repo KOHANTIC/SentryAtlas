@@ -108,6 +108,12 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 	return allEvents, nil
 }
 
+// StreamEvents delivers one batch per source as each upstream fetch
+// completes, preserving the progressive-loading UX that SSE exists for.
+// Batches are date-sorted internally; a global sort across sources would
+// require waiting for every adapter, defeating the streaming. Limit is
+// enforced across the whole stream: once the cap is reached, later batches
+// are trimmed or dropped.
 func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchParams, ch chan<- []models.Event) {
 	relevant := s.selectAdapters(params.Types)
 	if len(relevant) == 0 {
@@ -115,6 +121,8 @@ func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchP
 	}
 
 	var wg sync.WaitGroup
+	var limitMu sync.Mutex
+	remaining := params.Limit // 0 means unlimited
 
 	for _, a := range relevant {
 		a := a
@@ -130,6 +138,21 @@ func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchP
 				return
 			}
 			filtered := filterEvents(events, params)
+			sortEventsByDate(filtered)
+
+			if params.Limit > 0 {
+				limitMu.Lock()
+				if remaining <= 0 {
+					limitMu.Unlock()
+					return
+				}
+				if len(filtered) > remaining {
+					filtered = filtered[:remaining]
+				}
+				remaining -= len(filtered)
+				limitMu.Unlock()
+			}
+
 			if len(filtered) > 0 {
 				select {
 				case ch <- filtered:
