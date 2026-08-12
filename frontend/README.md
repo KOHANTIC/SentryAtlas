@@ -28,7 +28,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the map.
 ```
 src/
 ├── app/                 # Next.js app router (page, layout, global styles)
-├── components/          # MapView, FilterPanel, Legend, EventDetail
+├── components/          # MapView, FilterPanel, Legend
 ├── hooks/               # useEvents — data fetching hook
 └── lib/                 # API client, types, map styles, time utilities
 ```

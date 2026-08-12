@@ -82,7 +82,7 @@ sentryatlas/
 ├── frontend/                # Next.js map application
 │   ├── src/
 │   │   ├── app/             # App router pages
-│   │   ├── components/      # MapView, FilterPanel, Legend, EventDetail
+│   │   ├── components/      # MapView, FilterPanel, Legend
 │   │   ├── hooks/           # Data fetching hooks
 │   │   └── lib/             # API client, types, map styles
 │   └── Dockerfile
