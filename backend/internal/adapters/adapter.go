@@ -13,6 +13,10 @@ type Adapter interface {
 	SupportedTypes() []string
 }
 
+// FetchParams carries a request's parameters. Adapters only ever receive
+// Types and Since: BBox and Limit are applied service-side after the merge,
+// because passing them upstream would make every viewport a distinct cache
+// key and defeat the per-source cache entirely.
 type FetchParams struct {
 	Types []string
 	BBox  *BBox

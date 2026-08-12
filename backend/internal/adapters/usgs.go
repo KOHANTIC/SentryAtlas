@@ -43,17 +43,6 @@ func (a *USGSAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]mo
 		q.Set("starttime", time.Now().AddDate(0, 0, -7).Format(time.RFC3339))
 	}
 
-	if params.BBox != nil {
-		q.Set("minlongitude", fmt.Sprintf("%f", params.BBox.MinLon))
-		q.Set("minlatitude", fmt.Sprintf("%f", params.BBox.MinLat))
-		q.Set("maxlongitude", fmt.Sprintf("%f", params.BBox.MaxLon))
-		q.Set("maxlatitude", fmt.Sprintf("%f", params.BBox.MaxLat))
-	}
-
-	if params.Limit > 0 {
-		q.Set("limit", fmt.Sprintf("%d", params.Limit))
-	}
-
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := a.client.Do(req)

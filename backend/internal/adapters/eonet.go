@@ -63,10 +63,6 @@ func (a *EONETAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]m
 	q := req.URL.Query()
 	q.Set("status", "open")
 
-	if params.Limit > 0 {
-		q.Set("limit", fmt.Sprintf("%d", params.Limit))
-	}
-
 	if len(params.Types) > 0 {
 		for _, t := range params.Types {
 			if cat, ok := eventTypeToEONET[t]; ok {

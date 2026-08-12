@@ -79,10 +79,6 @@ func (a *GDACSAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]m
 	}
 	q.Set("todate", time.Now().Format("2006-01-02"))
 
-	if params.Limit > 0 && params.Limit <= 100 {
-		q.Set("pagesize", fmt.Sprintf("%d", params.Limit))
-	}
-
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := a.client.Do(req)
