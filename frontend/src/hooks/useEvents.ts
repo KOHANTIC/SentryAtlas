@@ -32,8 +32,9 @@ export function useEvents(params: FetchParams): UseEventsResult {
     }
 
     setIsLoading(true);
-    setData(EMPTY_GEOJSON);
 
+    // The previous data stays on the map until the new stream delivers its
+    // first batch — clearing eagerly made every pan/filter flash a blank map.
     const accumulated = new Map<string, GeoJSONFeature>();
 
     try {
@@ -51,6 +52,14 @@ export function useEvents(params: FetchParams): UseEventsResult {
         },
         controller.signal
       );
+      if (!controller.signal.aborted) {
+        // Commit the final result even when the stream produced nothing,
+        // so stale data doesn't linger after an empty query.
+        setData({
+          type: "FeatureCollection",
+          features: Array.from(accumulated.values()),
+        });
+      }
     } catch (err) {
       if (!controller.signal.aborted) {
         setError(err instanceof Error ? err.message : "Failed to fetch events");
