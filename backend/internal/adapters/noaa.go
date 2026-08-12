@@ -37,10 +37,11 @@ var noaaEventTypeMap = map[string]string{
 type NOAAAdapter struct {
 	client    *http.Client
 	userAgent string
+	baseURL   string
 }
 
 func NewNOAAAdapter(client *http.Client, userAgent string) *NOAAAdapter {
-	return &NOAAAdapter{client: client, userAgent: userAgent}
+	return &NOAAAdapter{client: client, userAgent: userAgent, baseURL: noaaBaseURL}
 }
 
 func (a *NOAAAdapter) Source() string {
@@ -54,7 +55,7 @@ func (a *NOAAAdapter) SupportedTypes() []string {
 }
 
 func (a *NOAAAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, noaaBaseURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("noaa: build request: %w", err)
 	}

@@ -35,11 +35,12 @@ var eventTypeToGDACS = map[string]string{
 }
 
 type GDACSAdapter struct {
-	client *http.Client
+	client  *http.Client
+	baseURL string
 }
 
 func NewGDACSAdapter(client *http.Client) *GDACSAdapter {
-	return &GDACSAdapter{client: client}
+	return &GDACSAdapter{client: client, baseURL: gdacsBaseURL}
 }
 
 func (a *GDACSAdapter) Source() string {
@@ -53,7 +54,7 @@ func (a *GDACSAdapter) SupportedTypes() []string {
 }
 
 func (a *GDACSAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, gdacsBaseURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("gdacs: build request: %w", err)
 	}

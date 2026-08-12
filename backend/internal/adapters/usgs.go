@@ -13,11 +13,12 @@ import (
 const usgsBaseURL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 type USGSAdapter struct {
-	client *http.Client
+	client  *http.Client
+	baseURL string
 }
 
 func NewUSGSAdapter(client *http.Client) *USGSAdapter {
-	return &USGSAdapter{client: client}
+	return &USGSAdapter{client: client, baseURL: usgsBaseURL}
 }
 
 func (a *USGSAdapter) Source() string {
@@ -29,7 +30,7 @@ func (a *USGSAdapter) SupportedTypes() []string {
 }
 
 func (a *USGSAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, usgsBaseURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("usgs: build request: %w", err)
 	}
@@ -62,17 +63,13 @@ func (a *USGSAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]mo
 
 	events := make([]models.Event, 0, len(result.Features))
 	for _, f := range result.Features {
-		e, err := parseUSGSFeature(f)
-		if err != nil {
-			continue
-		}
-		events = append(events, e)
+		events = append(events, parseUSGSFeature(f))
 	}
 
 	return events, nil
 }
 
-func parseUSGSFeature(f usgsFeature) (models.Event, error) {
+func parseUSGSFeature(f usgsFeature) models.Event {
 	var coords []float64
 	if len(f.Geometry.Coordinates) >= 2 {
 		coords = f.Geometry.Coordinates[:2]
@@ -109,7 +106,7 @@ func parseUSGSFeature(f usgsFeature) (models.Event, error) {
 			"place": f.Properties.Place,
 			"depth": depthFromCoords(f.Geometry.Coordinates),
 		},
-	}, nil
+	}
 }
 
 func usgsAlertToSeverity(alert string) string {

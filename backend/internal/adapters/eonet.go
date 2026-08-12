@@ -37,11 +37,12 @@ var eventTypeToEONET = map[string]string{
 }
 
 type EONETAdapter struct {
-	client *http.Client
+	client  *http.Client
+	baseURL string
 }
 
 func NewEONETAdapter(client *http.Client) *EONETAdapter {
-	return &EONETAdapter{client: client}
+	return &EONETAdapter{client: client, baseURL: eonetBaseURL}
 }
 
 func (a *EONETAdapter) Source() string {
@@ -55,7 +56,7 @@ func (a *EONETAdapter) SupportedTypes() []string {
 }
 
 func (a *EONETAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, eonetBaseURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("eonet: build request: %w", err)
 	}
