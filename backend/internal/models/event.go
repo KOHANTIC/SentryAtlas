@@ -33,8 +33,11 @@ type FeatureCollection struct {
 }
 
 type Feature struct {
-	Type       string         `json:"type"`
-	Geometry   Geometry       `json:"geometry"`
+	Type string `json:"type"`
+	// Geometry is a pointer so that events without coordinates (common for
+	// NOAA alerts) marshal as the spec-valid "geometry": null rather than a
+	// Point with "coordinates": null.
+	Geometry   *Geometry      `json:"geometry"`
 	Properties map[string]any `json:"properties"`
 }
 
@@ -52,7 +55,7 @@ type FlatEvent struct {
 	Description string         `json:"description,omitempty"`
 	EventType   string         `json:"event_type"`
 	Source      string         `json:"source"`
-	Coordinates Coordinates    `json:"coordinates"`
+	Coordinates *Coordinates   `json:"coordinates"`
 	Magnitude   *float64       `json:"magnitude,omitempty"`
 	Severity    string         `json:"severity,omitempty"`
 	StartedAt   time.Time      `json:"started_at"`
@@ -91,17 +94,25 @@ func (e Event) ToGeoJSONFeature() Feature {
 		props["metadata"] = e.Metadata
 	}
 
+	var geom *Geometry
+	if len(e.Geometry.Coordinates) >= 2 {
+		g := e.Geometry
+		geom = &g
+	}
+
 	return Feature{
 		Type:       "Feature",
-		Geometry:   e.Geometry,
+		Geometry:   geom,
 		Properties: props,
 	}
 }
 
 func (e Event) ToFlatEvent() FlatEvent {
-	var coords Coordinates
+	// Nil (not the zero value) when the event has no coordinates, so that
+	// unlocated events don't show up at "null island" (0,0).
+	var coords *Coordinates
 	if len(e.Geometry.Coordinates) >= 2 {
-		coords = Coordinates{
+		coords = &Coordinates{
 			Longitude: e.Geometry.Coordinates[0],
 			Latitude:  e.Geometry.Coordinates[1],
 		}

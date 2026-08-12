@@ -171,7 +171,13 @@ func filterEvents(events []models.Event, params adapters.FetchParams) []models.E
 			continue
 		}
 
-		if params.BBox != nil && len(e.Geometry.Coordinates) >= 2 {
+		if params.BBox != nil {
+			// Events without coordinates cannot be inside any bounding box.
+			// They used to bypass this filter, so every bbox query returned
+			// all unlocated events worldwide.
+			if len(e.Geometry.Coordinates) < 2 {
+				continue
+			}
 			lon, lat := e.Geometry.Coordinates[0], e.Geometry.Coordinates[1]
 			if lon < params.BBox.MinLon || lon > params.BBox.MaxLon ||
 				lat < params.BBox.MinLat || lat > params.BBox.MaxLat {
