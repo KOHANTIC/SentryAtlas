@@ -81,9 +81,11 @@ func parseUSGSFeature(f usgsFeature) (models.Event, error) {
 	startedAt := time.UnixMilli(int64(f.Properties.Time))
 	updatedAt := time.UnixMilli(int64(f.Properties.Updated))
 
+	// Presence-based, not zero-based: a magnitude-0.0 quake is real data,
+	// distinct from USGS omitting the field.
 	var mag *float64
-	if f.Properties.Mag != 0 {
-		m := f.Properties.Mag
+	if f.Properties.Mag != nil {
+		m := *f.Properties.Mag
 		mag = &m
 	}
 
@@ -150,11 +152,11 @@ type usgsGeometry struct {
 }
 
 type usgsProperties struct {
-	Mag     float64 `json:"mag"`
-	Place   string  `json:"place"`
-	Time    float64 `json:"time"`
-	Updated float64 `json:"updated"`
-	URL     string  `json:"url"`
-	Title   string  `json:"title"`
-	Alert   string  `json:"alert"`
+	Mag     *float64 `json:"mag"`
+	Place   string   `json:"place"`
+	Time    float64  `json:"time"`
+	Updated float64  `json:"updated"`
+	URL     string   `json:"url"`
+	Title   string   `json:"title"`
+	Alert   string   `json:"alert"`
 }
