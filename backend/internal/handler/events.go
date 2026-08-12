@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -49,9 +50,12 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 
 	events, sources, err := h.service.GetEvents(r.Context(), params)
 	if err != nil {
-		if errors.Is(err, service.ErrAllSourcesFailed) {
+		switch {
+		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+			// Client is gone; nothing useful can be written.
+		case errors.Is(err, service.ErrAllSourcesFailed):
 			writeError(w, http.StatusBadGateway, "all upstream sources failed")
-		} else {
+		default:
 			writeError(w, http.StatusInternalServerError, "failed to fetch events")
 		}
 		return

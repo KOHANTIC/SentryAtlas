@@ -119,7 +119,19 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 		}()
 	}
 
-	wg.Wait()
+	// Wait for the fan-out, but stop blocking the caller if it goes away.
+	// Abandoned goroutines still complete their detached fetches and warm
+	// the cache — only this request's wait is cancelled.
+	waitDone := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(waitDone)
+	}()
+	select {
+	case <-waitDone:
+	case <-ctx.Done():
+		return nil, nil, ctx.Err()
+	}
 
 	failed := 0
 	for _, st := range statuses {
