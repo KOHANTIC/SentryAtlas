@@ -52,6 +52,11 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	// Types listed explicitly: application/geo+json is not in the
+	// middleware's defaults, and it is the bulkiest response we serve.
+	// text/event-stream is deliberately absent — compressing SSE buffers
+	// flushes and breaks progressive delivery.
+	r.Use(middleware.Compress(5, "application/json", "application/geo+json"))
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "OPTIONS"},

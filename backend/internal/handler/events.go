@@ -14,6 +14,13 @@ import (
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
 )
 
+const (
+	// defaultLimit applies when the client sends no limit at all: an
+	// unbounded default response measured ~3.9 MB of JSON.
+	defaultLimit = 500
+	maxLimit     = 1000
+)
+
 type EventsHandler struct {
 	service *service.EventsService
 }
@@ -30,8 +37,14 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if format == "sse" {
+		// No default limit here: SSE is the map's own chunked path and is
+		// expected to deliver the full matching set unless asked otherwise.
 		h.streamEvents(w, r, params)
 		return
+	}
+
+	if params.Limit == 0 {
+		params.Limit = defaultLimit
 	}
 
 	events, sources, err := h.service.GetEvents(r.Context(), params)
@@ -59,6 +72,9 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Aligned with the server-side source cache: repeat requests within
+	// the window can be answered by intermediaries and browsers.
+	w.Header().Set("Cache-Control", "public, max-age=60")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
@@ -157,8 +173,8 @@ func parseQueryParams(r *http.Request) (adapters.FetchParams, string, error) {
 		if err != nil || limit < 1 {
 			return params, "", fmt.Errorf("invalid limit: must be a positive integer")
 		}
-		if limit > 1000 {
-			limit = 1000
+		if limit > maxLimit {
+			limit = maxLimit
 		}
 		params.Limit = limit
 	}
