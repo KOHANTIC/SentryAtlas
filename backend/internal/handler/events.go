@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -33,19 +34,23 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events, err := h.service.GetEvents(r.Context(), params)
+	events, sources, err := h.service.GetEvents(r.Context(), params)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to fetch events")
+		if errors.Is(err, service.ErrAllSourcesFailed) {
+			writeError(w, http.StatusBadGateway, "all upstream sources failed")
+		} else {
+			writeError(w, http.StatusInternalServerError, "failed to fetch events")
+		}
 		return
 	}
 
 	var data []byte
 	switch format {
 	case "json":
-		data, err = models.MarshalEventsJSON(events)
+		data, err = models.MarshalEventsJSON(events, sources)
 		w.Header().Set("Content-Type", "application/json")
 	default:
-		data, err = models.MarshalGeoJSON(events)
+		data, err = models.MarshalGeoJSON(events, sources)
 		w.Header().Set("Content-Type", "application/geo+json")
 	}
 
@@ -69,16 +74,31 @@ func (h *EventsHandler) streamEvents(w http.ResponseWriter, r *http.Request, par
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	ch := make(chan []models.Event, 4)
+	ch := make(chan service.StreamBatch, 4)
 	go func() {
 		h.service.StreamEvents(r.Context(), params, ch)
 		close(ch)
 	}()
 
 	total := 0
+	sources := make([]models.SourceStatus, 0, 4)
 	for batch := range ch {
-		total += len(batch)
-		data, err := models.MarshalGeoJSON(batch)
+		if batch.Err != nil {
+			sources = append(sources, models.SourceStatus{
+				Source: batch.Source,
+				Error:  batch.Err.Error(),
+			})
+			continue
+		}
+		sources = append(sources, models.SourceStatus{
+			Source: batch.Source,
+			OK:     true,
+		})
+		if len(batch.Events) == 0 {
+			continue
+		}
+		total += len(batch.Events)
+		data, err := models.MarshalGeoJSON(batch.Events, nil)
 		if err != nil {
 			continue
 		}
@@ -86,7 +106,7 @@ func (h *EventsHandler) streamEvents(w http.ResponseWriter, r *http.Request, par
 		flusher.Flush()
 	}
 
-	doneData, _ := json.Marshal(map[string]int{"total": total})
+	doneData, _ := json.Marshal(map[string]any{"total": total, "sources": sources})
 	fmt.Fprintf(w, "event: done\ndata: %s\n\n", doneData)
 	flusher.Flush()
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"sort"
 	"strings"
@@ -14,6 +15,18 @@ import (
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/cache"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 )
+
+// ErrAllSourcesFailed reports that every relevant upstream source failed,
+// so an empty result would be misleading rather than meaningful.
+var ErrAllSourcesFailed = errors.New("all upstream sources failed")
+
+// StreamBatch is one per-source delivery on the streaming path. Either
+// Events or Err is set, never both.
+type StreamBatch struct {
+	Source string
+	Events []models.Event
+	Err    error
+}
 
 type EventsService struct {
 	adapters    []adapters.Adapter
@@ -67,14 +80,15 @@ func (s *EventsService) fetchAdapter(a adapters.Adapter, params adapters.FetchPa
 	return result.([]models.Event), nil
 }
 
-func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchParams) ([]models.Event, error) {
+func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchParams) ([]models.Event, []models.SourceStatus, error) {
 	relevant := s.selectAdapters(params.Types)
 	if len(relevant) == 0 {
-		return []models.Event{}, nil
+		return []models.Event{}, nil, nil
 	}
 
 	var mu sync.Mutex
 	var allEvents []models.Event
+	statuses := make([]models.SourceStatus, 0, len(relevant))
 	var wg sync.WaitGroup
 
 	for _, a := range relevant {
@@ -83,20 +97,39 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 		go func() {
 			defer wg.Done()
 			events, err := s.fetchAdapter(a, params)
+
+			mu.Lock()
+			defer mu.Unlock()
 			if err != nil {
 				slog.Warn("adapter fetch failed",
 					"source", a.Source(),
 					"error", err,
 				)
+				statuses = append(statuses, models.SourceStatus{
+					Source: a.Source(),
+					Error:  err.Error(),
+				})
 				return
 			}
-			mu.Lock()
+			statuses = append(statuses, models.SourceStatus{
+				Source: a.Source(),
+				OK:     true,
+			})
 			allEvents = append(allEvents, events...)
-			mu.Unlock()
 		}()
 	}
 
 	wg.Wait()
+
+	failed := 0
+	for _, st := range statuses {
+		if !st.OK {
+			failed++
+		}
+	}
+	if failed == len(relevant) {
+		return nil, statuses, ErrAllSourcesFailed
+	}
 
 	allEvents = filterEvents(allEvents, params)
 	sortEventsByDate(allEvents)
@@ -105,7 +138,7 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 		allEvents = allEvents[:params.Limit]
 	}
 
-	return allEvents, nil
+	return allEvents, statuses, nil
 }
 
 // StreamEvents delivers one batch per source as each upstream fetch
@@ -114,7 +147,7 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 // require waiting for every adapter, defeating the streaming. Limit is
 // enforced across the whole stream: once the cap is reached, later batches
 // are trimmed or dropped.
-func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchParams, ch chan<- []models.Event) {
+func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchParams, ch chan<- StreamBatch) {
 	relevant := s.selectAdapters(params.Types)
 	if len(relevant) == 0 {
 		return
@@ -135,6 +168,10 @@ func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchP
 					"source", a.Source(),
 					"error", err,
 				)
+				select {
+				case ch <- StreamBatch{Source: a.Source(), Err: err}:
+				case <-ctx.Done():
+				}
 				return
 			}
 			filtered := filterEvents(events, params)
@@ -143,21 +180,19 @@ func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchP
 			if params.Limit > 0 {
 				limitMu.Lock()
 				if remaining <= 0 {
-					limitMu.Unlock()
-					return
-				}
-				if len(filtered) > remaining {
+					filtered = nil
+				} else if len(filtered) > remaining {
 					filtered = filtered[:remaining]
 				}
 				remaining -= len(filtered)
 				limitMu.Unlock()
 			}
 
-			if len(filtered) > 0 {
-				select {
-				case ch <- filtered:
-				case <-ctx.Done():
-				}
+			// Sent even when empty so the consumer can report the source
+			// as reachable.
+			select {
+			case ch <- StreamBatch{Source: a.Source(), Events: filtered}:
+			case <-ctx.Done():
 			}
 		}()
 	}

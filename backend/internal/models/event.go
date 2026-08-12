@@ -25,11 +25,22 @@ type Geometry struct {
 	Coordinates []float64 `json:"coordinates"`
 }
 
+// SourceStatus reports the outcome of one upstream source for a request,
+// so clients can distinguish "no disasters" from "a source was down".
+type SourceStatus struct {
+	Source string `json:"source"`
+	OK     bool   `json:"ok"`
+	Error  string `json:"error,omitempty"`
+}
+
 // GeoJSON types
 
 type FeatureCollection struct {
 	Type     string    `json:"type"`
 	Features []Feature `json:"features"`
+	// Sources is a GeoJSON foreign member (RFC 7946 §6.1) carrying
+	// per-upstream status; spec-compliant consumers ignore it.
+	Sources []SourceStatus `json:"sources,omitempty"`
 }
 
 type Feature struct {
@@ -44,9 +55,9 @@ type Feature struct {
 // Flat JSON response type
 
 type EventsResponse struct {
-	Events  []FlatEvent `json:"events"`
-	Total   int         `json:"total"`
-	Sources []string    `json:"sources"`
+	Events  []FlatEvent    `json:"events"`
+	Total   int            `json:"total"`
+	Sources []SourceStatus `json:"sources"`
 }
 
 type FlatEvent struct {
@@ -134,7 +145,7 @@ func (e Event) ToFlatEvent() FlatEvent {
 	}
 }
 
-func EventsToFeatureCollection(events []Event) FeatureCollection {
+func EventsToFeatureCollection(events []Event, sources []SourceStatus) FeatureCollection {
 	features := make([]Feature, 0, len(events))
 	for _, e := range events {
 		features = append(features, e.ToGeoJSONFeature())
@@ -142,21 +153,14 @@ func EventsToFeatureCollection(events []Event) FeatureCollection {
 	return FeatureCollection{
 		Type:     "FeatureCollection",
 		Features: features,
+		Sources:  sources,
 	}
 }
 
-func EventsToJSON(events []Event) EventsResponse {
-	sourceSet := make(map[string]struct{})
+func EventsToJSON(events []Event, sources []SourceStatus) EventsResponse {
 	flat := make([]FlatEvent, 0, len(events))
-
 	for _, e := range events {
 		flat = append(flat, e.ToFlatEvent())
-		sourceSet[e.Source] = struct{}{}
-	}
-
-	sources := make([]string, 0, len(sourceSet))
-	for s := range sourceSet {
-		sources = append(sources, s)
 	}
 
 	return EventsResponse{
@@ -166,10 +170,10 @@ func EventsToJSON(events []Event) EventsResponse {
 	}
 }
 
-func MarshalGeoJSON(events []Event) ([]byte, error) {
-	return json.Marshal(EventsToFeatureCollection(events))
+func MarshalGeoJSON(events []Event, sources []SourceStatus) ([]byte, error) {
+	return json.Marshal(EventsToFeatureCollection(events, sources))
 }
 
-func MarshalEventsJSON(events []Event) ([]byte, error) {
-	return json.Marshal(EventsToJSON(events))
+func MarshalEventsJSON(events []Event, sources []SourceStatus) ([]byte, error) {
+	return json.Marshal(EventsToJSON(events, sources))
 }
