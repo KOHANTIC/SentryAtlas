@@ -143,10 +143,16 @@ func parseGDACSFeature(f gdacsFeature) models.Event {
 		updatedAt = startedAt
 	}
 
-	var mag *float64
+	metadata := map[string]any{
+		"alert_level":   f.Properties.AlertLevel,
+		"country":       f.Properties.Country,
+		"severity_unit": f.Properties.SeverityUnit,
+	}
+	// GDACS "severity" is a physical quantity in severity_unit (e.g. wind
+	// km/h) — it must not masquerade as the magnitude field, which would
+	// mix units with Richter magnitudes from USGS.
 	if f.Properties.Severity != 0 {
-		s := f.Properties.Severity
-		mag = &s
+		metadata["severity_value"] = f.Properties.Severity
 	}
 
 	eventID := f.Properties.EventID.String()
@@ -164,16 +170,11 @@ func parseGDACSFeature(f gdacsFeature) models.Event {
 			Type:        "Point",
 			Coordinates: coords,
 		},
-		Magnitude: mag,
 		Severity:  severity,
 		StartedAt: startedAt,
 		UpdatedAt: updatedAt,
 		URL:       f.Properties.URL.Report,
-		Metadata: map[string]any{
-			"alert_level":   f.Properties.AlertLevel,
-			"country":       f.Properties.Country,
-			"severity_unit": f.Properties.SeverityUnit,
-		},
+		Metadata:  metadata,
 	}
 }
 
