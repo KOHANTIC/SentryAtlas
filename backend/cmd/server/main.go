@@ -23,8 +23,8 @@ import (
 
 func main() {
 	port := envOrDefault("PORT", "8080")
-	cacheTTLMin := envIntOrDefault("CACHE_TTL_MINUTES", 5)
-	fetchTimeoutSec := envIntOrDefault("FETCH_TIMEOUT_SECONDS", 30)
+	cacheTTLMin := envPositiveIntOrDefault("CACHE_TTL_MINUTES", 5)
+	fetchTimeoutSec := envPositiveIntOrDefault("FETCH_TIMEOUT_SECONDS", 30)
 
 	httpClient := &http.Client{Timeout: time.Duration(fetchTimeoutSec) * time.Second}
 
@@ -109,11 +109,22 @@ func envOrDefault(key, fallback string) string {
 	return fallback
 }
 
-func envIntOrDefault(key string, fallback int) int {
-	if v := os.Getenv(key); v != "" {
-		if i, err := strconv.Atoi(v); err == nil {
-			return i
-		}
+// envPositiveIntOrDefault reads an integer env var that must be positive.
+// A set-but-invalid value is a fatal misconfiguration: silently falling back
+// would hide the operator's mistake, and zero/negative values break the cache
+// ticker and fetch timeouts downstream.
+func envPositiveIntOrDefault(key string, fallback int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
 	}
-	return fallback
+	i, err := strconv.Atoi(v)
+	if err != nil || i <= 0 {
+		slog.Error("invalid environment variable: must be a positive integer",
+			"key", key,
+			"value", v,
+		)
+		os.Exit(1)
+	}
+	return i
 }
