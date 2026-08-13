@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Lora } from "next/font/google";
 import "./globals.css";
 
@@ -17,9 +17,29 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://sentryatlas.com"),
   title: "SentryAtlas — Real-Time Disaster Monitoring",
   description:
     "Open-source platform aggregating real-time disaster data from USGS, NASA EONET, NOAA, and GDACS onto a single interactive map.",
+  alternates: {
+    canonical: "https://sentryatlas.com",
+  },
+  openGraph: {
+    title: "SentryAtlas — Real-Time Disaster Monitoring",
+    description:
+      "Open-source platform aggregating real-time disaster data from USGS, NASA EONET, NOAA, and GDACS onto a single interactive map.",
+    url: "https://sentryatlas.com",
+    siteName: "SentryAtlas",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SentryAtlas — Real-Time Disaster Monitoring",
+    description:
+      "Open-source platform aggregating real-time disaster data from USGS, NASA EONET, NOAA, and GDACS onto a single interactive map.",
+    images: ["/og-image.png"],
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -29,6 +49,10 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#161616",
 };
 
 export default function RootLayout({

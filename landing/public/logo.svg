@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#242424"/>
+  <!-- Concentric contour rings, cut by a vertical gutter: a topographic
+       reading of an epicentre. Sharp ends, no curves at the cut. -->
+  <g fill="none" stroke="#F6AD65" stroke-width="26">
+    <path d="M186 106 A 160 160 0 0 0 186 406"/>
+    <path d="M326 106 A 160 160 0 0 1 326 406"/>
+    <path d="M206 176 A 90 90 0 0 0 206 336"/>
+    <path d="M306 176 A 90 90 0 0 1 306 336"/>
+  </g>
+  <rect x="238" y="232" width="36" height="48" fill="#F6AD65"/>
+</svg>

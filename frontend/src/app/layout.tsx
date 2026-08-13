@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -12,9 +12,26 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://map.sentryatlas.com"),
   title: "SentryAtlas",
   description:
     "Real-time disaster monitoring map aggregating data from USGS, EONET, NOAA, and GDACS",
+  openGraph: {
+    title: "SentryAtlas",
+    description:
+      "Real-time disaster monitoring map aggregating data from USGS, EONET, NOAA, and GDACS",
+    url: "https://map.sentryatlas.com",
+    siteName: "SentryAtlas",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SentryAtlas",
+    description:
+      "Real-time disaster monitoring map aggregating data from USGS, EONET, NOAA, and GDACS",
+    images: ["/og-image.png"],
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -24,6 +41,10 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#161616",
 };
 
 export default function RootLayout({
