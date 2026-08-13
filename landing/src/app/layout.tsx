@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Lora } from "next/font/google";
 import "./globals.css";
 
+// next/font self-hosts at build time — no request ever reaches Google.
+// Inter carries body and UI; Lora carries display and headings.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -29,7 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${lora.variable} antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }

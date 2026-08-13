@@ -1,17 +1,90 @@
 @import "tailwindcss";
 
+/*
+ * KOHANTIC design tokens — dark-first, one amber accent, zero radius.
+ * Mirrors the canonical set in KOHANTIC's landing repo (src/app.css);
+ * the frontend/ app in this monorepo carries the same block.
+ */
 @theme {
-  --color-brand-neutral: #F2F2F2;
-  --color-brand-black: #242424;
-  --color-brand-accent: #F6AD65;
+  /* --- Neutral scale --- */
+  --color-neutral-50: #f9f9f9;
+  --color-neutral-100: #f2f2f2;
+  --color-neutral-200: #e0e0e0;
+  --color-neutral-300: #c8c8c8;
+  --color-neutral-400: #adadad;
+  --color-neutral-500: #8a8a8a;
+  --color-neutral-600: #636363;
+  --color-neutral-700: #484848;
+  --color-neutral-800: #363636;
+  --color-neutral-900: #242424;
+
+  /* --- Accent scale (anchored: 400 = #F6AD65, warm amber) --- */
+  --color-accent-50: #fef6ec;
+  --color-accent-100: #fdebd4;
+  --color-accent-200: #fbd5a3;
+  --color-accent-300: #f9c282;
+  --color-accent-400: #f6ad65;
+  --color-accent-500: #f39540;
+  --color-accent-600: #e07a1e;
+  --color-accent-700: #b85f14;
+  --color-accent-800: #8a450d;
+  --color-accent-900: #5c2d08;
+
+  /* --- Semantic aliases (dark-first) --- */
+  --color-primary: var(--color-accent-400);
+  --color-primary-fg: #161616;
+
+  /* --- Surface / background --- */
+  --color-surface: #161616;
+  --color-surface-alt: #1a1a1a;
+  --color-surface-raised: #1e1e1e;
+  --color-surface-overlay: #242424;
+
+  /* --- Text (light on dark) --- */
+  --color-foreground: #f2f2f2;
+  --color-foreground-muted: #a0a0a0;
+  --color-foreground-faint: #636363;
+
+  /* --- Border --- */
+  --color-border: #2e2e2e;
+  --color-border-strong: #484848;
+
+  /* --- Feedback --- */
+  --color-success: #22c55e;
+  --color-warning: var(--color-accent-400);
+  --color-error: #ef4444;
+
+  /* --- Font families --- */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-lora), Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+
+  /* --- Border radius (sharp corners match the rectangular logo mark) --- */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
-  background: var(--color-brand-neutral);
-  color: var(--color-brand-black);
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-accent-400);
+  color: var(--color-primary-fg);
 }

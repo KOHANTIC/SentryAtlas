@@ -144,24 +144,24 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-brand-neutral/80 backdrop-blur-md border-b border-brand-black/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-surface/85 backdrop-blur-md border-b border-border">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="text-lg font-bold tracking-tight text-brand-black">
-            Sentry<span className="text-brand-accent">Atlas</span>
+          <span className="text-lg font-bold tracking-tight text-foreground">
+            Sentry<span className="text-accent-400">Atlas</span>
           </span>
           <div className="flex items-center gap-4">
             <a
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-brand-black/50 hover:text-brand-black transition-colors"
+              className="text-foreground-muted hover:text-foreground transition-colors"
               aria-label="GitHub"
             >
               <GitHubIcon className="w-5 h-5" />
             </a>
             <a
               href={MAP_URL}
-              className="text-sm font-medium bg-brand-accent text-white px-4 py-2 rounded-full hover:bg-brand-accent/90 transition-colors"
+              className="text-sm font-medium bg-accent-400 text-primary-fg px-4 py-2 hover:bg-accent-500 transition-all motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]"
             >
               Open Map
             </a>
@@ -172,21 +172,21 @@ export default function Home() {
       {/* Hero */}
       <section className="relative pt-40 pb-24 px-6 overflow-hidden">
         <div
-          className="absolute inset-0 bg-no-repeat bg-center bg-cover opacity-[0.2] pointer-events-none"
+          className="absolute inset-0 bg-no-repeat bg-center bg-cover opacity-[0.28] pointer-events-none"
           style={{ backgroundImage: "url('/hero-background.svg')" }}
         />
         <div className="relative max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 text-xs font-medium text-brand-black/50 bg-brand-black/5 rounded-full px-3 py-1.5 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          <div className="inline-flex items-center gap-2 text-xs font-medium text-foreground-muted bg-surface-raised border border-border px-3 py-1.5 mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-success" />
             Open source &amp; free forever
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-brand-black leading-[1.1] mb-6 uppercase">
+          <h1 className="font-display text-5xl sm:text-6xl font-semibold tracking-tight text-foreground leading-[1.1] mb-6">
             Real-time disaster{" "}
-            <span className="text-brand-accent">monitoring</span>,{" "}
+            <span className="text-accent-400">monitoring</span>,{" "}
             <br className="hidden sm:block" />
             open and free
           </h1>
-          <p className="text-lg sm:text-xl text-brand-black/60 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg sm:text-xl text-foreground-muted max-w-2xl mx-auto mb-10 leading-relaxed">
             SentryAtlas aggregates live disaster data from four trusted public
             sources onto a single interactive map. Earthquakes, wildfires,
             floods, storms — see it all at a glance.
@@ -194,7 +194,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
               href={MAP_URL}
-              className="group flex items-center gap-2 text-base font-semibold bg-brand-accent text-white px-7 py-3.5 rounded-full hover:bg-brand-accent/90 transition-colors shadow-lg shadow-brand-accent/25"
+              className="group flex items-center gap-2 text-base font-semibold bg-accent-400 text-primary-fg px-7 py-3.5 hover:bg-accent-500 transition-all motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98] shadow-lg shadow-accent-400/20"
             >
               Explore the Map
               <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -203,7 +203,7 @@ export default function Home() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-base font-semibold text-brand-black border-2 border-brand-black/15 px-7 py-3.5 rounded-full hover:border-brand-black/30 transition-colors"
+              className="flex items-center gap-2 text-base font-semibold text-foreground border-2 border-border-strong px-7 py-3.5 hover:border-foreground-faint transition-all motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]"
             >
               <GitHubIcon className="w-5 h-5" />
               View on GitHub
@@ -214,10 +214,10 @@ export default function Home() {
 
       {/* Event Types Strip */}
 
-      <section className="py-6 border-y border-brand-black/5">
-        <p className="text-center text-sm text-brand-black/40 tracking-wide">
+      <section className="py-6 border-y border-border">
+        <p className="text-center text-sm text-foreground-muted tracking-wide">
           Earthquakes &middot; Wildfires &middot; Floods &middot; Storms &middot; Volcanoes &middot; Cyclones &middot; Hurricanes{" "}
-          <span className="text-brand-black/25">&amp; 6 more</span>
+          <span className="text-foreground-faint">&amp; 8 more</span>
         </p>
       </section>
 
@@ -225,10 +225,10 @@ export default function Home() {
       <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-brand-black mb-4">
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-foreground mb-4">
               One map. Every disaster. In real time.
             </h2>
-            <p className="text-brand-black/50 max-w-2xl mx-auto text-lg">
+            <p className="text-foreground-muted max-w-2xl mx-auto text-lg">
               SentryAtlas continuously pulls data from government and
               scientific agencies around the world, normalizes it, and plots it
               on an interactive heatmap you can filter, zoom, and explore.
@@ -236,34 +236,34 @@ export default function Home() {
           </div>
 
           <div className="grid sm:grid-cols-3 gap-8">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-brand-black/5">
-              <div className="w-12 h-12 bg-brand-accent/10 rounded-xl flex items-center justify-center mb-5">
-                <GlobeIcon className="w-6 h-6 text-brand-accent" />
+            <div className="bg-surface-raised p-8 border border-border">
+              <div className="w-12 h-12 bg-accent-400/10 flex items-center justify-center mb-5">
+                <GlobeIcon className="w-6 h-6 text-accent-400" />
               </div>
-              <h3 className="font-semibold text-brand-black mb-2">Global Coverage</h3>
-              <p className="text-sm text-brand-black/50 leading-relaxed">
+              <h3 className="font-semibold text-foreground mb-2">Global Coverage</h3>
+              <p className="text-sm text-foreground-muted leading-relaxed">
                 Aggregates data from 4 independent sources covering every
                 continent and ocean. Earthquakes in Japan, wildfires in
                 California, floods in Europe — all in one place.
               </p>
             </div>
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-brand-black/5">
-              <div className="w-12 h-12 bg-brand-accent/10 rounded-xl flex items-center justify-center mb-5">
-                <LayersIcon className="w-6 h-6 text-brand-accent" />
+            <div className="bg-surface-raised p-8 border border-border">
+              <div className="w-12 h-12 bg-accent-400/10 flex items-center justify-center mb-5">
+                <LayersIcon className="w-6 h-6 text-accent-400" />
               </div>
-              <h3 className="font-semibold text-brand-black mb-2">13 Event Types</h3>
-              <p className="text-sm text-brand-black/50 leading-relaxed">
+              <h3 className="font-semibold text-foreground mb-2">15 Event Types</h3>
+              <p className="text-sm text-foreground-muted leading-relaxed">
                 From earthquakes and wildfires to hurricanes and icebergs.
                 Filter by type, time range, and viewport to see exactly what
                 matters to you.
               </p>
             </div>
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-brand-black/5">
-              <div className="w-12 h-12 bg-brand-accent/10 rounded-xl flex items-center justify-center mb-5">
-                <ShieldIcon className="w-6 h-6 text-brand-accent" />
+            <div className="bg-surface-raised p-8 border border-border">
+              <div className="w-12 h-12 bg-accent-400/10 flex items-center justify-center mb-5">
+                <ShieldIcon className="w-6 h-6 text-accent-400" />
               </div>
-              <h3 className="font-semibold text-brand-black mb-2">Trusted Data</h3>
-              <p className="text-sm text-brand-black/50 leading-relaxed">
+              <h3 className="font-semibold text-foreground mb-2">Trusted Data</h3>
+              <p className="text-sm text-foreground-muted leading-relaxed">
                 Every event comes from a verified public agency. No
                 user-submitted data, no social media scraping — just
                 authoritative government and scientific sources.
@@ -274,17 +274,17 @@ export default function Home() {
       </section>
 
       {/* Data Sources */}
-      <section className="relative py-24 px-6 bg-brand-black overflow-hidden">
+      <section className="relative py-24 px-6 bg-surface-alt border-y border-border overflow-hidden">
         <div
-          className="absolute -inset-16 bg-no-repeat bg-center bg-cover opacity-[0.1] pointer-events-none"
+          className="absolute -inset-16 bg-no-repeat bg-center bg-cover opacity-[0.14] pointer-events-none"
           style={{ backgroundImage: "url('/contour-lines.svg')" }}
         />
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-brand-neutral mb-4">
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-foreground mb-4">
               Powered by public data
             </h2>
-            <p className="text-brand-neutral/50 max-w-xl mx-auto text-lg">
+            <p className="text-foreground-muted max-w-xl mx-auto text-lg">
               SentryAtlas pulls from four authoritative, freely available data
               sources — updated continuously.
             </p>
@@ -297,12 +297,12 @@ export default function Home() {
                 href={source.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-2xl p-6 transition-colors"
+                className="group bg-surface-raised hover:bg-surface-overlay border border-border hover:border-border-strong p-6 transition-colors"
               >
-                <h3 className="text-lg font-semibold text-brand-neutral mb-1.5 group-hover:text-brand-accent transition-colors">
+                <h3 className="text-lg font-semibold text-foreground mb-1.5 group-hover:text-accent-400 transition-colors">
                   {source.name}
                 </h3>
-                <p className="text-sm text-brand-neutral/40 leading-relaxed">
+                <p className="text-sm text-foreground-muted leading-relaxed">
                   {source.description}
                 </p>
               </a>
@@ -314,25 +314,25 @@ export default function Home() {
       {/* Open Source */}
       <section className="py-24 px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="w-14 h-14 bg-brand-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <CodeIcon className="w-7 h-7 text-brand-accent" />
+          <div className="w-14 h-14 bg-accent-400/10 flex items-center justify-center mx-auto mb-6">
+            <CodeIcon className="w-7 h-7 text-accent-400" />
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-brand-black mb-4">
+          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-foreground mb-4">
             Fully open source
           </h2>
-          <p className="text-brand-black/50 max-w-xl mx-auto text-lg mb-4 leading-relaxed">
+          <p className="text-foreground-muted max-w-xl mx-auto text-lg mb-4 leading-relaxed">
             SentryAtlas is built in the open with a Go backend, a Next.js
             frontend, and MapLibre GL for map rendering. No API keys required,
             no paywalls, no tracking.
           </p>
-          <p className="text-brand-black/40 text-sm mb-10">
+          <p className="text-foreground-faint text-sm mb-10">
             Contributions, issues, and ideas are welcome.
           </p>
           <a
             href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-base font-semibold text-brand-black border-2 border-brand-black/15 px-7 py-3.5 rounded-full hover:border-brand-black/30 transition-colors"
+            className="inline-flex items-center gap-2 text-base font-semibold text-foreground border-2 border-border-strong px-7 py-3.5 hover:border-foreground-faint transition-all motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]"
           >
             <GitHubIcon className="w-5 h-5" />
             View on GitHub
@@ -341,16 +341,16 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 px-6 border-t border-brand-black/5">
+      <footer className="py-10 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-sm text-brand-black/40">
+          <span className="text-sm text-foreground-muted">
             Made with ♥ by the{" "}
-            <a href="https://kohantic.com" target="_blank" rel="noopener noreferrer" className="font-bold text-brand-accent hover:underline">KOHANTIC</a> team
+            <a href="https://kohantic.com" target="_blank" rel="noopener noreferrer" className="font-bold text-accent-400 hover:underline">KOHANTIC</a> team
           </span>
-          <div className="flex items-center gap-6 text-sm text-brand-black/40">
+          <div className="flex items-center gap-6 text-sm text-foreground-muted">
             <a
               href={MAP_URL}
-              className="hover:text-brand-black transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               Map
             </a>
@@ -358,7 +358,7 @@ export default function Home() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-brand-black transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               GitHub
             </a>
