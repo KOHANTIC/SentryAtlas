@@ -1,0 +1,114 @@
+{
+  "@context": [
+    "https://geojson.org/geojson-ld/geojson-context.jsonld",
+    {
+      "@version": "1.1",
+      "wx": "https://api.weather.gov/ontology#"
+    }
+  ],
+  "type": "FeatureCollection",
+  "title": "Current watches, warnings, and advisories",
+  "updated": "2026-08-10T14:10:00+00:00",
+  "features": [
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.tornado1",
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-97.0, 32.0],
+            [-96.0, 32.0],
+            [-96.0, 33.0],
+            [-97.0, 33.0],
+            [-97.0, 32.0]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.tornado1",
+        "event": "Tornado Warning",
+        "headline": "Tornado Warning issued August 10 at 2:00PM CDT by NWS Fort Worth TX",
+        "description": "A severe thunderstorm capable of producing a tornado was located near Dallas.",
+        "severity": "Extreme",
+        "urgency": "Immediate",
+        "certainty": "Observed",
+        "onset": "2026-08-10T14:00:00Z",
+        "sent": "2026-08-10T14:05:00Z",
+        "areaDesc": "Dallas County, TX",
+        "senderName": "NWS Fort Worth TX",
+        "web": "https://alerts.weather.gov/id/tornado1"
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.flood1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.flood1",
+        "event": "Flash Flood Warning",
+        "headline": "Flash Flood Warning issued August 9 at 1:00AM CDT by NWS Austin/San Antonio TX",
+        "description": "Heavy rainfall is causing flash flooding along Onion Creek.",
+        "severity": "Severe",
+        "urgency": "Expected",
+        "certainty": "Likely",
+        "onset": "2026-08-09T06:00:00Z",
+        "sent": "2026-08-09T06:10:00Z",
+        "areaDesc": "Travis County, TX",
+        "senderName": "NWS Austin/San Antonio TX",
+        "web": "https://alerts.weather.gov/id/flood1"
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.weather1",
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [-120.0, 45.0],
+              [-119.0, 45.0],
+              [-119.0, 46.0],
+              [-120.0, 46.0],
+              [-120.0, 45.0]
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.weather1",
+        "event": "Special Weather Statement",
+        "headline": "Special Weather Statement issued August 8 by NWS Pendleton OR",
+        "description": "Gusty winds expected this afternoon.",
+        "severity": "Moderate",
+        "urgency": "Expected",
+        "certainty": "Likely",
+        "onset": "2026-08-08T18:00:00Z",
+        "sent": "2026-08-08T18:00:00Z",
+        "areaDesc": "Umatilla County, OR",
+        "senderName": "NWS Pendleton OR",
+        "web": "https://alerts.weather.gov/id/weather1"
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.winter1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.winter1",
+        "event": "Winter Storm Watch",
+        "headline": "Winter Storm Watch issued August 7 by NWS Reno NV",
+        "description": "Heavy snow possible above 7000 feet.",
+        "severity": "Unknown",
+        "urgency": "Future",
+        "certainty": "Possible",
+        "onset": "",
+        "sent": "2026-08-07T09:00:00Z",
+        "areaDesc": "Sierra Nevada",
+        "senderName": "NWS Reno NV",
+        "web": "https://alerts.weather.gov/id/winter1"
+      }
+    }
+  ]
+}

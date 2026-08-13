@@ -1,0 +1,100 @@
+{
+  "title": "EONET Events",
+  "description": "Natural events from EONET.",
+  "link": "https://eonet.gsfc.nasa.gov/api/v3/events",
+  "events": [
+    {
+      "id": "EONET_10001",
+      "title": "Creek Fire, Fresno County, California",
+      "description": "",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_10001",
+      "closed": null,
+      "categories": [
+        {
+          "id": "wildfires",
+          "title": "Wildfires"
+        }
+      ],
+      "sources": [
+        {
+          "id": "InciWeb",
+          "url": "https://inciweb.wildfire.gov/incident-information/example"
+        }
+      ],
+      "geometry": [
+        {
+          "magnitudeValue": null,
+          "magnitudeUnit": null,
+          "date": "2026-08-01T10:00:00Z",
+          "type": "Point",
+          "coordinates": [-119.25, 37.19]
+        },
+        {
+          "magnitudeValue": null,
+          "magnitudeUnit": null,
+          "date": "2026-08-06T10:00:00Z",
+          "type": "Point",
+          "coordinates": [-119.31, 37.22]
+        }
+      ]
+    },
+    {
+      "id": "EONET_10002",
+      "title": "Tropical Storm Odile",
+      "description": "",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_10002",
+      "closed": null,
+      "categories": [
+        {
+          "id": "severeStorms",
+          "title": "Severe Storms"
+        }
+      ],
+      "sources": [
+        {
+          "id": "NOAA_NHC",
+          "url": "https://www.nhc.noaa.gov/"
+        }
+      ],
+      "magnitudeValue": 65.0,
+      "magnitudeUnit": "kts",
+      "geometry": [
+        {
+          "magnitudeValue": 65.0,
+          "magnitudeUnit": "kts",
+          "date": "2026-08-08T12:00:00Z",
+          "type": "Point",
+          "coordinates": [-108.9, 17.3]
+        }
+      ]
+    },
+    {
+      "id": "EONET_10003",
+      "title": "Dust Storm over the Sahara",
+      "description": "A large dust plume moving west off the coast.",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_10003",
+      "closed": null,
+      "categories": [
+        {
+          "id": "dustHaze",
+          "title": "Dust and Haze"
+        }
+      ],
+      "sources": [
+        {
+          "id": "EO",
+          "url": "https://earthobservatory.nasa.gov/"
+        }
+      ],
+      "geometry": [
+        {
+          "magnitudeValue": null,
+          "magnitudeUnit": null,
+          "date": "2026-07-01T00:00:00Z",
+          "type": "Point",
+          "coordinates": [-10.0, 20.0]
+        }
+      ]
+    }
+  ]
+}
