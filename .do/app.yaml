@@ -74,7 +74,10 @@ services:
     dockerfile_path: frontend/Dockerfile
     source_dir: /frontend
     http_port: 3000
-    instance_size_slug: apps-s-1vcpu-1gb
+    # Smallest basic-tier size. The image is built on DO's build
+    # infrastructure, so this only has to run the standalone Next server
+    # (~100 MB RSS) serving one route.
+    instance_size_slug: apps-s-1vcpu-0.5gb
     instance_count: 1
     envs:
       # Same-origin: the ingress rules above route /api to the backend, so
