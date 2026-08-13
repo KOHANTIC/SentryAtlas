@@ -13,7 +13,7 @@ Go API server that aggregates natural disaster data from multiple public sources
 
 ## Prerequisites
 
-- Go 1.22+
+- Go 1.25+
 
 ## Getting Started
 

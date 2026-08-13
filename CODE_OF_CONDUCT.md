@@ -6,4 +6,4 @@ We are committed to providing a welcoming and inclusive experience for everyone.
 
 ## Reporting
 
-If you experience or witness unacceptable behavior, please contact the project team at **conduct@kohantic.com**. All reports will be handled with discretion.
+If you experience or witness unacceptable behavior, please contact the project team at **security@kohantic.com**. All reports will be handled with discretion.

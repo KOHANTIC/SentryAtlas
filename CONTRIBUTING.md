@@ -19,7 +19,7 @@ Open a [feature request](https://github.com/KOHANTIC/SentryAtlas/issues/new?temp
 
 ### Prerequisites
 
-- Go 1.22+
+- Go 1.25+
 - Node.js 22+
 - Git
 
