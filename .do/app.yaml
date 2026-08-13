@@ -1,18 +1,35 @@
+# DigitalOcean App Platform spec for the map application
+# (backend API + map frontend), served at map.sentryatlas.com.
+#
+# The landing site is a separate app — see .do/landing.yaml.
+#
+# Apply with:
+#   doctl apps update <app-id> --spec .do/app.yaml
 name: sentryatlas
 region: sfo
 
+domains:
+  - domain: map.sentryatlas.com
+    type: PRIMARY
+    zone: sentryatlas.com
+
 ingress:
   rules:
+    # preserve_path_prefix keeps /api and /health intact for the backend,
+    # which routes on the full path. Without it the platform strips the
+    # matched prefix and /health arrives as /.
     - match:
         path:
           prefix: /api
       component:
         name: backend
+        preserve_path_prefix: true
     - match:
         path:
           prefix: /health
       component:
         name: backend
+        preserve_path_prefix: true
     - match:
         path:
           prefix: /
@@ -39,6 +56,15 @@ services:
         value: "5"
       - key: FETCH_TIMEOUT_SECONDS
         value: "45"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "60"
+      # Deliberately open: /api/v1/events is a public read-only endpoint
+      # and is documented as usable without a key. Rate limiting, not
+      # origin restriction, is what protects it.
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: NWS_USER_AGENT
+        value: "SentryAtlas/1.0 (+https://github.com/KOHANTIC/SentryAtlas)"
 
   - name: frontend
     github:
@@ -51,6 +77,9 @@ services:
     instance_size_slug: apps-s-1vcpu-1gb
     instance_count: 1
     envs:
+      # Same-origin: the ingress rules above route /api to the backend, so
+      # the browser calls map.sentryatlas.com/api/v1/events directly.
+      # NEXT_PUBLIC_* is inlined at build time, hence BUILD_TIME scope.
       - key: NEXT_PUBLIC_API_URL
-        value: "${backend.PUBLIC_URL}"
+        value: "${APP_URL}"
         scope: BUILD_TIME
