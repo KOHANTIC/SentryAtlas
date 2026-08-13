@@ -177,7 +177,7 @@ export default function Home() {
         />
         <div className="relative max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 text-xs font-medium text-foreground-muted bg-surface-raised border border-border px-3 py-1.5 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-success" />
+            <span className="w-1.5 h-1.5 bg-success" />
             Open source &amp; free forever
           </div>
           <h1 className="font-display text-5xl sm:text-6xl font-semibold tracking-tight text-foreground leading-[1.1] mb-6">
