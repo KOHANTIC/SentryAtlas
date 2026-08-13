@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -86,9 +87,19 @@ func main() {
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
-		// Per-IP, after RealIP. /health stays exempt so orchestrator
-		// probes can never be throttled.
-		r.Use(httprate.LimitByIP(rateLimitPerMin, time.Minute))
+		// Trust model: middleware.RealIP (above) rewrites RemoteAddr from
+		// X-Forwarded-For, which the platform's load balancer sets from the
+		// true client — so RemoteAddr here is the client, not the proxy.
+		// CanonicalizeIP buckets IPv6 by /64. /health stays exempt so
+		// orchestrator probes can never be throttled.
+		r.Use(httprate.LimitBy(rateLimitPerMin, time.Minute,
+			func(r *http.Request) (string, error) {
+				ip, _, err := net.SplitHostPort(r.RemoteAddr)
+				if err != nil {
+					ip = r.RemoteAddr
+				}
+				return httprate.CanonicalizeIP(ip), nil
+			}))
 		r.Get("/events", eventsHandler.GetEvents)
 	})
 

@@ -92,7 +92,6 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 	var wg sync.WaitGroup
 
 	for _, a := range relevant {
-		a := a
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -170,7 +169,6 @@ func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchP
 	remaining := params.Limit // 0 means unlimited
 
 	for _, a := range relevant {
-		a := a
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

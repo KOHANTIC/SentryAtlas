@@ -14,3 +14,6 @@ linters:
         - (net/http.ResponseWriter).Write
         - fmt.Fprintf
         - fmt.Fprint
+        # Response-body Close on GET requests: the body has already been
+        # fully consumed or abandoned; there is nothing to do with the error.
+        - (io.ReadCloser).Close
