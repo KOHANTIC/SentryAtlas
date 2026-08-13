@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { EVENT_TYPES } from "@/lib/types";
-import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from "@/lib/mapStyles";
+import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS, SEVERITY_RAMP_GRADIENT } from "@/lib/mapStyles";
 
 export default function Legend() {
   const [collapsed, setCollapsed] = useState(true);
@@ -70,10 +70,7 @@ export default function Legend() {
         </span>
         <div
           className="mt-1.5 h-2.5 "
-          style={{
-            background:
-              "linear-gradient(to right, #16a34a, #a3e635, #facc15, #f97316, #dc2626)",
-          }}
+          style={{ background: SEVERITY_RAMP_GRADIENT }}
         />
         <div className="flex justify-between mt-1">
           <span className="text-[10px] text-foreground-muted">Low</span>

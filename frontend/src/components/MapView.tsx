@@ -9,6 +9,8 @@ import {
   INITIAL_VIEW,
   EVENT_TYPE_COLORS,
   EVENT_TYPE_LABELS,
+  SEVERITY_COLORS,
+  FALLBACK_COLOR,
 } from "@/lib/mapStyles";
 import type { EventsGeoJSON, EventProperties, Severity } from "@/lib/types";
 
@@ -16,13 +18,6 @@ interface MapViewProps {
   data: EventsGeoJSON | null;
   onBoundsChange: (bbox: [number, number, number, number]) => void;
 }
-
-const SEVERITY_BADGES: Record<Severity, { bg: string; text: string }> = {
-  extreme: { bg: "#dc2626", text: "#fff" },
-  severe: { bg: "#ea580c", text: "#fff" },
-  moderate: { bg: "#ca8a04", text: "#fff" },
-  minor: { bg: "#16a34a", text: "#fff" },
-};
 
 // el builds a styled element whose text is assigned via textContent.
 // Popup values originate from third-party feeds (GDACS descriptions carry
@@ -35,11 +30,11 @@ function el(tag: string, style: string, text?: string): HTMLElement {
 }
 
 function buildPopupContent(props: EventProperties): HTMLElement {
-  const color = EVENT_TYPE_COLORS[props.event_type] ?? "#888";
+  const color = EVENT_TYPE_COLORS[props.event_type] ?? FALLBACK_COLOR;
   const label = EVENT_TYPE_LABELS[props.event_type] ?? props.event_type;
   const date = new Date(props.started_at).toLocaleString();
 
-  const root = el("div", "max-width:280px;font-family:system-ui,sans-serif");
+  const root = el("div", "max-width:280px;font-family:var(--font-sans)");
 
   const header = el(
     "div",
@@ -54,17 +49,17 @@ function buildPopupContent(props: EventProperties): HTMLElement {
   header.appendChild(
     el(
       "span",
-      "font-size:11px;color:#24242499;text-transform:uppercase;font-weight:600",
+      "font-size:11px;color:var(--color-foreground-muted);text-transform:uppercase;font-weight:600",
       label
     )
   );
   if (props.severity) {
-    const badge = SEVERITY_BADGES[props.severity];
+    const badge = SEVERITY_COLORS[props.severity];
     if (badge) {
       header.appendChild(
         el(
           "span",
-          `background:${badge.bg};color:${badge.text};padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;text-transform:uppercase`,
+          `background:${badge};color:#161616;padding:2px 8px;font-size:11px;font-weight:600;text-transform:uppercase`,
           props.severity
         )
       );
@@ -75,7 +70,7 @@ function buildPopupContent(props: EventProperties): HTMLElement {
   root.appendChild(
     el(
       "div",
-      "font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px;color:#242424",
+      "font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px;color:var(--color-foreground)",
       props.title
     )
   );
@@ -83,7 +78,7 @@ function buildPopupContent(props: EventProperties): HTMLElement {
   if (props.magnitude != null) {
     const magnitude = el(
       "div",
-      "font-size:13px;color:#24242499;margin-top:4px",
+      "font-size:13px;color:var(--color-foreground-muted);margin-top:4px",
       "Magnitude: "
     );
     const value = document.createElement("strong");
@@ -93,7 +88,7 @@ function buildPopupContent(props: EventProperties): HTMLElement {
   }
 
   root.appendChild(
-    el("div", "font-size:12px;color:#24242480;margin-top:4px", date)
+    el("div", "font-size:12px;color:var(--color-foreground-muted);margin-top:4px", date)
   );
 
   if (props.description) {
@@ -104,7 +99,7 @@ function buildPopupContent(props: EventProperties): HTMLElement {
     root.appendChild(
       el(
         "div",
-        "font-size:12px;color:#24242499;margin-top:6px;line-height:1.4",
+        "font-size:12px;color:var(--color-foreground-muted);margin-top:6px;line-height:1.4",
         truncated
       )
     );
@@ -112,7 +107,7 @@ function buildPopupContent(props: EventProperties): HTMLElement {
 
   const footer = el("div", "margin-top:8px");
   footer.appendChild(
-    el("span", "font-size:11px;color:#24242466", `via ${props.source}`)
+    el("span", "font-size:11px;color:var(--color-foreground-faint)", `via ${props.source}`)
   );
   root.appendChild(footer);
 

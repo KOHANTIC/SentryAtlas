@@ -1,3 +1,6 @@
+// Mirrors the backend's canonical registry (backend/internal/models/types.go).
+// "weather" is the NOAA fallback for alerts with no more specific class;
+// "other" covers upstream categories no adapter maps yet.
 export const EVENT_TYPES = [
   "earthquake",
   "wildfire",
@@ -12,6 +15,8 @@ export const EVENT_TYPES = [
   "drought",
   "iceberg",
   "landslide",
+  "weather",
+  "other",
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];

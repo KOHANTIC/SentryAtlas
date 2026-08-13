@@ -154,7 +154,7 @@ export default function FilterPanel({
                   style={{
                     backgroundColor: active
                       ? EVENT_TYPE_COLORS[type]
-                      : "#d1d5db",
+                      : "var(--color-border-strong)",
                     boxShadow: active ? `0 0 0 1px ${EVENT_TYPE_COLORS[type]}40` : "none",
                   }}
                 />
