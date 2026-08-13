@@ -11,7 +11,7 @@ export default function Legend() {
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg px-3 py-2 text-xs font-medium text-foreground-muted hover:bg-surface-overlay transition-colors flex items-center gap-1.5 cursor-pointer"
+        className="bg-surface-raised/95 backdrop-blur-sm border border-border shadow-lg px-3 py-2 text-xs font-medium text-foreground-muted hover:bg-surface-overlay transition-colors flex items-center gap-1.5 cursor-pointer"
         aria-label="Show legend"
         aria-expanded={false}
         aria-controls="map-legend"
@@ -37,7 +37,12 @@ export default function Legend() {
   }
 
   return (
-    <div id="map-legend" className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg overflow-hidden">
+    // Height-capped and two-column: with 15 event types a single column
+    // overflowed the viewport and collided with the filter panel above.
+    <div
+      id="map-legend"
+      className="bg-surface-raised/95 backdrop-blur-sm border border-border shadow-lg max-h-[55dvh] overflow-y-auto"
+    >
       <div className="flex items-center justify-between px-3 py-2 border-b border-border">
         <span className="text-xs font-semibold text-foreground">Legend</span>
         <button
@@ -78,14 +83,14 @@ export default function Legend() {
         </div>
       </div>
 
-      <div className="px-3 py-2 space-y-1">
+      <div className="px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1">
         {EVENT_TYPES.map((type) => (
           <div key={type} className="flex items-center gap-2">
             <span
               className="w-2.5 h-2.5 flex-shrink-0"
               style={{ backgroundColor: EVENT_TYPE_COLORS[type] }}
             />
-            <span className="text-[11px] text-foreground-muted">
+            <span className="text-[11px] text-foreground-muted whitespace-nowrap">
               {EVENT_TYPE_LABELS[type]}
             </span>
           </div>

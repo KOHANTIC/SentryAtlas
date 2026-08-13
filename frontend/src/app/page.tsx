@@ -55,17 +55,22 @@ export default function Home() {
       <h1 className="sr-only">SentryAtlas — real-time disaster monitoring</h1>
       <MapView data={data} onBoundsChange={handleBoundsChange} />
 
-      <div className="absolute top-4 left-4 z-10 max-w-[calc(100vw-6.5rem)]">
-        <FilterPanel
-          visibleTypes={fetchParams.types}
-          onVisibleTypesChange={handleTypesChange}
-          since={fetchParams.since}
-          onSinceChange={handleSinceChange}
-        />
-      </div>
+      {/* One column for both left-hand panels: absolutely positioning them
+          independently let the expanded legend overlap the filter panel and
+          run off short viewports. */}
+      <div className="absolute top-4 bottom-6 left-4 z-10 flex flex-col items-start justify-between gap-3 max-w-[calc(100vw-6.5rem)] pointer-events-none">
+        <div className="min-h-0 flex-shrink pointer-events-auto">
+          <FilterPanel
+            visibleTypes={fetchParams.types}
+            onVisibleTypesChange={handleTypesChange}
+            since={fetchParams.since}
+            onSinceChange={handleSinceChange}
+          />
+        </div>
 
-      <div className="absolute bottom-6 left-4 z-10">
-        <Legend />
+        <div className="min-h-0 flex-shrink-0 pointer-events-auto">
+          <Legend />
+        </div>
       </div>
 
       <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
@@ -133,7 +138,7 @@ export default function Home() {
         </div>
 
         {!isLoading && !error && nothingSelected && (
-          <div className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56">
+          <div className="bg-surface-raised/95 backdrop-blur-sm border border-border shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56">
             No event types selected — choose some in Filters, or{" "}
             <button
               onClick={() => handleTypesChange([...EVENT_TYPES])}
@@ -146,7 +151,7 @@ export default function Home() {
         )}
 
         {!isLoading && !error && !nothingSelected && eventCount === 0 && (
-          <div className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56">
+          <div className="bg-surface-raised/95 backdrop-blur-sm border border-border shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56">
             No events match the current filters in this view. Try a wider time
             range or zoom out.
           </div>
@@ -154,7 +159,7 @@ export default function Home() {
 
         {downSources.length > 0 && (
           <div
-            className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56"
+            className="bg-surface-raised/95 backdrop-blur-sm border border-border shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56"
             role="status"
             title={downSources.map((s) => `${s.source}: ${s.error ?? "unavailable"}`).join("\n")}
           >

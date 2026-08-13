@@ -40,7 +40,7 @@ export default function FilterPanel({
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 hover:bg-surface-overlay transition-colors cursor-pointer text-foreground"
+        className="bg-surface-raised/95 backdrop-blur-sm border border-border shadow-lg p-3 hover:bg-surface-overlay transition-colors cursor-pointer text-foreground"
         aria-label="Open filters"
         aria-expanded={false}
         aria-controls="filter-panel"
@@ -63,7 +63,12 @@ export default function FilterPanel({
   }
 
   return (
-    <div id="filter-panel" className="bg-surface-raised/95 backdrop-blur-sm border border-border rounded-lg shadow-lg w-64 max-w-full max-h-[calc(100dvh-2rem)] overflow-y-auto">
+    // h-full inside the left column: it shrinks to whatever the legend
+    // leaves and scrolls internally rather than overflowing the viewport.
+    <div
+      id="filter-panel"
+      className="bg-surface-raised/95 backdrop-blur-sm border border-border shadow-lg w-64 max-w-full h-full overflow-y-auto"
+    >
       <div className="flex items-center justify-between p-3 border-b border-border">
         <h2 className="text-sm font-semibold text-foreground">Filters</h2>
         <button
@@ -102,7 +107,7 @@ export default function FilterPanel({
               key={preset.value}
               onClick={() => setTimePreset(preset.value)}
               aria-pressed={activePreset === preset.value}
-              className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors cursor-pointer ${
+              className={`flex-1 text-xs font-medium py-1.5 transition-colors cursor-pointer ${
                 activePreset === preset.value
                   ? "bg-accent-400 text-primary-fg"
                   : "bg-surface-overlay text-foreground-muted hover:bg-border"
@@ -143,7 +148,7 @@ export default function FilterPanel({
                 key={type}
                 onClick={() => toggleType(type)}
                 aria-pressed={active}
-                className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-left text-sm transition-colors cursor-pointer ${
+                className={`flex items-center gap-2 w-full px-2 py-1.5 text-left text-sm transition-colors cursor-pointer ${
                   active
                     ? "text-foreground hover:bg-surface-overlay"
                     : "text-foreground-muted hover:bg-surface-overlay"
