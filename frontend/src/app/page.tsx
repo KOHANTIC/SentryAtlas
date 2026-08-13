@@ -176,7 +176,16 @@ export default function Home() {
         <span className="text-[11px] text-foreground-muted bg-surface-overlay border border-border px-2 py-1 whitespace-nowrap">
           Made with ♥ by the{" "}
           <a href="https://kohantic.com" target="_blank" rel="noopener noreferrer" className="font-bold text-accent-400 hover:underline">KOHANTIC</a>{" "}
-          team
+          team ·{" "}
+          {/* AGPL §13: a network-facing deployment must offer users its source. */}
+          <a
+            href="https://github.com/KOHANTIC/SentryAtlas"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground hover:underline"
+          >
+            Source
+          </a>
         </span>
       </div>
     </main>
