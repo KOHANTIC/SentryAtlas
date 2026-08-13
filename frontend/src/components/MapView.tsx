@@ -118,6 +118,8 @@ export default function MapView({ data, onBoundsChange }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
+  const styleReadyRef = useRef(false);
+  const pendingDataRef = useRef<((map: maplibregl.Map) => void) | null>(null);
   const onBoundsChangeRef = useRef(onBoundsChange);
   useEffect(() => {
     onBoundsChangeRef.current = onBoundsChange;
@@ -137,6 +139,12 @@ export default function MapView({ data, onBoundsChange }: MapViewProps) {
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+
+    // Reset per-map state: this effect re-runs on remount (React strict
+    // mode runs it twice in dev), and a stale "ready" flag would let the
+    // next map take data before its style exists.
+    styleReadyRef.current = false;
+    pendingDataRef.current = null;
 
     const map = new maplibregl.Map({
       container: containerRef.current,
@@ -165,8 +173,12 @@ export default function MapView({ data, onBoundsChange }: MapViewProps) {
     };
 
     map.on("load", () => {
+      styleReadyRef.current = true;
       setupLayers(map);
       emitBounds();
+      // Apply whatever arrived while the style was still loading.
+      pendingDataRef.current?.(map);
+      pendingDataRef.current = null;
     });
 
     map.on("moveend", emitBounds);
@@ -219,6 +231,8 @@ export default function MapView({ data, onBoundsChange }: MapViewProps) {
     return () => {
       map.remove();
       mapRef.current = null;
+      styleReadyRef.current = false;
+      pendingDataRef.current = null;
     };
   }, [setupLayers]);
 
@@ -226,18 +240,28 @@ export default function MapView({ data, onBoundsChange }: MapViewProps) {
     const map = mapRef.current;
     if (!map || !data) return;
 
-    const applyData = () => {
-      if (!map.getSource("events")) {
-        setupLayers(map);
+    const applyData = (m: maplibregl.Map) => {
+      if (!m.getSource("events")) {
+        setupLayers(m);
       }
-      const source = map.getSource("events") as maplibregl.GeoJSONSource;
+      const source = m.getSource("events") as maplibregl.GeoJSONSource;
       source.setData(data);
     };
 
-    if (map.isStyleLoaded()) {
-      applyData();
+    // Gate on our own load flag as well as isStyleLoaded(): the latter
+    // reports false while tiles are still resolving even after "load" has
+    // fired, and a once("load") registered at that point never runs — the
+    // map then sits empty despite the data being there. If applying still
+    // throws because the style isn't ready, fall back to the pending slot,
+    // which the load handler flushes.
+    if (styleReadyRef.current || map.isStyleLoaded()) {
+      try {
+        applyData(map);
+      } catch {
+        pendingDataRef.current = applyData;
+      }
     } else {
-      map.once("load", applyData);
+      pendingDataRef.current = applyData;
     }
   }, [data, setupLayers]);
 
