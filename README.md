@@ -11,7 +11,7 @@ SentryAtlas aggregates live disaster data from four trusted public sources and p
 
 **[sentryatlas.com](https://sentryatlas.com)** · **[Open the map](https://map.sentryatlas.com)**
 
-![sentryatlas.com](docs/landing.jpg)
+![The SentryAtlas map, showing seven days of global events](docs/screenshot.png)
 
 ## Architecture
 
