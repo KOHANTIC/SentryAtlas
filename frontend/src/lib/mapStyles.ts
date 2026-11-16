@@ -71,7 +71,7 @@ export const SEVERITY_COLORS: Record<Severity, string> = {
 };
 
 /*
- * Heat ramp: the KOHANTIC accent ramp itself (900 → 100), so density reads
+ * Heat ramp: the accent ramp itself (900 → 100), so density reads
  * as an amber glow rising out of the dark surface. Single hue family,
  * monotone lightness — CVD-stable by construction.
  */

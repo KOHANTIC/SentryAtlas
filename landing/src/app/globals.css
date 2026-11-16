@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 /*
- * KOHANTIC design tokens — dark-first, one amber accent, zero radius.
- * Mirrors the canonical set in KOHANTIC's landing repo (src/app.css);
+ * SentryAtlas design tokens — dark-first, one amber accent, zero radius.
+ * The palette began as KOHANTIC's and is this project's own since KOHANTIC changed identity in 2026-11;
  * the frontend/ app in this monorepo carries the same block.
  */
 @theme {
