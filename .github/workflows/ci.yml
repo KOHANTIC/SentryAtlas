@@ -41,6 +41,16 @@ jobs:
         with:
           go-version: ${{ steps.go.outputs.version }}
           cache-dependency-path: backend/go.sum
+      # golangci-lint's standard set does not check formatting; gofmt from
+      # the job's own Go does, the same one contributors run.
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Not formatted with gofmt; run gofmt -w on:"
+            echo "$unformatted"
+            exit 1
+          fi
       - run: go build ./...
       - run: go vet ./...
       - run: go test -race -count=1 -cover ./...
