@@ -1,0 +1,96 @@
+{
+  "status": 200,
+  "content_type": "application/geo+json",
+  "cache_control": "public, max-age=60",
+  "body": {
+    "features": [
+      {
+        "geometry": {
+          "coordinates": [
+            -151.9234,
+            59.7568
+          ],
+          "type": "Point"
+        },
+        "properties": {
+          "event_type": "earthquake",
+          "id": "usgs-us7000red1",
+          "magnitude": 6.2,
+          "metadata": {
+            "depth": 42.5,
+            "place": "35 km W of Anchor Point, Alaska"
+          },
+          "severity": "extreme",
+          "source": "usgs",
+          "started_at": "2026-08-10T00:00:00Z",
+          "title": "M 6.2 - 35 km W of Anchor Point, Alaska",
+          "updated_at": "2026-08-10T01:00:00Z",
+          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000red1"
+        },
+        "type": "Feature"
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            -122.8,
+            38.8
+          ],
+          "type": "Point"
+        },
+        "properties": {
+          "event_type": "earthquake",
+          "id": "usgs-nc75001234",
+          "metadata": {
+            "depth": 0,
+            "place": "8 km NW of The Geysers, CA"
+          },
+          "source": "usgs",
+          "started_at": "2026-08-09T00:00:00Z",
+          "title": "M ? - 8 km NW of The Geysers, CA",
+          "updated_at": "2026-08-09T01:00:00Z",
+          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/nc75001234"
+        },
+        "type": "Feature"
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            -108.9,
+            17.3
+          ],
+          "type": "Point"
+        },
+        "properties": {
+          "event_type": "storm",
+          "id": "eonet-EONET_10002",
+          "magnitude": 65,
+          "source": "eonet",
+          "started_at": "2026-08-08T12:00:00Z",
+          "title": "Tropical Storm Odile",
+          "updated_at": "2026-08-08T12:00:00Z",
+          "url": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_10002"
+        },
+        "type": "Feature"
+      }
+    ],
+    "sources": [
+      {
+        "ok": true,
+        "source": "eonet"
+      },
+      {
+        "ok": true,
+        "source": "gdacs"
+      },
+      {
+        "ok": true,
+        "source": "noaa"
+      },
+      {
+        "ok": true,
+        "source": "usgs"
+      }
+    ],
+    "type": "FeatureCollection"
+  }
+}

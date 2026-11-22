@@ -1,0 +1,35 @@
+{
+  "status": 200,
+  "content_type": "text/event-stream",
+  "cache_control": "no-cache",
+  "frames": [
+    {
+      "event": "done",
+      "data": {
+        "sources": [
+          {
+            "error": "\u003cupstream error text\u003e",
+            "ok": false,
+            "source": "eonet"
+          },
+          {
+            "error": "\u003cupstream error text\u003e",
+            "ok": false,
+            "source": "gdacs"
+          },
+          {
+            "error": "\u003cupstream error text\u003e",
+            "ok": false,
+            "source": "noaa"
+          },
+          {
+            "error": "\u003cupstream error text\u003e",
+            "ok": false,
+            "source": "usgs"
+          }
+        ],
+        "total": 0
+      }
+    }
+  ]
+}
