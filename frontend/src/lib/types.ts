@@ -61,6 +61,10 @@ export interface SourceStatus {
   source: string;
   ok: boolean;
   error?: string;
+  // Set when the last poll failed and an older copy is served.
+  stale?: boolean;
+  // When the copy served was fetched; absent if the source has none.
+  fetched_at?: string;
 }
 
 // Payload of the SSE "done" event that terminates a stream.
