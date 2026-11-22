@@ -41,7 +41,11 @@ One event in full, with its long text and full geometry, and its source's status
   - EONET: its event id.
   - GDACS: `<type>-<event id>`.
   - NWS: the alert's first message, so an update keeps the id. The messages of one alert (its updates, and parallel messages for different zones, found by their shared VTEC event) are one event.
-- **`group_id`** is shared by reports of one real event from different sources. It is worked out again on every fetch, so never store it as a key.
+- **`group_id`** is shared by reports of one real event from different sources, and **`primary`** marks the one to draw. Both are in the snapshot only, worked out again on every build: never store a group id as a key. An event with no twin has neither.
+  - **Quakes:** GDACS repeats USGS's. A GDACS quake within 30 s, 50 km and 0.5 magnitude of a USGS quake is that quake, each matched once, closest first. On 2026-11-22 the pairs were a median 0.5 s, 0.8 km and 0.0 magnitude apart, and these limits paired 516 of 519.
+  - **EONET:** an event is grouped with the GDACS report it lists among its sources.
+  - **Primary:** the member from the source first in USGS, GDACS, NWS, EONET.
+  - Storms, fires and floods from different sources are not matched by place.
 - **`type`** is one of the 15 v1 types.
 - **`description`**, and an NWS alert's **`details.noaa.instruction`**, are long. Only the event-detail endpoint carries them.
 - **`details`** holds exactly the part named by `source`: `usgs`, `eonet`, `noaa` or `gdacs`.
