@@ -35,6 +35,7 @@ type Store struct {
 	mu      sync.RWMutex
 	order   []string
 	entries map[string]*entry
+	version uint64 // rises with every Put and Fail
 }
 
 type entry struct {
@@ -69,6 +70,7 @@ func (s *Store) Put(source string, events []event.Event, at time.Time) error {
 	defer s.mu.Unlock()
 	e := s.entry(source)
 	e.tried = true
+	s.version++
 	if !plausible(len(e.events), len(events)) && e.held+1 < acceptAfter {
 		e.held++
 		e.reason = fmt.Sprintf("sent %d events where the last copy had %d", len(events), len(e.events))
@@ -86,6 +88,15 @@ func (s *Store) Fail(source, reason string) {
 	e.tried = true
 	e.held = 0
 	e.reason = reason
+	s.version++
+}
+
+// Version rises whenever a poll is recorded, so a reader can tell whether
+// anything may have changed since it last looked.
+func (s *Store) Version() uint64 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.version
 }
 
 // plausible says whether a copy of n events can follow one of last: not
