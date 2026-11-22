@@ -1,0 +1,77 @@
+name: sources
+
+on:
+  schedule:
+    # Mondays, after vuln.yml.
+    - cron: "17 7 * * 1"
+  workflow_dispatch:
+
+# issues: write lets a failed check open or update its issue.
+permissions:
+  contents: read
+  issues: write
+
+# As in ci.yml: never download a different Go than the one the job asked for.
+env:
+  GOTOOLCHAIN: local
+
+concurrency:
+  group: sources
+  cancel-in-progress: false
+
+jobs:
+  # The fixtures only prove the adapters against the day they were recorded. Each week this
+  # runs the adapters against the live sources (backend/internal/adapters/contract_test.go)
+  # and, on a failure, opens an issue or adds to the open one. It is not part of the gate
+  # check: a source changing must not block pull requests.
+  check:
+    name: live source check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The release production is built with, as in ci.yml.
+      - name: Go release from the Dockerfile
+        id: go
+        run: |
+          version=$(sed -nE 's/^FROM golang:([0-9]+\.[0-9]+)-alpine.*/\1/p' Dockerfile)
+          test -n "$version" || { echo "backend/Dockerfile has no FROM golang:X.Y-alpine line"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: ${{ steps.go.outputs.version }}
+          cache-dependency-path: backend/go.sum
+      - name: Check the adapters against the live sources
+        id: check
+        run: |
+          set -o pipefail
+          LIVE_CONTRACT=1 go test ./internal/adapters -run 'TestLiveContract$' -count=1 -v 2>&1 | tee "$RUNNER_TEMP/check.log"
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '### Live source check'
+            echo '```'
+            grep -E -- '--- (PASS|FAIL)|contract_test.go:[0-9]+:' "$RUNNER_TEMP/check.log" | head -80 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Open or update the issue
+        if: failure() && steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          findings=$(grep -E -- '--- FAIL|contract_test.go:[0-9]+:' "$RUNNER_TEMP/check.log" | head -40 || true)
+          body=$(printf 'The weekly live source check failed: %s\n\n```\n%s\n```\n' "$RUN_URL" "$findings")
+          open=$(gh issue list --repo "$GITHUB_REPOSITORY" --label "source check" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "A source changed what it sends" \
+              --label "source check" --label "area: data" --label "bug" --assignee kyrokohan --body "$body"
+          fi
