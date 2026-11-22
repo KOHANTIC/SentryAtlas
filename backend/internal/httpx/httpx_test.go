@@ -1,15 +1,97 @@
 package httpx
 
 import (
+	"bytes"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
 )
+
+// logged runs one request through RequestID, the trusted-header middleware and
+// RequestLog, in production order, and returns what was logged.
+func logged(t *testing.T, r *http.Request, next http.HandlerFunc) string {
+	t.Helper()
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewJSONHandler(&buf, nil))
+	h := middleware.RequestID(middleware.ClientIPFromHeader(trustedHeader)(RequestLog(logger)(next)))
+	h.ServeHTTP(httptest.NewRecorder(), r)
+	return buf.String()
+}
+
+func TestRequestLogKeepsNoQueryStringOrAddress(t *testing.T) {
+	r := httptest.NewRequest(http.MethodGet, "/api/v1/events?bbox=-122.52,37.70,-122.35,37.83&since=2026-11-01&format=json", nil)
+	r.Header.Set(trustedHeader, "198.51.100.7")
+	r.RemoteAddr = "100.127.2.246:40724"
+	out := logged(t, r, func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusTeapot)
+		_, _ = w.Write([]byte("12345"))
+	})
+
+	if n := strings.Count(out, "\n"); n != 1 {
+		t.Fatalf("want one line, got %d: %q", n, out)
+	}
+	for _, leak := range []string{"bbox", "122.52", "since", "format=", "?", "198.51.100.7", "100.127.2.246"} {
+		if strings.Contains(out, leak) {
+			t.Errorf("log line contains %q: %s", leak, out)
+		}
+	}
+
+	var line map[string]any
+	if err := json.Unmarshal([]byte(out), &line); err != nil {
+		t.Fatalf("log line is not JSON: %v: %q", err, out)
+	}
+	want := map[string]any{
+		"msg":    "request",
+		"method": "GET",
+		"path":   "/api/v1/events",
+		"status": float64(http.StatusTeapot),
+		"bytes":  float64(5),
+	}
+	for k, v := range want {
+		if line[k] != v {
+			t.Errorf("%s = %v, want %v", k, line[k], v)
+		}
+	}
+	if id, _ := line["request_id"].(string); id == "" {
+		t.Error("request_id is empty")
+	}
+	if _, ok := line["duration_ms"].(float64); !ok {
+		t.Errorf("duration_ms missing: %s", out)
+	}
+}
+
+func TestRequestLogSkipsHealth(t *testing.T) {
+	out := logged(t, httptest.NewRequest(http.MethodGet, "/health", nil), func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	})
+	if out != "" {
+		t.Errorf("/health was logged: %s", out)
+	}
+}
+
+func TestRequestLogCountsAnUnwrittenResponseAs200(t *testing.T) {
+	out := logged(t, httptest.NewRequest(http.MethodGet, "/api/v1/events", nil), func(http.ResponseWriter, *http.Request) {})
+	if !strings.Contains(out, `"status":200`) {
+		t.Errorf("want status 200 for an empty response: %s", out)
+	}
+}
+
+func TestRequestLogKeepsTheWriterFlushable(t *testing.T) {
+	var flushable bool
+	logged(t, httptest.NewRequest(http.MethodGet, "/api/v1/events?format=sse", nil), func(w http.ResponseWriter, _ *http.Request) {
+		_, flushable = w.(http.Flusher)
+	})
+	if !flushable {
+		t.Error("the wrapped writer lost http.Flusher, which the SSE stream needs")
+	}
+}
 
 // trustedHeader is the header production trusts; the tests use the same one.
 const trustedHeader = "Do-Connecting-IP"
