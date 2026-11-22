@@ -58,6 +58,13 @@ services:
         value: "45"
       - key: RATE_LIMIT_PER_MINUTE
         value: "60"
+      # The platform's edge writes the visitor's address into Do-Connecting-IP
+      # and overwrites any value a client sends (checked 2026-11-22, IPv4 and
+      # IPv6). X-Forwarded-For keeps client-sent values at its start, and
+      # True-Client-IP, Forwarded and X-Client-IP pass through untouched, so
+      # none of those can key the rate limit.
+      - key: CLIENT_IP_HEADER
+        value: Do-Connecting-IP
       # Deliberately open: /api/v1/events is a public read-only endpoint
       # and is documented as usable without a key. Rate limiting, not
       # origin restriction, is what protects it.
