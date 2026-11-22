@@ -172,7 +172,9 @@ func trimRecords(source string, records []any) []any {
 	case "noaa":
 		keys = []func(map[string]any) string{
 			func(r map[string]any) string { return "geometry:" + str(dig(r, "geometry", "type")) },
-			func(r map[string]any) string { return "instruction:" + fmt.Sprint(dig(r, "properties", "instruction") != nil) },
+			func(r map[string]any) string {
+				return "instruction:" + fmt.Sprint(dig(r, "properties", "instruction") != nil)
+			},
 			func(r map[string]any) string { return "severity:" + str(dig(r, "properties", "severity")) },
 			func(r map[string]any) string { return "event:" + str(dig(r, "properties", "event")) },
 		}
