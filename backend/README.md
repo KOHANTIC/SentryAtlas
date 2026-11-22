@@ -31,8 +31,7 @@ Every variable has a default, so none is required. A number that is set but not 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `8080` | Port the HTTP server listens on |
-| `CACHE_TTL_MINUTES` | `5` | How long each source's response is kept in memory |
-| `FETCH_TIMEOUT_SECONDS` | `30` | How long to wait for a source to answer |
+| `FETCH_TIMEOUT_SECONDS` | `30` | How long one poll waits for its source to answer |
 | `RATE_LIMIT_PER_MINUTE` | `60` | Requests per minute to `/api/v1` from one client address (IPv6 grouped by /64) |
 | `ALLOWED_ORIGINS` | `*` | Comma-separated CORS origins |
 | `NWS_USER_AGENT` | `SentryAtlas/1.0 (github.com/KOHANTIC/SentryAtlas)` | User-Agent sent to api.weather.gov, which asks for one that identifies the caller. Forks should set their own. |
@@ -57,8 +56,6 @@ Each source is polled on its own schedule (NWS every 2 minutes, USGS every 5, EO
 - **`age_seconds`:** how old the copy in use is; absent if the source has never answered.
 - **`stale`:** the last poll failed, or sent an implausible copy, and an older copy is in use.
 - **NWS limit:** an NWS copy over an hour old is withdrawn.
-
-Until #22, `/api/v1/events` still fetches on request and does not read these copies.
 
 ### `GET /api/v1/events`
 
@@ -185,7 +182,7 @@ event: done
 data: {"total":13,"sources":[{"source":"usgs","ok":true}, ...]}
 ```
 
-A `features` frame is a FeatureCollection for one source, without `sources`. A source that fails or has no matching events sends no `features` frame. A `: keep-alive` comment comes every 15 seconds while sources are still answering. The `done` frame comes last, with the total and every source's status, and then the stream closes. `limit` applies across the whole stream, to whichever sources answer first.
+A `features` frame is a FeatureCollection for one source, without `sources`. A source with no copy to serve, or no matching events, sends no `features` frame. A `: keep-alive` comment comes every 15 seconds while the stream is open. The stream stops when the client leaves. The `done` frame comes last, with the total and every source's status, and then the stream closes. `limit` applies across the whole stream, to the sources in the order they are sent.
 
 #### Fields
 
@@ -200,7 +197,11 @@ A `features` frame is a FeatureCollection for one source, without `sources`. A s
 | `url` | no | The source's page for the event |
 | `metadata` | no | Extra fields that differ by source, such as `depth` and `place` (USGS), `area_desc` and `urgency` (NWS), or `alert_level` and `country` (GDACS) |
 
-`sources` lists every source asked, each as `{"source", "ok"}`, with `"error"` only when `ok` is `false`. A partial result can be told apart from a complete one by it. `error` is a short reason for people, such as `timed out`, `answered HTTP 503`, `sent a response SentryAtlas could not read` or `could not be reached`.
+`sources` lists every source asked, each as `{"source", "ok"}`. A partial result can be told apart from a complete one by it.
+
+- **`error`:** only when `ok` is `false`.
+- **`stale`:** `true` when the last poll failed and an older copy is served.
+- **`fetched_at`:** when the copy served was fetched; absent if the source has not answered since the server started. `error` is a short reason for people, such as `timed out`, `answered HTTP 503`, `sent a response SentryAtlas could not read` or `could not be reached`.
 
 #### Status codes
 
@@ -209,7 +210,7 @@ A `features` frame is a FeatureCollection for one source, without `sources`. A s
 | 200 | Any source answered, or `format=sse` | The response above |
 | 400 | A parameter is invalid | `{"error": "<what is wrong>"}` |
 | 429 | Over the rate limit; `Retry-After` and `X-RateLimit-*` headers say when to retry | `{"error": "rate limit exceeded"}` |
-| 502 | `geojson` or `json`, and every source asked failed | `{"error": "all upstream sources failed"}` |
+| 502 | `geojson` or `json`, and no source asked has answered since the server started | `{"error": "all upstream sources failed"}` |
 
 A 200 in `geojson` or `json` carries `Cache-Control: public, max-age=60`; the stream carries `no-cache`.
 
@@ -253,9 +254,10 @@ Made in #20:
 - `metadata.country` lists the affected countries separated by `, `, without the trailing `, ` GDACS adds.
 - A GDACS event given as a polygon is placed at its area center, where it was dropped.
 
-Announced changes:
-
-- **#22:** a 502 only happens before the first fetch after a start; after that, a failing source is served from its last good copy and reported in `sources`.
+Made in #22:
+- A 502 only happens before any source asked has answered since the server started. After that, a failing source is served from its last good copy, with `ok: false`, `stale: true` and the reason.
+- `sources[]` adds `stale` and `fetched_at`.
+- Requests are answered from copies the server polls on its own (see Architecture), so none waits on a source.
 
 ## Tests
 
@@ -292,12 +294,13 @@ backend/
 │   │   ├── noaa.go                 # NOAA/NWS Alerts
 │   │   ├── gdacs.go                # GDACS
 │   │   └── testdata/               # Recorded upstream responses
-│   ├── cache/cache.go              # Generic in-memory TTL cache
 │   ├── handler/events.go           # HTTP handler, query param parsing
+│   ├── handler/health.go           # /health: readiness and each source's copy
 │   ├── handler/testdata/v1/        # The v1 contract: golden responses and shape.txt
 │   ├── httpx/httpx.go              # Request log, rate-limit key, 429 answer
 │   ├── models/event.go             # Unified Event model, GeoJSON + flat JSON serialization
-│   └── service/events.go           # Fan-out orchestration, merge, filter, caching
+│   ├── service/events.go           # v1 answers from the store: merge, filter, sort, limit
+│   └── store/                      # Each source's last good copy, and its poller
 ├── .env.example
 ├── go.mod
 └── go.sum
@@ -305,17 +308,17 @@ backend/
 
 ## Architecture
 
-Each source is fetched for its fixed window and kept in memory for `CACHE_TTL_MINUTES`, under the source's name alone, so every request in that time is answered from the same copy and the sources hear from the API once per TTL, not once per visitor. Concurrent requests share one fetch. The sources are fetched concurrently; if one fails, results from the others are still returned.
+One poller per source fetches its fixed window on its own schedule (NWS every 2 minutes, USGS every 5, EONET and GDACS every 10, each with some jitter) and hands the copy to the store. Requests read the store and never call a source, so the sources hear from the API on that schedule whoever is visiting. Fetches take turns, so one response is decoded at a time.
+
+The store replaces a copy only with a plausible one: not empty after a full one, and not under a tenth of a copy of 100 or more, unless it comes three polls in a row. A failed poll keeps the last copy, served as stale, and retries after 30 seconds, doubling up to the source's interval. Events past their expiry are not served, and an NWS copy over an hour old is withdrawn.
 
 A source's records are read one at a time: a record that cannot be read is skipped and logged, and the rest of that source is kept. A source counts as failed when it answers anything but 200, sends more than 32 MB, sends nothing readable, or when reading it crashes, which is recovered and logged with its stack rather than ending the process.
 
 ```
-Client → chi Router → Events Handler → Events Service → In-Memory Cache (one entry per source)
-                                              ↓ (expired)
-                                     ┌────────┼────────┐────────┐
-                                   USGS    EONET     NOAA     GDACS
-                                     └────────┼────────┘────────┘
-                                          Merge + Filter + Sort
-                                              ↓
-                                    GeoJSON or JSON Response
+Pollers (one per source, taking turns)          Client → chi Router → Events Handler → Events Service
+  USGS · EONET · NOAA · GDACS                                                             ↓
+            ↓ plausible copies                                                   Store (last good copy each)
+          Store ──────────────────────────────────────────────────────────────→ Merge + Filter + Sort
+                                                                                         ↓
+                                                                              GeoJSON, JSON or SSE response
 ```
