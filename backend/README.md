@@ -42,7 +42,23 @@ Every variable has a default, so none is required. A number that is set but not 
 
 ### `GET /health`
 
-Returns `{"status":"ok"}`. It is not rate-limited.
+Each source is polled on its own schedule (NWS every 2 minutes, USGS every 5, EONET and GDACS every 10), and `/health` reports where that stands. It answers `503` with `"status":"starting"` until every source has been polled once, then `200` with `"status":"ok"`, so a new deploy takes traffic only once it has data. A source that fails is reported, not a reason for `503`. It is not rate-limited or cached.
+
+```json
+{
+  "status": "ok",
+  "sources": [
+    { "source": "usgs", "ok": true, "stale": false, "age_seconds": 74, "count": 9444 },
+    { "source": "noaa", "ok": false, "stale": true, "age_seconds": 305, "count": 261, "error": "timed out" }
+  ]
+}
+```
+
+- **`age_seconds`:** how old the copy in use is; absent if the source has never answered.
+- **`stale`:** the last poll failed, or sent an implausible copy, and an older copy is in use.
+- **NWS limit:** an NWS copy over an hour old is withdrawn.
+
+Until #22, `/api/v1/events` still fetches on request and does not read these copies.
 
 ### `GET /api/v1/events`
 
