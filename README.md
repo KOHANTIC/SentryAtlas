@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/KOHANTIC/SentryAtlas/actions/workflows/ci.yml/badge.svg)](https://github.com/KOHANTIC/SentryAtlas/actions/workflows/ci.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
-![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)
+![Go](https://img.shields.io/badge/Go-1.27-00ADD8?logo=go&logoColor=white)
 ![Node](https://img.shields.io/badge/Node-22-339933?logo=node.js&logoColor=white)
 
 SentryAtlas aggregates live disaster data from four trusted public sources and plots it on a single interactive map. Earthquakes, wildfires, floods, storms — see it all at a glance.
@@ -39,7 +39,7 @@ Three components, deployed as two DigitalOcean apps:
 
 ### Prerequisites
 
-- Go 1.25+
+- Go 1.27+
 - Node.js 22+
 
 ### 1. Backend
