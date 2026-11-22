@@ -30,13 +30,11 @@ type fakeAdapter struct {
 
 	mu    sync.Mutex
 	calls int
-	got   []adapters.FetchParams
 }
 
-func (f *fakeAdapter) FetchEvents(ctx context.Context, params adapters.FetchParams) ([]models.Event, error) {
+func (f *fakeAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
 	f.mu.Lock()
 	f.calls++
-	f.got = append(f.got, params)
 	f.mu.Unlock()
 
 	if f.gate != nil {
@@ -67,14 +65,14 @@ func (f *fakeAdapter) callCount() int {
 	return f.calls
 }
 
-func (f *fakeAdapter) lastParams(t *testing.T) adapters.FetchParams {
+// parsed runs the handler's query parsing on query and fails the test on an error.
+func parsed(t *testing.T, query string) adapters.FetchParams {
 	t.Helper()
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	if len(f.got) == 0 {
-		t.Fatal("adapter was never called")
+	params, _, err := parseQueryParams(httptest.NewRequest(http.MethodGet, "/api/v1/events"+query, nil))
+	if err != nil {
+		t.Fatalf("parseQueryParams(%q): %v", query, err)
 	}
-	return f.got[len(f.got)-1]
+	return params
 }
 
 func newTestHandler(t *testing.T, adps ...adapters.Adapter) *EventsHandler {
@@ -225,16 +223,9 @@ func TestGetEventsBadRequests(t *testing.T) {
 
 func TestGetEventsTypesDedupAndTrim(t *testing.T) {
 	t.Parallel()
-	f := &fakeAdapter{source: "alpha", events: makeEvents(1, "alpha")}
-	h := newTestHandler(t, f)
-
-	rec := doGet(t, h, "?types=earthquake,%20flood%20,earthquake")
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, want 200; body: %s", rec.Code, rec.Body.String())
-	}
-	got := f.lastParams(t).Types
+	got := parsed(t, "?types=earthquake,%20flood%20,earthquake").Types
 	if len(got) != 2 || got[0] != "earthquake" || got[1] != "flood" {
-		t.Errorf("upstream Types = %v, want [earthquake flood] (trimmed, deduped)", got)
+		t.Errorf("Types = %v, want [earthquake flood] (trimmed, deduped)", got)
 	}
 }
 
@@ -251,15 +242,8 @@ func TestGetEventsSinceFormats(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			f := &fakeAdapter{source: "alpha", events: makeEvents(1, "alpha")}
-			h := newTestHandler(t, f)
-
-			rec := doGet(t, h, tc.query)
-			if rec.Code != http.StatusOK {
-				t.Fatalf("status = %d, want 200; body: %s", rec.Code, rec.Body.String())
-			}
-			if got := f.lastParams(t).Since; !got.Equal(tc.want) {
-				t.Errorf("upstream Since = %v, want %v", got, tc.want)
+			if got := parsed(t, tc.query).Since; !got.Equal(tc.want) {
+				t.Errorf("Since = %v, want %v", got, tc.want)
 			}
 		})
 	}

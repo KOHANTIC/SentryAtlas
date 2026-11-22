@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -24,15 +25,8 @@ var gdacsEventTypeMap = map[string]string{
 	"WF": "wildfire",
 }
 
-// Reverse map: our event type -> GDACS code
-var eventTypeToGDACS = map[string]string{
-	"earthquake": "EQ",
-	"cyclone":    "TC",
-	"flood":      "FL",
-	"volcano":    "VO",
-	"drought":    "DR",
-	"wildfire":   "WF",
-}
+// gdacsWindowDays is how far back the window reaches.
+const gdacsWindowDays = 30
 
 type GDACSAdapter struct {
 	client  *http.Client
@@ -48,37 +42,29 @@ func (a *GDACSAdapter) Source() string {
 }
 
 func (a *GDACSAdapter) SupportedTypes() []string {
-	// "other" is emitted for GDACS codes outside gdacsEventTypeMap;
-	// requesting it fetches the full window and filters server-side.
+	// "other" is emitted for GDACS codes outside gdacsEventTypeMap.
 	return []string{"earthquake", "cyclone", "flood", "volcano", "drought", "wildfire", "other"}
 }
 
-func (a *GDACSAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {
+// FetchEvents fetches every event type GDACS has a code for over the last
+// gdacsWindowDays: the window.
+func (a *GDACSAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("gdacs: build request: %w", err)
 	}
 
+	codes := make([]string, 0, len(gdacsEventTypeMap))
+	for code := range gdacsEventTypeMap {
+		codes = append(codes, code)
+	}
+	sort.Strings(codes)
+
+	now := time.Now().UTC()
 	q := req.URL.Query()
-
-	if len(params.Types) > 0 {
-		var codes []string
-		for _, t := range params.Types {
-			if code, ok := eventTypeToGDACS[t]; ok {
-				codes = append(codes, code)
-			}
-		}
-		if len(codes) > 0 {
-			q.Set("eventlist", strings.Join(codes, ";"))
-		}
-	}
-
-	if !params.Since.IsZero() {
-		q.Set("fromdate", params.Since.Format("2006-01-02"))
-	} else {
-		q.Set("fromdate", time.Now().AddDate(0, 0, -30).Format("2006-01-02"))
-	}
-	q.Set("todate", time.Now().Format("2006-01-02"))
+	q.Set("eventlist", strings.Join(codes, ";"))
+	q.Set("fromdate", now.AddDate(0, 0, -gdacsWindowDays).Format("2006-01-02"))
+	q.Set("todate", now.Format("2006-01-02"))
 
 	req.URL.RawQuery = q.Encode()
 

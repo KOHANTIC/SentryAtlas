@@ -34,7 +34,7 @@ func TestGDACSFetchEventsParsing(t *testing.T) {
 	srv := serveFixture(t, "gdacs.json", nil)
 	a := newTestGDACS(t, srv)
 
-	events, err := a.FetchEvents(context.Background(), FetchParams{})
+	events, err := a.FetchEvents(context.Background())
 	if err != nil {
 		t.Fatalf("FetchEvents: %v", err)
 	}
@@ -133,7 +133,7 @@ func TestGDACSNoContent(t *testing.T) {
 	srv := serveRaw(t, 204, "")
 	a := newTestGDACS(t, srv)
 
-	events, err := a.FetchEvents(context.Background(), FetchParams{})
+	events, err := a.FetchEvents(context.Background())
 	if err != nil {
 		t.Fatalf("FetchEvents on 204: %v, want nil error", err)
 	}
@@ -142,31 +142,34 @@ func TestGDACSNoContent(t *testing.T) {
 	}
 }
 
-func TestGDACSQueryParams(t *testing.T) {
+// The window is every event code over the last 30 days, the same for every request.
+func TestGDACSQueryIsTheWindow(t *testing.T) {
 	t.Parallel()
 	var capture reqCapture
 	srv := serveFixture(t, "gdacs.json", &capture)
 	a := newTestGDACS(t, srv)
 
-	since := time.Date(2026, 8, 1, 15, 30, 0, 0, time.UTC)
-	// "storm" has no GDACS code and must be dropped from the eventlist.
-	_, err := a.FetchEvents(context.Background(), FetchParams{
-		Types: []string{"earthquake", "storm", "cyclone"},
-		Since: since,
-	})
-	if err != nil {
+	if _, err := a.FetchEvents(context.Background()); err != nil {
 		t.Fatalf("FetchEvents: %v", err)
 	}
 
 	q := capture.Query()
-	if got := q.Get("eventlist"); got != "EQ;TC" {
-		t.Errorf("eventlist = %q, want EQ;TC", got)
+	if got := q.Get("eventlist"); got != "DR;EQ;FL;TC;VO;WF" {
+		t.Errorf("eventlist = %q, want every code, DR;EQ;FL;TC;VO;WF", got)
 	}
-	if got := q.Get("fromdate"); got != "2026-08-01" {
-		t.Errorf("fromdate = %q, want 2026-08-01", got)
+	from, err := time.Parse("2006-01-02", q.Get("fromdate"))
+	if err != nil {
+		t.Fatalf("fromdate %q: %v", q.Get("fromdate"), err)
 	}
-	if got := q.Get("todate"); got == "" {
-		t.Error("todate not set")
+	to, err := time.Parse("2006-01-02", q.Get("todate"))
+	if err != nil {
+		t.Fatalf("todate %q: %v", q.Get("todate"), err)
+	}
+	if days := to.Sub(from).Hours() / 24; days != gdacsWindowDays {
+		t.Errorf("window = %v days (%s to %s), want %d", days, from.Format("2006-01-02"), to.Format("2006-01-02"), gdacsWindowDays)
+	}
+	if age := time.Since(to); age < 0 || age > 48*time.Hour {
+		t.Errorf("todate %s is not today", to.Format("2006-01-02"))
 	}
 }
 
@@ -230,7 +233,7 @@ func TestGDACSNon200(t *testing.T) {
 	srv := serveRaw(t, 502, "bad gateway")
 	a := newTestGDACS(t, srv)
 
-	_, err := a.FetchEvents(context.Background(), FetchParams{})
+	_, err := a.FetchEvents(context.Background())
 	if err == nil {
 		t.Fatal("expected error for status 502")
 	}
@@ -244,7 +247,7 @@ func TestGDACSMalformedJSON(t *testing.T) {
 	srv := serveRaw(t, 200, `{"features": [{"properties": {"eventid": true}}]}`)
 	a := newTestGDACS(t, srv)
 
-	_, err := a.FetchEvents(context.Background(), FetchParams{})
+	_, err := a.FetchEvents(context.Background())
 	if err == nil {
 		t.Fatal("expected error for malformed JSON")
 	}

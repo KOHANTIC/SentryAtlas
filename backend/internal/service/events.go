@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log/slog"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -51,22 +50,19 @@ func NewEventsService(
 // Uses singleflight to deduplicate concurrent requests for the same data.
 // The upstream fetch uses a detached context so that cancellation of one
 // request doesn't kill a shared in-flight call that other requests need.
-func (s *EventsService) fetchAdapter(a adapters.Adapter, params adapters.FetchParams) ([]models.Event, error) {
-	key := adapterCacheKey(a.Source(), params.Types, params.Since)
+func (s *EventsService) fetchAdapter(a adapters.Adapter) ([]models.Event, error) {
+	// One entry per source: every adapter fetches the same window whatever
+	// the request, so every request within the TTL shares one fetch.
+	key := a.Source()
 
 	if cached, ok := s.sourceCache.Get(key); ok {
 		return cached, nil
 	}
 
-	upstreamParams := adapters.FetchParams{
-		Types: params.Types,
-		Since: params.Since,
-	}
-
 	result, err, _ := s.sfGroup.Do(key, func() (any, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 		defer cancel()
-		events, err := a.FetchEvents(ctx, upstreamParams)
+		events, err := a.FetchEvents(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +91,7 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			events, err := s.fetchAdapter(a, params)
+			events, err := s.fetchAdapter(a)
 
 			mu.Lock()
 			defer mu.Unlock()
@@ -172,7 +168,7 @@ func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchP
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			events, err := s.fetchAdapter(a, params)
+			events, err := s.fetchAdapter(a)
 			if err != nil {
 				slog.Warn("adapter stream failed",
 					"source", a.Source(),
@@ -263,23 +259,4 @@ func sortEventsByDate(events []models.Event) {
 	sort.Slice(events, func(i, j int) bool {
 		return events[i].StartedAt.After(events[j].StartedAt)
 	})
-}
-
-// adapterCacheKey builds a cache key from source identity and the parameters
-// that actually change upstream results. BBox and Limit are excluded because
-// adapters either don't support them or we want the full dataset for local filtering.
-func adapterCacheKey(source string, types []string, since time.Time) string {
-	sorted := make([]string, len(types))
-	copy(sorted, types)
-	sort.Strings(sorted)
-
-	var b strings.Builder
-	b.WriteString(source)
-	b.WriteByte(':')
-	b.WriteString(strings.Join(sorted, ","))
-	if !since.IsZero() {
-		b.WriteByte(':')
-		b.WriteString(since.Format(time.RFC3339))
-	}
-	return b.String()
 }

@@ -24,13 +24,11 @@ type fakeAdapter struct {
 
 	mu    sync.Mutex
 	calls int
-	got   []adapters.FetchParams
 }
 
-func (f *fakeAdapter) FetchEvents(ctx context.Context, params adapters.FetchParams) ([]models.Event, error) {
+func (f *fakeAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
 	f.mu.Lock()
 	f.calls++
-	f.got = append(f.got, params)
 	f.mu.Unlock()
 
 	if f.gate != nil {
@@ -54,16 +52,6 @@ func (f *fakeAdapter) callCount() int {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return f.calls
-}
-
-func (f *fakeAdapter) lastParams(t *testing.T) adapters.FetchParams {
-	t.Helper()
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	if len(f.got) == 0 {
-		t.Fatal("adapter was never called")
-	}
-	return f.got[len(f.got)-1]
 }
 
 func newTestService(t *testing.T, adps ...adapters.Adapter) *EventsService {
@@ -317,42 +305,67 @@ func TestGetEventsSingleflightDedup(t *testing.T) {
 	}
 }
 
-func TestGetEventsStripsBBoxAndLimitFromUpstream(t *testing.T) {
+// The adapter returns its whole window; every part of the request is cut
+// from it here, including the types and since the adapters used to apply.
+func TestGetEventsCutsTheRequestFromTheWindow(t *testing.T) {
 	t.Parallel()
-	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, events: []models.Event{
-		evt("in", "earthquake", baseTime, 10, 10),
-		evt("out", "earthquake", baseTime.Add(time.Minute), 50, 50),
+	a := &fakeAdapter{source: "alpha", types: []string{"flood", "storm"}, events: []models.Event{
+		evt("flood-new-in", "flood", baseTime, 10, 10),
+		evt("flood-new-in-2", "flood", baseTime.Add(-time.Minute), 11, 11),
+		evt("flood-new-out", "flood", baseTime, 50, 50),
+		evt("flood-old-in", "flood", baseTime.Add(-48*time.Hour), 10, 10),
+		evt("storm-new-in", "storm", baseTime, 10, 10),
 	}}
 	s := newTestService(t, a)
 
-	since := baseTime.Add(-24 * time.Hour)
-	params := adapters.FetchParams{
-		Types: []string{"earthquake"},
+	events, _, err := s.GetEvents(context.Background(), adapters.FetchParams{
+		Types: []string{"flood"},
 		BBox:  &adapters.BBox{MinLon: 0, MinLat: 0, MaxLon: 20, MaxLat: 20},
-		Since: since,
-		Limit: 5,
-	}
-	events, _, err := s.GetEvents(context.Background(), params)
+		Since: baseTime.Add(-24 * time.Hour),
+		Limit: 1,
+	})
 	if err != nil {
 		t.Fatalf("GetEvents: %v", err)
 	}
+	if got := ids(events); len(got) != 1 || got[0] != "flood-new-in" {
+		t.Errorf("events = %v, want [flood-new-in]: the type, box, since and limit all applied", got)
+	}
+}
 
-	got := a.lastParams(t)
-	if got.BBox != nil {
-		t.Errorf("upstream received BBox %+v, want nil (applied service-side)", got.BBox)
+// The cache key holds only the source, so requests that differ in every
+// parameter still share one upstream fetch per source within the TTL.
+func TestOneFetchPerSourceWhateverTheRequest(t *testing.T) {
+	t.Parallel()
+	alpha := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, events: []models.Event{
+		evt("a-1", "earthquake", baseTime, 1, 1),
+	}}
+	beta := &fakeAdapter{source: "beta", types: []string{"flood", "storm"}, events: []models.Event{
+		evt("b-1", "flood", baseTime, 2, 2),
+		evt("b-2", "storm", baseTime, 3, 3),
+	}}
+	s := newTestService(t, alpha, beta)
+
+	typeSets := [][]string{nil, {"earthquake"}, {"flood"}, {"earthquake", "flood"}, {"storm", "flood"}}
+	for i := 0; i < 20; i++ {
+		params := adapters.FetchParams{
+			Types: typeSets[i%len(typeSets)],
+			// Like the map's since: a different millisecond on every visit.
+			Since: baseTime.Add(-7*24*time.Hour + time.Duration(i)*time.Millisecond),
+		}
+		if i%2 == 0 {
+			if _, _, err := s.GetEvents(context.Background(), params); err != nil {
+				t.Fatalf("GetEvents #%d: %v", i, err)
+			}
+		} else {
+			collectBatches(t, s, context.Background(), params)
+		}
 	}
-	if got.Limit != 0 {
-		t.Errorf("upstream received Limit %d, want 0 (applied service-side)", got.Limit)
+
+	if got := alpha.callCount(); got != 1 {
+		t.Errorf("alpha fetched %d times, want 1", got)
 	}
-	if len(got.Types) != 1 || got.Types[0] != "earthquake" {
-		t.Errorf("upstream received Types %v, want [earthquake]", got.Types)
-	}
-	if !got.Since.Equal(since) {
-		t.Errorf("upstream received Since %v, want %v", got.Since, since)
-	}
-	// The bbox is still enforced on the merged result.
-	if len(events) != 1 || events[0].ID != "in" {
-		t.Errorf("events = %v, want only [in] after bbox filtering", ids(events))
+	if got := beta.callCount(); got != 1 {
+		t.Errorf("beta fetched %d times, want 1", got)
 	}
 }
 
@@ -470,45 +483,6 @@ func TestSortEventsByDate(t *testing.T) {
 			t.Fatalf("order = %v, want %v", got, want)
 		}
 	}
-}
-
-func TestAdapterCacheKey(t *testing.T) {
-	t.Parallel()
-	since := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC)
-
-	t.Run("type order insensitive", func(t *testing.T) {
-		k1 := adapterCacheKey("usgs", []string{"flood", "earthquake"}, since)
-		k2 := adapterCacheKey("usgs", []string{"earthquake", "flood"}, since)
-		if k1 != k2 {
-			t.Errorf("keys differ for same type set: %q vs %q", k1, k2)
-		}
-	})
-
-	t.Run("input slice not mutated", func(t *testing.T) {
-		types := []string{"flood", "earthquake"}
-		adapterCacheKey("usgs", types, since)
-		if types[0] != "flood" || types[1] != "earthquake" {
-			t.Errorf("input slice mutated: %v", types)
-		}
-	})
-
-	t.Run("since changes the key", func(t *testing.T) {
-		k1 := adapterCacheKey("usgs", nil, since)
-		k2 := adapterCacheKey("usgs", nil, since.Add(time.Hour))
-		k3 := adapterCacheKey("usgs", nil, time.Time{})
-		if k1 == k2 {
-			t.Error("keys equal for different since values")
-		}
-		if k1 == k3 {
-			t.Error("keys equal for set vs zero since")
-		}
-	})
-
-	t.Run("source changes the key", func(t *testing.T) {
-		if adapterCacheKey("usgs", nil, time.Time{}) == adapterCacheKey("noaa", nil, time.Time{}) {
-			t.Error("keys equal for different sources")
-		}
-	})
 }
 
 func collectBatches(t *testing.T, s *EventsService, ctx context.Context, params adapters.FetchParams) []StreamBatch {

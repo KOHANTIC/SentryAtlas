@@ -10,7 +10,9 @@ import (
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 )
 
-const usgsBaseURL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
+// The past month of earthquakes of every magnitude: USGS serves it from its
+// CDN and updates it every minute, so it is the window, not a query.
+const usgsBaseURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
 
 type USGSAdapter struct {
 	client  *http.Client
@@ -29,22 +31,11 @@ func (a *USGSAdapter) SupportedTypes() []string {
 	return []string{"earthquake"}
 }
 
-func (a *USGSAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {
+func (a *USGSAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("usgs: build request: %w", err)
 	}
-
-	q := req.URL.Query()
-	q.Set("format", "geojson")
-
-	if !params.Since.IsZero() {
-		q.Set("starttime", params.Since.Format(time.RFC3339))
-	} else {
-		q.Set("starttime", time.Now().AddDate(0, 0, -7).Format(time.RFC3339))
-	}
-
-	req.URL.RawQuery = q.Encode()
 
 	resp, err := a.client.Do(req)
 	if err != nil {

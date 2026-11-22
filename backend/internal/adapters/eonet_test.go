@@ -33,7 +33,7 @@ func TestEONETFetchEventsParsing(t *testing.T) {
 	srv := serveFixture(t, "eonet.json", nil)
 	a := newTestEONET(t, srv)
 
-	events, err := a.FetchEvents(context.Background(), FetchParams{})
+	events, err := a.FetchEvents(context.Background())
 	if err != nil {
 		t.Fatalf("FetchEvents: %v", err)
 	}
@@ -92,35 +92,30 @@ func TestEONETFetchEventsParsing(t *testing.T) {
 	})
 }
 
-func TestEONETSinceFiltering(t *testing.T) {
+// The window is every open event, old or new and in any category; the
+// service cuts each request from it.
+func TestEONETReturnsTheWholeWindow(t *testing.T) {
 	t.Parallel()
 	srv := serveFixture(t, "eonet.json", nil)
 	a := newTestEONET(t, srv)
 
-	since := time.Date(2026, 7, 15, 0, 0, 0, 0, time.UTC)
-	events, err := a.FetchEvents(context.Background(), FetchParams{Since: since})
+	events, err := a.FetchEvents(context.Background())
 	if err != nil {
 		t.Fatalf("FetchEvents: %v", err)
 	}
-	if len(events) != 2 {
-		t.Fatalf("got %d events, want 2 (the July event filtered out); IDs: %v", len(events), eventIDs(events))
+	if len(events) != 3 {
+		t.Fatalf("got %d events, want all 3; IDs: %v", len(events), eventIDs(events))
 	}
-	for _, e := range events {
-		if e.ID == "eonet-EONET_10003" {
-			t.Error("EONET_10003 (2026-07-01) should have been filtered by since=2026-07-15")
-		}
-	}
+	eventByID(t, events, "eonet-EONET_10003") // the oldest, and in an unmapped category
 }
 
-func TestEONETCategoryQuery(t *testing.T) {
+func TestEONETQuery(t *testing.T) {
 	t.Parallel()
 	var capture reqCapture
 	srv := serveFixture(t, "eonet.json", &capture)
 	a := newTestEONET(t, srv)
 
-	// "weather" has no EONET category and must not be forwarded.
-	_, err := a.FetchEvents(context.Background(), FetchParams{Types: []string{"wildfire", "weather", "storm"}})
-	if err != nil {
+	if _, err := a.FetchEvents(context.Background()); err != nil {
 		t.Fatalf("FetchEvents: %v", err)
 	}
 
@@ -128,9 +123,8 @@ func TestEONETCategoryQuery(t *testing.T) {
 	if got := q.Get("status"); got != "open" {
 		t.Errorf("status = %q, want open", got)
 	}
-	cats := q["category"]
-	if !slices.Equal(cats, []string{"wildfires", "severeStorms"}) {
-		t.Errorf("category = %v, want [wildfires severeStorms]", cats)
+	if len(q) != 1 {
+		t.Errorf("query = %v, want only status=open: the window does not depend on the request", q)
 	}
 }
 
@@ -139,7 +133,7 @@ func TestEONETNon200(t *testing.T) {
 	srv := serveRaw(t, 503, "unavailable")
 	a := newTestEONET(t, srv)
 
-	_, err := a.FetchEvents(context.Background(), FetchParams{})
+	_, err := a.FetchEvents(context.Background())
 	if err == nil {
 		t.Fatal("expected error for status 503")
 	}
@@ -153,7 +147,7 @@ func TestEONETMalformedJSON(t *testing.T) {
 	srv := serveRaw(t, 200, `{"events": "oops"}`)
 	a := newTestEONET(t, srv)
 
-	_, err := a.FetchEvents(context.Background(), FetchParams{})
+	_, err := a.FetchEvents(context.Background())
 	if err == nil {
 		t.Fatal("expected error for malformed JSON")
 	}
