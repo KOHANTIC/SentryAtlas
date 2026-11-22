@@ -46,10 +46,9 @@ Three components, deployed as two DigitalOcean apps:
 
 ```bash
 cd backend
-cp .env.example .env
-go mod download
 go run ./cmd/server/
 # Server starts on http://localhost:8080
+# Settings come from the environment; backend/.env.example lists them
 ```
 
 ### 2. Frontend
@@ -102,29 +101,13 @@ sentryatlas/
 
 ## API
 
-The backend exposes a single endpoint. See [`backend/README.md`](backend/README.md) for full documentation.
+One public endpoint, `GET /api/v1/events`, returns the events from all four sources merged, newest first, as GeoJSON, flat JSON, or a Server-Sent Events stream that sends each source's events as soon as it answers. Every response says which sources answered, so a partial result can be told apart from a complete one. No key is needed.
 
-### `GET /api/v1/events`
+```bash
+curl "https://map.sentryatlas.com/api/v1/events?types=earthquake&format=json&limit=10"
+```
 
-Returns disaster events from all sources, merged and sorted by date (newest first).
-
-| Param | Type | Description |
-|-------|------|-------------|
-| `types` | string | Comma-separated event types to include. Unknown values are rejected with a 400. |
-| `bbox` | string | Bounding box: `minLon,minLat,maxLon,maxLat`. Events with no coordinates are excluded. |
-| `since` | string | Only events after this date (RFC 3339 or `YYYY-MM-DD`) |
-| `limit` | int | Max events to return. Defaults to 500, capped at 1000. |
-| `format` | string | `geojson` (default), `json`, or `sse` |
-
-**Event types:** `earthquake`, `wildfire`, `volcano`, `storm`, `flood`, `cyclone`, `tornado`, `hurricane`, `winter_storm`, `tsunami`, `drought`, `iceberg`, `landslide`, `weather`, `other`
-
-`weather` is the NOAA fallback for alerts with no more specific class; `other` covers upstream categories no adapter maps yet.
-
-Every response reports the status of each upstream source, so a partial result is distinguishable from a complete one. If **all** relevant sources fail, the API returns `502` rather than an empty success.
-
-**`format=sse`** streams one `event: features` frame per source as it arrives — this is what the map uses, so the first events appear without waiting for the slowest provider — then a terminal `event: done` frame carrying the total and per-source statuses.
-
-Events without coordinates (common for NOAA alerts covering a named region) are returned with `"geometry": null` rather than being placed at 0,0.
+[`backend/README.md`](backend/README.md) is the reference: parameters, response shapes, status codes, the rate limit, and what v1 promises to keep.
 
 ## Data Sources
 
@@ -160,7 +143,7 @@ doctl apps create --spec .do/app.yaml       # backend + frontend
 doctl apps create --spec .do/landing.yaml   # landing site
 ```
 
-Both specs set `deploy_on_push` on `main`, so a merge deploys.
+Both specs set `deploy_on_push` on `main`, so a merge deploys the code. A push does not apply the specs themselves: a change to a spec, such as a new environment variable, is applied with `doctl apps update <app-id> --spec ...` or in the DigitalOcean dashboard, before the change that needs it is merged.
 
 ## Contributing
 
