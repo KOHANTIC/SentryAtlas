@@ -15,6 +15,10 @@ RUN apk add --no-cache ca-certificates wget \
 
 COPY --from=build /bin/server /bin/server
 
+# The instance has 0.5 GB; the Go runtime collects harder near this limit
+# instead of letting the platform kill the process.
+ENV GOMEMLIMIT=400MiB
+
 USER app
 
 EXPOSE 8080
