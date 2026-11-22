@@ -52,9 +52,10 @@ func TestNOAAFetchEventsParsing(t *testing.T) {
 		if e.Severity != "extreme" {
 			t.Errorf("Severity = %q, want extreme", e.Severity)
 		}
-		// Vertex average of the closed ring in the fixture.
-		if !slices.Equal(e.Geometry.Coordinates, []float64{-96.6, 32.4}) {
-			t.Errorf("Coordinates = %v, want centroid [-96.6 32.4]", e.Geometry.Coordinates)
+		// The area center of the fixture's square ring. The plain vertex
+		// average counted the closing point twice and gave [-96.6 32.4].
+		if !slices.Equal(e.Geometry.Coordinates, []float64{-96.5, 32.5}) {
+			t.Errorf("Coordinates = %v, want centroid [-96.5 32.5]", e.Geometry.Coordinates)
 		}
 		if want := time.Date(2026, 8, 10, 14, 0, 0, 0, time.UTC); !e.StartedAt.Equal(want) {
 			t.Errorf("StartedAt = %v, want onset %v", e.StartedAt, want)
@@ -103,8 +104,8 @@ func TestNOAAFetchEventsParsing(t *testing.T) {
 		if e.Severity != "moderate" {
 			t.Errorf("Severity = %q, want moderate", e.Severity)
 		}
-		if !slices.Equal(e.Geometry.Coordinates, []float64{-119.6, 45.4}) {
-			t.Errorf("Coordinates = %v, want centroid [-119.6 45.4]", e.Geometry.Coordinates)
+		if !slices.Equal(e.Geometry.Coordinates, []float64{-119.5, 45.5}) {
+			t.Errorf("Coordinates = %v, want centroid [-119.5 45.5]", e.Geometry.Coordinates)
 		}
 	})
 
@@ -144,8 +145,10 @@ func TestNOAAUserAgentAndQuery(t *testing.T) {
 	if got := q.Get("status"); got != "actual" {
 		t.Errorf("status = %q, want actual", got)
 	}
-	if got := q.Get("message_type"); got != "alert" {
-		t.Errorf("message_type = %q, want alert", got)
+	// Updates replace the alerts they update, so asking for alerts alone
+	// would miss every alert that has been updated.
+	if got, ok := q["message_type"]; ok {
+		t.Errorf("message_type = %q, want none: updates are part of the window", got)
 	}
 }
 
@@ -181,8 +184,11 @@ func TestNOAACentroid(t *testing.T) {
 		{"malformed point", "Point", `"oops"`, nil},
 		{"polygon", "Polygon", `[[[0,0],[2,0],[2,2],[0,2]]]`, []float64{1, 1}},
 		{"empty polygon", "Polygon", `[]`, nil},
-		{"multipolygon uses first ring of first polygon", "MultiPolygon",
-			`[[[[10,10],[14,10],[14,14],[10,14]]],[[[50,50],[52,50],[52,52]]]]`, []float64{12, 12}},
+		{"closed polygon counts its closing point once", "Polygon", `[[[0,0],[2,0],[2,2],[0,2],[0,0]]]`, []float64{1, 1}},
+		{"multipolygon is centered on all its area", "MultiPolygon",
+			`[[[[0,0],[2,0],[2,2],[0,2]]],[[[10,0],[12,0],[12,2],[10,2]]]]`, []float64{6, 1}},
+		{"a bigger polygon pulls the center", "MultiPolygon",
+			`[[[[0,0],[6,0],[6,6],[0,6]]],[[[10,0],[12,0],[12,2],[10,2]]]]`, []float64{3.8, 2.8}},
 		{"unknown type", "LineString", `[[0,0],[1,1]]`, nil},
 		// A point without both numbers used to index out of range and end the process.
 		{"polygon with a short point", "Polygon", `[[[0,0],[1],[2,2],[4,4]]]`, []float64{2, 2}},
@@ -222,8 +228,16 @@ func TestClassifyNOAAEvent(t *testing.T) {
 		{"Tsunami Advisory", "tsunami"},
 		{"Earthquake Warning", "earthquake"},
 		{"Volcano Warning", "volcano"},
-		{"Red Flag Warning", "wildfire"},
-		{"Fire Weather Watch", "wildfire"},
+		// Fire weather is a condition, not a fire.
+		{"Red Flag Warning", "weather"},
+		{"Fire Weather Watch", "weather"},
+		{"Extreme Fire Danger", "wildfire"},
+		// A marine wind product, not a hurricane; the longer keyword wins.
+		{"Hurricane Force Wind Warning", "weather"},
+		{"Hurricane Warning", "hurricane"},
+		{"Tropical Storm Warning", "storm"},
+		{"Storm Warning", "weather"},
+		{"Small Craft Advisory", "weather"},
 		{"Special Weather Statement", "weather"},
 		{"Air Quality Alert", "weather"},
 		{"", "weather"},

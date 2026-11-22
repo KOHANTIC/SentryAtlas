@@ -14,7 +14,7 @@ v2 is not served yet. `/api/v2/snapshot` and `/api/v2/events/{id}` arrive with #
   - USGS: its event id.
   - EONET: its event id.
   - GDACS: `<type>-<event id>`.
-  - NWS: the alert's first message, so an update keeps the id.
+  - NWS: the alert's first message, so an update keeps the id. The messages of one alert (its updates, and parallel messages for different zones, found by their shared VTEC event) are one event.
 - **`group_id`** is shared by reports of one real event from different sources. It is worked out again on every fetch, so never store it as a key.
 - **`type`** is one of the 15 v1 types.
 - **`description`**, and an NWS alert's **`details.noaa.instruction`**, are long. Only the event-detail endpoint carries them.
