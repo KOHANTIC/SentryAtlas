@@ -1,0 +1,57 @@
+name: Bug report
+description: Something on the map, the website or the API is broken, or an event is wrong, missing or in the wrong place.
+type: Bug
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report. A security problem does not belong in a public issue: see the [security policy](https://github.com/KOHANTIC/SentryAtlas/blob/main/SECURITY.md).
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where is the problem?
+      options:
+        - The map (map.sentryatlas.com)
+        - The website (sentryatlas.com)
+        - The API (/api/v1)
+        - The data (an event is wrong, missing or in the wrong place)
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      description: What you saw. Paste any error message as it appeared.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to see it
+      description: The steps, the API request, or the event's title and time. A screenshot helps too.
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        Events come from USGS, NASA EONET, NOAA/NWS and GDACS. If the agency's own page shows the same thing, the problem is in its data, and it is best reported to the agency.
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: Firefox 140 on Windows 11, Safari on iPhone 16
+  - type: checkboxes
+    id: not-security
+    attributes:
+      label: Before you send
+      options:
+        - label: This is not a security problem.
+          required: true
