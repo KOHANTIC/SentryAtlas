@@ -2,6 +2,7 @@ package handler_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -16,10 +17,9 @@ import (
 	"time"
 
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
-	"github.com/KOHANTIC/SentryAtlas/backend/internal/cache"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/handler"
-	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/store"
 )
 
 // The v1 contract. -update rewrites the recorded responses, for a deliberate
@@ -73,8 +73,13 @@ func (t fixtureTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	}, nil
 }
 
-// newV1Handler wires the production chain (adapters, cache, service, handler)
-// to the fixture transport, with the given hosts failing.
+// goldenFetchedAt is when the golden copies were fetched.
+var goldenFetchedAt = time.Date(2026, 8, 10, 12, 0, 0, 0, time.UTC)
+
+// newV1Handler wires the production chain (adapters, store, service,
+// handler) to the fixture transport, with the given hosts failing. The
+// store is filled by one round of the adapters' fetches, as the pollers'
+// first round would, at goldenFetchedAt.
 func newV1Handler(t *testing.T, failing []string) *handler.EventsHandler {
 	t.Helper()
 	down := map[string]bool{}
@@ -88,9 +93,20 @@ func newV1Handler(t *testing.T, failing []string) *handler.EventsHandler {
 		adapters.NewNOAAAdapter(client, "SentryAtlas-test"),
 		adapters.NewGDACSAdapter(client),
 	}
-	c := cache.New[[]models.Event](5 * time.Minute)
-	t.Cleanup(c.Close)
-	return handler.NewEventsHandler(service.NewEventsService(list, c, 5*time.Second))
+	var sources []store.Source
+	for _, a := range list {
+		sources = append(sources, store.Source{Name: a.Source()})
+	}
+	st := store.New(sources...)
+	for _, a := range list {
+		events, err := a.(store.Fetcher).FetchV2(context.Background())
+		if err != nil {
+			st.Fail(a.Source(), adapters.Reason(err))
+		} else if err := st.Put(a.Source(), events, goldenFetchedAt); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return handler.NewEventsHandler(service.NewEventsService(list, st))
 }
 
 // recorded is one response in canonical form, as stored in a golden file.

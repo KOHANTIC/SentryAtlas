@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
-	"github.com/KOHANTIC/SentryAtlas/backend/internal/cache"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/event"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/store"
 )
 
 var baseTime = time.Date(2026, 8, 10, 0, 0, 0, 0, time.UTC)
@@ -21,24 +22,16 @@ type fakeAdapter struct {
 	types  []string
 	events []models.Event
 	err    error
-	gate   chan struct{} // if non-nil, FetchEvents blocks until closed (or ctx is done)
 
 	mu    sync.Mutex
 	calls int
 }
 
-func (f *fakeAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
+func (f *fakeAdapter) FetchEvents(context.Context) ([]models.Event, error) {
 	f.mu.Lock()
 	f.calls++
 	f.mu.Unlock()
 
-	if f.gate != nil {
-		select {
-		case <-f.gate:
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		}
-	}
 	if f.err != nil {
 		return nil, f.err
 	}
@@ -55,11 +48,51 @@ func (f *fakeAdapter) callCount() int {
 	return f.calls
 }
 
+// fetchedAt is when every test copy was fetched.
+var fetchedAt = time.Date(2026, 8, 10, 12, 0, 0, 0, time.UTC)
+
+// newTestService serves a store filled once from the fakes, as the pollers
+// would: a fake's events become its copy and its error a failed poll. Call
+// counts start again at zero, so a test can see the service never calls one.
 func newTestService(t *testing.T, adps ...adapters.Adapter) *EventsService {
 	t.Helper()
-	c := cache.New[[]models.Event](time.Minute)
-	t.Cleanup(c.Close)
-	return NewEventsService(adps, c, 5*time.Second)
+	var sources []store.Source
+	for _, a := range adps {
+		sources = append(sources, store.Source{Name: a.Source()})
+	}
+	st := store.New(sources...)
+	for _, a := range adps {
+		events, err := a.FetchEvents(context.Background())
+		if err != nil {
+			st.Fail(a.Source(), adapters.Reason(err))
+		} else if err := st.Put(a.Source(), toV2(events), fetchedAt); err != nil {
+			t.Fatal(err)
+		}
+		if f, ok := a.(*fakeAdapter); ok {
+			f.mu.Lock()
+			f.calls = 0
+			f.mu.Unlock()
+		}
+	}
+	return NewEventsService(adps, st)
+}
+
+// toV2 carries the fields these tests use onto the v2 model, so V1 gives
+// them back.
+func toV2(events []models.Event) []event.Event {
+	out := make([]event.Event, 0, len(events))
+	for _, e := range events {
+		v := event.Event{ID: e.ID, Source: e.Source, Type: e.EventType, Title: e.Title, URL: e.URL,
+			Time: event.Time{Started: e.StartedAt, Updated: e.UpdatedAt}}
+		if c := e.Geometry.Coordinates; len(c) >= 2 {
+			v.Location = &event.Location{Center: &event.Point{c[0], c[1]}}
+		}
+		if e.Severity != "" {
+			v.Severity = &event.Severity{Level: e.Severity}
+		}
+		out = append(out, v)
+	}
+	return out
 }
 
 // evt builds a minimal event. Coordinates are optional: none means unlocated.
@@ -173,6 +206,50 @@ func TestGetEventsAllSourcesFailed(t *testing.T) {
 	}
 }
 
+// After a source has answered once, its failures are served from its last
+// good copy, so v1 answers 502 only before the first answer (#22).
+func TestAFailedSourceServesItsLastCopy(t *testing.T) {
+	t.Parallel()
+	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}}
+	st := store.New(store.Source{Name: "alpha"})
+	if err := st.Put("alpha", toV2([]models.Event{evt("a-1", "earthquake", baseTime, 1, 1)}), fetchedAt); err != nil {
+		t.Fatal(err)
+	}
+	st.Fail("alpha", "timed out")
+	s := NewEventsService([]adapters.Adapter{a}, st)
+
+	events, statuses, err := s.GetEvents(context.Background(), adapters.FetchParams{})
+	if err != nil {
+		t.Fatalf("GetEvents: %v, want the last copy, not a 502", err)
+	}
+	if got := ids(events); len(got) != 1 || got[0] != "a-1" {
+		t.Errorf("events = %v, want the last copy's a-1", got)
+	}
+	st0 := statusBySource(t, statuses, "alpha")
+	if st0.OK || !st0.Stale || st0.Error != "timed out" || st0.FetchedAt == nil || !st0.FetchedAt.Equal(fetchedAt) {
+		t.Errorf("status = %+v, want stale, the reason, and when the copy was fetched", st0)
+	}
+	if a.callCount() != 0 {
+		t.Errorf("source called %d times; v1 reads the store only", a.callCount())
+	}
+}
+
+func TestA502OnlyBeforeAnySourceAnswers(t *testing.T) {
+	t.Parallel()
+	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}}
+	st := store.New(store.Source{Name: "alpha"})
+	s := NewEventsService([]adapters.Adapter{a}, st)
+	if _, statuses, err := s.GetEvents(context.Background(), adapters.FetchParams{}); !errors.Is(err, ErrAllSourcesFailed) || statusBySource(t, statuses, "alpha").Error != "not polled yet" {
+		t.Errorf("before any poll: err %v, statuses %+v; want ErrAllSourcesFailed, not polled yet", err, statuses)
+	}
+	if err := st.Put("alpha", nil, fetchedAt); err != nil {
+		t.Fatal(err)
+	}
+	if events, _, err := s.GetEvents(context.Background(), adapters.FetchParams{}); err != nil || len(events) != 0 {
+		t.Errorf("after an empty answer: %d events, err %v; want none and no error", len(events), err)
+	}
+}
+
 func TestGetEventsPartialFailureStillSucceeds(t *testing.T) {
 	t.Parallel()
 	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, err: errors.New("alpha down")}
@@ -216,96 +293,6 @@ func TestGetEventsNoMatchingAdapters(t *testing.T) {
 	}
 }
 
-func TestGetEventsContextCancellation(t *testing.T) {
-	t.Parallel()
-	gate := make(chan struct{})
-	t.Cleanup(func() { close(gate) })
-	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, gate: gate}
-	s := newTestService(t, a)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel() // client is already gone
-
-	start := time.Now()
-	_, _, err := s.GetEvents(ctx, adapters.FetchParams{})
-	if !errors.Is(err, context.Canceled) {
-		t.Fatalf("err = %v, want context.Canceled", err)
-	}
-	if elapsed := time.Since(start); elapsed > 2*time.Second {
-		t.Errorf("GetEvents blocked %v after cancellation", elapsed)
-	}
-}
-
-func TestGetEventsCacheHitSkipsUpstream(t *testing.T) {
-	t.Parallel()
-	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, events: []models.Event{
-		evt("a-1", "earthquake", baseTime, 1, 1),
-	}}
-	s := newTestService(t, a)
-	params := adapters.FetchParams{Types: []string{"earthquake"}}
-
-	for i := 0; i < 2; i++ {
-		events, _, err := s.GetEvents(context.Background(), params)
-		if err != nil {
-			t.Fatalf("GetEvents #%d: %v", i+1, err)
-		}
-		if len(events) != 1 {
-			t.Fatalf("GetEvents #%d: got %d events, want 1", i+1, len(events))
-		}
-	}
-	if got := a.callCount(); got != 1 {
-		t.Errorf("upstream called %d times, want 1 (second request served from cache)", got)
-	}
-}
-
-func TestGetEventsSingleflightDedup(t *testing.T) {
-	t.Parallel()
-	gate := make(chan struct{})
-	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, gate: gate, events: []models.Event{
-		evt("a-1", "earthquake", baseTime, 1, 1),
-	}}
-	s := newTestService(t, a)
-
-	const n = 8
-	var wg sync.WaitGroup
-	errs := make([]error, n)
-	counts := make([]int, n)
-	for i := 0; i < n; i++ {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			events, _, err := s.GetEvents(context.Background(), adapters.FetchParams{})
-			errs[i] = err
-			counts[i] = len(events)
-		}(i)
-	}
-
-	// Wait until the first fetch is in flight, give the rest time to pile
-	// onto the singleflight, then release.
-	deadline := time.Now().Add(2 * time.Second)
-	for a.callCount() == 0 {
-		if time.Now().After(deadline) {
-			t.Fatal("adapter never called")
-		}
-		time.Sleep(time.Millisecond)
-	}
-	time.Sleep(50 * time.Millisecond)
-	close(gate)
-	wg.Wait()
-
-	for i := 0; i < n; i++ {
-		if errs[i] != nil {
-			t.Fatalf("request %d: %v", i, errs[i])
-		}
-		if counts[i] != 1 {
-			t.Errorf("request %d: got %d events, want 1", i, counts[i])
-		}
-	}
-	if got := a.callCount(); got != 1 {
-		t.Errorf("upstream called %d times, want 1 (singleflight dedup)", got)
-	}
-}
-
 // The adapter returns its whole window; every part of the request is cut
 // from it here, including the types and since the adapters used to apply.
 func TestGetEventsCutsTheRequestFromTheWindow(t *testing.T) {
@@ -330,43 +317,6 @@ func TestGetEventsCutsTheRequestFromTheWindow(t *testing.T) {
 	}
 	if got := ids(events); len(got) != 1 || got[0] != "flood-new-in" {
 		t.Errorf("events = %v, want [flood-new-in]: the type, box, since and limit all applied", got)
-	}
-}
-
-// The cache key holds only the source, so requests that differ in every
-// parameter still share one upstream fetch per source within the TTL.
-func TestOneFetchPerSourceWhateverTheRequest(t *testing.T) {
-	t.Parallel()
-	alpha := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, events: []models.Event{
-		evt("a-1", "earthquake", baseTime, 1, 1),
-	}}
-	beta := &fakeAdapter{source: "beta", types: []string{"flood", "storm"}, events: []models.Event{
-		evt("b-1", "flood", baseTime, 2, 2),
-		evt("b-2", "storm", baseTime, 3, 3),
-	}}
-	s := newTestService(t, alpha, beta)
-
-	typeSets := [][]string{nil, {"earthquake"}, {"flood"}, {"earthquake", "flood"}, {"storm", "flood"}}
-	for i := 0; i < 20; i++ {
-		params := adapters.FetchParams{
-			Types: typeSets[i%len(typeSets)],
-			// Like the map's since: a different millisecond on every visit.
-			Since: baseTime.Add(-7*24*time.Hour + time.Duration(i)*time.Millisecond),
-		}
-		if i%2 == 0 {
-			if _, _, err := s.GetEvents(context.Background(), params); err != nil {
-				t.Fatalf("GetEvents #%d: %v", i, err)
-			}
-		} else {
-			collectBatches(t, s, context.Background(), params)
-		}
-	}
-
-	if got := alpha.callCount(); got != 1 {
-		t.Errorf("alpha fetched %d times, want 1", got)
-	}
-	if got := beta.callCount(); got != 1 {
-		t.Errorf("beta fetched %d times, want 1", got)
 	}
 }
 
@@ -537,7 +487,7 @@ func collectBatches(t *testing.T, s *EventsService, ctx context.Context, params 
 func batchBySource(t *testing.T, batches []StreamBatch, source string) StreamBatch {
 	t.Helper()
 	for _, b := range batches {
-		if b.Source == source {
+		if b.Status.Source == source {
 			return b
 		}
 	}
@@ -562,8 +512,8 @@ func TestStreamEventsBatchPerSource(t *testing.T) {
 	}
 
 	ba := batchBySource(t, batches, "alpha")
-	if ba.Err != nil {
-		t.Fatalf("alpha batch error: %v", ba.Err)
+	if !ba.Status.OK {
+		t.Fatalf("alpha batch status: %+v", ba.Status)
 	}
 	got := ids(ba.Events)
 	if len(got) != 2 || got[0] != "a-new" || got[1] != "a-old" {
@@ -571,7 +521,7 @@ func TestStreamEventsBatchPerSource(t *testing.T) {
 	}
 
 	bb := batchBySource(t, batches, "beta")
-	if bb.Err != nil || len(bb.Events) != 1 || bb.Events[0].ID != "b-1" {
+	if !bb.Status.OK || len(bb.Events) != 1 || bb.Events[0].ID != "b-1" {
 		t.Errorf("beta batch = %+v, want single b-1", bb)
 	}
 }
@@ -590,13 +540,13 @@ func TestStreamEventsErrorBatch(t *testing.T) {
 	}
 
 	be := batchBySource(t, batches, "bad")
-	if be.Err == nil {
-		t.Fatal("bad batch has no error")
+	if be.Status.OK || be.Status.Error != "could not be reached" {
+		t.Fatalf("bad batch status = %+v, want its failure", be.Status)
 	}
-	if be.Events != nil {
+	if len(be.Events) != 0 {
 		t.Errorf("bad batch carries events %v alongside error", ids(be.Events))
 	}
-	if bg := batchBySource(t, batches, "good"); bg.Err != nil || len(bg.Events) != 1 {
+	if bg := batchBySource(t, batches, "good"); !bg.Status.OK || len(bg.Events) != 1 {
 		t.Errorf("good batch = %+v, want one event and no error", bg)
 	}
 }
@@ -621,8 +571,8 @@ func TestStreamEventsGlobalLimit(t *testing.T) {
 	}
 	total := 0
 	for _, batch := range batches {
-		if batch.Err != nil {
-			t.Fatalf("batch %q error: %v", batch.Source, batch.Err)
+		if !batch.Status.OK {
+			t.Fatalf("batch %q: %+v", batch.Status.Source, batch.Status)
 		}
 		total += len(batch.Events)
 	}
@@ -641,7 +591,7 @@ func TestStreamEventsEmptyBatchStillSent(t *testing.T) {
 		t.Fatalf("got %d batches, want 1", len(batches))
 	}
 	b := batches[0]
-	if b.Source != "empty" || b.Err != nil || len(b.Events) != 0 {
+	if b.Status.Source != "empty" || !b.Status.OK || len(b.Events) != 0 {
 		t.Errorf("batch = %+v, want empty success batch for source", b)
 	}
 }

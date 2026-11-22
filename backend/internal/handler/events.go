@@ -76,8 +76,8 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Aligned with the server-side source cache: repeat requests within
-	// the window can be answered by intermediaries and browsers.
+	// The fastest source is polled every 2 minutes, so a minute-old answer
+	// from an intermediary or browser is still current.
 	w.Header().Set("Cache-Control", "public, max-age=60")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
@@ -113,22 +113,18 @@ func (h *EventsHandler) streamEvents(w http.ResponseWriter, r *http.Request, par
 	sources := make([]models.SourceStatus, 0, 4)
 loop:
 	for {
+		// The client has gone: nothing more can reach it.
+		if r.Context().Err() != nil {
+			return
+		}
 		select {
+		case <-r.Context().Done():
+			return
 		case batch, ok := <-ch:
 			if !ok {
 				break loop
 			}
-			if batch.Err != nil {
-				sources = append(sources, models.SourceStatus{
-					Source: batch.Source,
-					Error:  adapters.Reason(batch.Err),
-				})
-				continue
-			}
-			sources = append(sources, models.SourceStatus{
-				Source: batch.Source,
-				OK:     true,
-			})
+			sources = append(sources, batch.Status)
 			if len(batch.Events) == 0 {
 				continue
 			}

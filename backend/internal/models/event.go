@@ -31,6 +31,10 @@ type SourceStatus struct {
 	Source string `json:"source"`
 	OK     bool   `json:"ok"`
 	Error  string `json:"error,omitempty"`
+	// Stale is set when the last poll failed and an older copy is served.
+	Stale bool `json:"stale,omitempty"`
+	// FetchedAt is when the copy served was fetched; absent if none was.
+	FetchedAt *time.Time `json:"fetched_at,omitempty"`
 }
 
 // GeoJSON types

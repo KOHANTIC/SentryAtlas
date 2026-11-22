@@ -52,8 +52,6 @@ services:
     envs:
       - key: PORT
         value: "8080"
-      - key: CACHE_TTL_MINUTES
-        value: "5"
       - key: FETCH_TIMEOUT_SECONDS
         value: "45"
       - key: RATE_LIMIT_PER_MINUTE
