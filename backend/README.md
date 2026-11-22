@@ -57,6 +57,10 @@ Each source is polled on its own schedule (NWS every 2 minutes, USGS every 5, EO
 - **`stale`:** the last poll failed, or sent an implausible copy, and an older copy is in use.
 - **NWS limit:** an NWS copy over an hour old is withdrawn.
 
+### `GET /api/v2/snapshot` and `GET /api/v2/events/{id}`
+
+v2: one shared, cacheable snapshot of every source (`window=7d` or `30d`), and each event in full. [`docs/api/v2/README.md`](../docs/api/v2/README.md) documents both, with the event model and its schema.
+
 ### `GET /api/v1/events`
 
 Events from all sources, merged and sorted newest first by `started_at`. Events that start at the same moment come in no particular order.
@@ -296,6 +300,7 @@ backend/
 │   │   └── testdata/               # Recorded upstream responses
 │   ├── handler/events.go           # HTTP handler, query param parsing
 │   ├── handler/health.go           # /health: readiness and each source's copy
+│   ├── handler/v2.go               # v2: the snapshot, built once per poll, and event detail
 │   ├── handler/testdata/v1/        # The v1 contract: golden responses and shape.txt
 │   ├── httpx/httpx.go              # Request log, rate-limit key, 429 answer
 │   ├── models/event.go             # Unified Event model, GeoJSON + flat JSON serialization
