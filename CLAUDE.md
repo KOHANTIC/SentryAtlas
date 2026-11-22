@@ -6,9 +6,30 @@ Real-time disaster monitoring: a Go backend, a Next.js map, and a static landing
 
 ## A push here is a publication
 
-This repo is **public** (`KOHANTIC/SentryAtlas`, AGPL) and **`main` deploys both sites on push**: `sentryatlas.com` and `map.sentryatlas.com`. Draft and edit; let Kyro push. The root `CLAUDE.md` § Working with Kyro item 5 owns the rule.
+This repo is **public** (`KOHANTIC/SentryAtlas`, AGPL) and **`main` deploys both sites on every merge**: `sentryatlas.com` and `map.sentryatlas.com`. A ruleset on `main` requires a pull request, the `gate` check green and up to date, and linear history.
 
-Everything committed here is public. Nothing from the private parts of the tree (`KYROKOHAN/Finance/`, `Lore/PERSONAL.md`, `Lore/COMPENSATION.md`, `KOHANTIC/TaxDocs|Contractors|Documents/`) belongs in this repo, in a commit message, or in an issue.
+Who does what (Kyro, 2026-11-22): Claude commits on a `type/short-subject` branch and, behind an approval prompt each time, pushes the branch, opens and edits the pull request, and applies repo settings. **Kyro merges every pull request**, and runs installs, servers, `doctl`, DigitalOcean and Cloudflare changes. The root `CLAUDE.md` § Working with Kyro item 5 owns the publication rule and records this exception.
+
+Everything committed here is public. Nothing from the private parts of the tree (`KYROKOHAN/Finance/`, `Lore/PERSONAL.md`, `Lore/COMPENSATION.md`, `KOHANTIC/TaxDocs|Contractors|Documents/`) belongs in this repo, in a commit message, an issue or a pull request.
+
+## How work is tracked
+
+- GitHub issues and milestones are the plan; live state is `gh issue list -R KOHANTIC/SentryAtlas`, never a copy. Each milestone's description lists its issues in order.
+- An issue has a type (Task, Bug or Feature), one `area:` label (`api`, `data`, `map`, `site`, `design`, `infra`, `docs`), a milestone and the assignee `kyrokohan`. A parked idea has `deferred`, no milestone, and a dated line in its Notes saying what it waits on.
+- An issue body has five headings: What, Why, Scope (a checklist), Out of scope, Notes. Issue and pull request text is public: no account, DNS or personal details. The private reasons behind product decisions are kept in `../../KOHANTIC/KOHANTIC.md`.
+- Every issue is planned with Kyro before code. A pull request carries its issue's labels and milestone and says `Fixes #N`, or `Part of #N` when it must not close the issue.
+- After a merge, read `main`'s CI job by job for the merged commit: a watch can print green before any check exists.
+
+## Deploys
+
+- `.do/app.yaml` and `.do/landing.yaml` are applied by hand, not on push; a merge deploys code only. A new environment variable is set on its component in DigitalOcean **before** the pull request that reads it is merged: on 2026-11-22 the backend ran without `CLIENT_IP_HEADER` until it was added there.
+- The backend's startup line names `client_ip_header`, and it must say `Do-Connecting-IP`. The platform's edge overwrites that header with the visitor's address; `X-Forwarded-For`, `True-Client-IP`, `Forwarded` and `X-Client-IP` carry whatever the client sent. Empty puts every visitor in one rate-limit bucket.
+
+## CI pins
+
+- `gate` in `ci.yml` is the only required check. `govulncheck` in `vuln.yml` runs on pull requests, on `main` and weekly, and stays out of `gate` so a standard-library report cannot block every pull request until Go is updated.
+- CI takes the Go release from the `FROM golang:X.Y-alpine` line of `backend/Dockerfile`.
+- Dependabot moves the actions, which are pinned to a commit, but not the golangci-lint version in `ci.yml` or the govulncheck version in `vuln.yml`. Bump those by hand, and check a govulncheck release's `go.mod` first: it may need a newer Go than the backend's.
 
 ## Authorship framing
 
