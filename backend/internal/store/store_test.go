@@ -11,13 +11,28 @@ import (
 
 var t0 = time.Date(2026, 11, 22, 12, 0, 0, 0, time.UTC)
 
-// events makes n events of a source, expiring at expires when it is set.
+// events makes n valid events of a source, expiring at expires when it is
+// set; the pollers leave out events that break the model.
 func events(source string, n int, expires *time.Time) []event.Event {
 	out := make([]event.Event, n)
 	for i := range out {
-		out[i] = event.Event{ID: fmt.Sprintf("%s-%d", source, i), Source: source, Time: event.Time{Started: t0, Updated: t0, Expires: expires}}
+		out[i] = event.Event{ID: fmt.Sprintf("%s-%d", source, i), Source: source, Type: "other", Title: "test",
+			Time: event.Time{Started: t0, Updated: t0, Expires: expires}, Details: details(source)}
 	}
 	return out
+}
+
+// details is an empty details part for a source.
+func details(source string) event.Details {
+	switch source {
+	case event.SourceUSGS:
+		return event.Details{USGS: &event.USGS{}}
+	case event.SourceEONET:
+		return event.Details{EONET: &event.EONET{}}
+	case event.SourceNOAA:
+		return event.Details{NOAA: &event.NWS{}}
+	}
+	return event.Details{GDACS: &event.GDACS{}}
 }
 
 // mustPut puts a copy the test expects the store to accept.
