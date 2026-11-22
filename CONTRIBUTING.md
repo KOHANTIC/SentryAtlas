@@ -1,45 +1,33 @@
 # Contributing to SentryAtlas
 
-Thanks for your interest in contributing! Here's how you can help.
+Issues and pull requests are welcome. Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
 
-## Reporting Bugs
+## Before you start
 
-Open a [bug report](https://github.com/KOHANTIC/SentryAtlas/issues/new?template=bug_report.md) with:
+- Planned work lives in [issues](https://github.com/KOHANTIC/SentryAtlas/issues), grouped into [milestones](https://github.com/KOHANTIC/SentryAtlas/milestones). Each milestone's description lists its issues in the order they are taken.
+- For a bug, a typo or a small improvement, go ahead and open a pull request.
+- For anything larger, comment on its issue or open one first, so the change is agreed before you write it.
+- To report a security problem, do not open an issue. See [SECURITY.md](SECURITY.md).
 
-- A clear description of the problem
-- Steps to reproduce
-- What you expected to happen
-- Your environment (OS, browser, relevant versions)
+## Setting up
 
-## Suggesting Features
-
-Open a [feature request](https://github.com/KOHANTIC/SentryAtlas/issues/new?template=feature_request.md) describing the problem you'd like solved and your proposed approach.
-
-## Development Setup
-
-### Prerequisites
-
-- Go 1.27+
-- Node.js 22+
-- Git
-
-### Getting Started
+You need Go 1.27 or newer and Node.js 22 or newer.
 
 ```bash
 git clone https://github.com/KOHANTIC/SentryAtlas.git
 cd SentryAtlas
 ```
 
-**Backend:**
+**Backend** (http://localhost:8080):
 
 ```bash
 cd backend
-cp .env.example .env
-go mod download
 go run ./cmd/server/
 ```
 
-**Frontend:**
+Every setting has a default; `backend/.env.example` lists them. The server reads its environment, not a `.env` file.
+
+**Frontend** (http://localhost:3000):
 
 ```bash
 cd frontend
@@ -48,27 +36,53 @@ npm install
 npm run dev
 ```
 
-**Landing:**
+**Landing** (both Next.js apps default to port 3000, so give it another):
 
 ```bash
 cd landing
 npm install
-npm run dev
+npm run dev -- --port 3002
 ```
 
-## Pull Requests
+## Sending a change
 
-1. Fork the repo and create a branch from `main`
-2. Make your changes
-3. Test locally — make sure the backend starts, the frontend renders, and nothing is broken
-4. Use [conventional commits](https://www.conventionalcommits.org/) for your commit messages (`feat:`, `fix:`, `refactor:`, `docs:`, etc.)
-5. Open a PR with a clear description of what changed and why
+Every change, the maintainer's included, goes in through a pull request; `main` deploys both sites on every merge, and nobody pushes to it.
 
-## Code Style
+1. Start from an up-to-date `main` on a branch named `type/short-subject`, with the type from the commit messages below, as in `git switch -c fix/date-line-bbox`.
+2. Keep a pull request to one issue. Its description says `Fixes #N`, or `Part of #N` when merging it must not close the issue.
+3. Run the checks below, then open the pull request, titled `type: subject`. The template asks what changed and why, and a few ticks.
+4. CI must pass. Its `gate` check is the one `main` requires, and the branch must be up to date with `main`. The weekly vulnerability scan also runs on pull requests and reports problems, but does not block a merge.
+5. The maintainer merges it, by rebase so each commit keeps its message, or by squash for a small fix. The branch is deleted afterwards.
 
-- **Go** — format with `gofmt`. Keep it simple and idiomatic.
-- **TypeScript** — follow the existing ESLint configuration (`npm run lint`).
+## Checks
 
-## Code of Conduct
+Run what CI runs, in the parts you changed.
 
-This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). By participating, you agree to uphold it.
+Backend, from `backend/`:
+
+```bash
+gofmt -l .                  # prints nothing when formatting is right
+go build ./...
+go vet ./...
+go test -race -count=1 ./...
+golangci-lint run           # if installed; CI uses v2.15.0
+```
+
+Frontend and landing, from `frontend/` or `landing/`:
+
+```bash
+npm run lint
+npm run build
+```
+
+## Making a change
+
+- Commit messages are `type: subject`, with the type one of `feat`, `fix`, `refactor`, `docs`, `test`, `chore` or `ci`, and a lowercase subject in the imperative, under about 70 characters. The body says why.
+- Behavior changes come with tests. For a bug, write the test first and see it fail.
+- Comments say why, not what.
+- **Go:** formatted with `gofmt`, and kept simple and idiomatic.
+- **TypeScript:** follows the ESLint configuration (`npm run lint`).
+
+## Code of conduct
+
+This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). By taking part, you agree to uphold it.
