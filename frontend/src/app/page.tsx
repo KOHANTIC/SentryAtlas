@@ -10,6 +10,22 @@ import { getSinceDate } from "@/lib/time";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
+const SOURCE_NAMES: Record<string, string> = {
+  noaa: "NWS",
+  usgs: "USGS",
+  gdacs: "GDACS",
+  eonet: "NASA EONET",
+};
+
+// How long a source has gone without a good answer, from when the copy the
+// map still shows was fetched.
+function silentFor(fetchedAt: string): string {
+  const mins = Math.max(1, Math.round((Date.now() - Date.parse(fetchedAt)) / 60_000));
+  if (mins < 60) return mins === 1 ? "1 minute" : `${mins} minutes`;
+  const hours = Math.round(mins / 60);
+  return hours === 1 ? "1 hour" : `${hours} hours`;
+}
+
 function relativeAge(from: Date): string {
   const mins = Math.round((Date.now() - from.getTime()) / 60_000);
   if (mins < 1) return "just now";
@@ -161,13 +177,20 @@ export default function Home() {
           <div
             className="bg-surface-raised/95 backdrop-blur-sm border border-border shadow-lg px-3 py-2 text-xs text-foreground-muted max-w-56"
             role="status"
-            title={downSources.map((s) => `${s.source}: ${s.error ?? "unavailable"}`).join("\n")}
+            title={downSources
+              .map((s) => `${SOURCE_NAMES[s.source] ?? s.source}: ${s.error ?? "unavailable"}`)
+              .join("\n")}
           >
-            <span className="font-semibold">
-              {downSources.map((s) => s.source).join(", ")}
-            </span>{" "}
-            {downSources.length === 1 ? "is" : "are"} currently unavailable —
-            showing partial data.
+            {downSources.map((s) => (
+              <p key={s.source}>
+                <span className="font-semibold">{SOURCE_NAMES[s.source] ?? s.source}</span>{" "}
+                {/* Since #22 a source whose poll failed stays on the map
+                    from its last copy; only one with none is unavailable. */}
+                {s.stale && s.fetched_at
+                  ? `has not answered for ${silentFor(s.fetched_at)}; showing its last update.`
+                  : "is currently unavailable."}
+              </p>
+            ))}
           </div>
         )}
       </div>
