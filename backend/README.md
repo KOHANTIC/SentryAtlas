@@ -179,7 +179,7 @@ A `features` frame is a FeatureCollection for one source, without `sources`. A s
 | `title`, `event_type`, `source` | yes | |
 | `started_at`, `updated_at` | yes | RFC 3339 in UTC. GeoJSON gives whole seconds; flat JSON adds fractional seconds when there are any. An event whose source gives no start time has `0001-01-01T00:00:00Z`. |
 | `description` | no | |
-| `magnitude` | no | A number with no unit. |
+| `magnitude` | no | An earthquake's magnitude, with no unit; USGS events only. |
 | `severity` | no | `extreme`, `severe`, `moderate` or `minor` |
 | `url` | no | The source's page for the event |
 | `metadata` | no | Extra fields that differ by source, such as `depth` and `place` (USGS), `area_desc` and `urgency` (NWS), or `alert_level` and `country` (GDACS) |
@@ -226,9 +226,12 @@ Made in #18:
 - An alert's point is the area center of its polygon. The old average counted the closing point twice and leaned toward it.
 - Fire-weather products (Red Flag Warning, Fire Weather Watch) are `weather`, not `wildfire`. A Hurricane Force Wind Warning, a marine product, is `weather`, not `hurricane`.
 
+Made in #19:
+- EONET's `started_at` is the event's first observation, and `updated_at` its latest, where both were the latest.
+- `magnitude` is only set for USGS earthquakes. It has no unit, and EONET's values are acres, knots or square nautical miles, which would read as a quake's size. v2 carries them with their units. EONET's v1 magnitude was empty in practice, since EONET puts it where the old code did not look.
+
 Announced changes:
 
-- **#19:** EONET's `started_at` becomes the event's first observation, not its latest.
 - **#22:** a 502 only happens before the first fetch after a start; after that, a failing source is served from its last good copy and reported in `sources`.
 
 ## Tests
