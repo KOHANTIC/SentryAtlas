@@ -62,7 +62,6 @@
         "properties": {
           "event_type": "storm",
           "id": "eonet-EONET_10002",
-          "magnitude": 65,
           "source": "eonet",
           "started_at": "2026-08-08T12:00:00Z",
           "title": "Tropical Storm Odile",

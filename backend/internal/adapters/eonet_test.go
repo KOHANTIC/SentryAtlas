@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"context"
+	"encoding/json"
 	"net/http/httptest"
 	"slices"
 	"strings"
@@ -56,12 +57,13 @@ func TestEONETFetchEventsParsing(t *testing.T) {
 		if !slices.Equal(e.Geometry.Coordinates, []float64{-119.31, 37.22}) {
 			t.Errorf("Coordinates = %v, want last geometry [-119.31 37.22]", e.Geometry.Coordinates)
 		}
-		want := time.Date(2026, 8, 6, 10, 0, 0, 0, time.UTC)
-		if !e.StartedAt.Equal(want) {
-			t.Errorf("StartedAt = %v, want last geometry date %v", e.StartedAt, want)
+		// Started is the first observation, updated the latest (#19); both
+		// used to be the latest.
+		if want := time.Date(2026, 8, 1, 10, 0, 0, 0, time.UTC); !e.StartedAt.Equal(want) {
+			t.Errorf("StartedAt = %v, want the first observation %v", e.StartedAt, want)
 		}
-		if !e.UpdatedAt.Equal(e.StartedAt) {
-			t.Errorf("UpdatedAt = %v, want same as StartedAt", e.UpdatedAt)
+		if want := time.Date(2026, 8, 6, 10, 0, 0, 0, time.UTC); !e.UpdatedAt.Equal(want) {
+			t.Errorf("UpdatedAt = %v, want the latest observation %v", e.UpdatedAt, want)
 		}
 		if e.Magnitude != nil {
 			t.Errorf("Magnitude = %v, want nil", *e.Magnitude)
@@ -71,13 +73,15 @@ func TestEONETFetchEventsParsing(t *testing.T) {
 		}
 	})
 
-	t.Run("magnitude from event-level magnitudeValue", func(t *testing.T) {
+	t.Run("v1 carries no magnitude for EONET", func(t *testing.T) {
 		e := eventByID(t, events, "eonet-EONET_10002")
 		if e.EventType != "storm" {
 			t.Errorf("EventType = %q, want storm", e.EventType)
 		}
-		if e.Magnitude == nil || *e.Magnitude != 65.0 {
-			t.Errorf("Magnitude = %v, want 65.0", e.Magnitude)
+		// v1's magnitude is an earthquake magnitude; knots there would read
+		// as a quake's size. v2 carries it with its unit.
+		if e.Magnitude != nil {
+			t.Errorf("Magnitude = %v, want none in v1", *e.Magnitude)
 		}
 	})
 
@@ -153,5 +157,51 @@ func TestEONETMalformedJSON(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "decode response") {
 		t.Errorf("error = %q, want decode error", err)
+	}
+}
+
+// TestEONETV2FromTheRealEvents maps the recorded events onto v2: every event
+// is valid, a storm's track is a line ending at its latest position, and
+// each magnitude keeps its unit.
+func TestEONETV2FromTheRealEvents(t *testing.T) {
+	t.Parallel()
+	a := newTestEONET(t, serveFixture(t, "live/eonet.json", nil))
+	events, err := a.FetchV2(context.Background())
+	if err != nil {
+		t.Fatalf("FetchV2: %v", err)
+	}
+	units := map[string]bool{}
+	var track bool
+	for _, e := range events {
+		if err := e.Validate(); err != nil {
+			t.Errorf("%s: %v", e.ID, err)
+		}
+		if len(e.Details.EONET.Categories) == 0 || len(e.Details.EONET.Sources) == 0 {
+			t.Errorf("%s: details %+v, want its categories and sources", e.ID, e.Details.EONET)
+		}
+		if e.Magnitude != nil {
+			units[e.Magnitude.Unit] = true
+		}
+		if e.Location != nil && e.Location.Geometry != nil && e.Location.Geometry.Type == "LineString" {
+			track = true
+			var points [][2]float64
+			if err := json.Unmarshal(e.Location.Geometry.Coordinates, &points); err != nil {
+				t.Fatal(err)
+			}
+			if last := points[len(points)-1]; last != [2]float64(*e.Location.Center) {
+				t.Errorf("%s: center %v, want the track's latest point %v", e.ID, *e.Location.Center, last)
+			}
+			if !e.Time.Started.Before(e.Time.Updated) {
+				t.Errorf("%s: started %v, updated %v; a track starts before its latest point", e.ID, e.Time.Started, e.Time.Updated)
+			}
+		}
+	}
+	if !track {
+		t.Error("no track: the recording holds a storm with 13 positions")
+	}
+	for _, u := range []string{"acres", "kts", "NM^2"} {
+		if !units[u] {
+			t.Errorf("no magnitude in %q; the recording holds one", u)
+		}
 	}
 }

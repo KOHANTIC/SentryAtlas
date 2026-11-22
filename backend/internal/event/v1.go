@@ -20,7 +20,9 @@ func (e Event) V1() models.Event {
 	if e.Location != nil && e.Location.Center != nil {
 		v.Geometry = models.Geometry{Type: "Point", Coordinates: []float64{e.Location.Center[0], e.Location.Center[1]}}
 	}
-	if e.Magnitude != nil {
+	// v1's magnitude has always been an earthquake magnitude and has no unit,
+	// so only USGS fills it; acres or knots there would read as a quake size.
+	if e.Magnitude != nil && e.Source == SourceUSGS {
 		m := e.Magnitude.Value
 		v.Magnitude = &m
 	}

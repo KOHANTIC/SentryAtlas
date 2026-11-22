@@ -36,7 +36,7 @@ var guardCases = []guardCase{
 	{
 		source: "eonet", key: "events",
 		good: `{"id":"E1","title":"t","categories":[{"id":"wildfires"}],"geometry":[{"date":"2026-08-08T00:00:00Z","type":"Point","coordinates":[1,2]}]}`,
-		bad:  `{"id":"E2","title":"t","categories":[{"id":"wildfires"}],"geometry":[{"date":"2026-08-08T00:00:00Z","type":"Polygon","coordinates":[[[1,2],[3,4],[5,6],[1,2]]]}]}`,
+		bad:  `{"id":"E2","title":"t","categories":"wildfires","geometry":[]}`,
 		build: func(t *testing.T, srv *httptest.Server, maxBody int64) Adapter {
 			a := newTestEONET(t, srv)
 			if maxBody > 0 {
