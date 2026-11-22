@@ -177,7 +177,7 @@ A `features` frame is a FeatureCollection for one source, without `sources`. A s
 |-------|----------------|-------|
 | `id` | yes | `<source>-<upstream id>` |
 | `title`, `event_type`, `source` | yes | |
-| `started_at`, `updated_at` | yes | RFC 3339 with the offset the source gave: NWS alerts carry their area's offset, such as `-05:00`; the other sources are in UTC. GeoJSON gives whole seconds; flat JSON adds fractional seconds when there are any. An event whose source gives no start time has `0001-01-01T00:00:00Z`. |
+| `started_at`, `updated_at` | yes | RFC 3339 in UTC. GeoJSON gives whole seconds; flat JSON adds fractional seconds when there are any. An event whose source gives no start time has `0001-01-01T00:00:00Z`. |
 | `description` | no | |
 | `magnitude` | no | A number with no unit. |
 | `severity` | no | `extreme`, `severe`, `moderate` or `minor` |
@@ -218,6 +218,13 @@ Made in #6: a box over the date line returns the events on both sides of it. A b
 Made in #17:
 - USGS events that are not earthquakes stop being labelled `earthquake`. Quarry blasts, explosions and ice quakes are `other`; landslides are `landslide`. A request for `other` or `landslide` now includes USGS.
 - A USGS event without a depth has no `metadata.depth`, where it had `0`.
+
+Made in #18:
+- NWS alerts that have been updated are included. An update replaces the message it updates, so asking for alerts alone missed them: about a third of active alerts.
+- One event per alert. The messages that carry one alert (its updates, and parallel messages for different zones) are merged, so their zones, times and severity come together. Its `id` is the alert's first message, and it no longer changes when the alert is updated.
+- NWS times are in UTC, where they kept the alert area's offset.
+- An alert's point is the area center of its polygon. The old average counted the closing point twice and leaned toward it.
+- Fire-weather products (Red Flag Warning, Fire Weather Watch) are `weather`, not `wildfire`. A Hurricane Force Wind Warning, a marine product, is `weather`, not `hurricane`.
 
 Announced changes:
 
