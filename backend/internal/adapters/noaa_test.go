@@ -184,6 +184,13 @@ func TestNOAACentroid(t *testing.T) {
 		{"multipolygon uses first ring of first polygon", "MultiPolygon",
 			`[[[[10,10],[14,10],[14,14],[10,14]]],[[[50,50],[52,50],[52,52]]]]`, []float64{12, 12}},
 		{"unknown type", "LineString", `[[0,0],[1,1]]`, nil},
+		// A point without both numbers used to index out of range and end the process.
+		{"polygon with a short point", "Polygon", `[[[0,0],[1],[2,2],[4,4]]]`, []float64{2, 2}},
+		{"polygon with an empty point", "Polygon", `[[[0,0],[],[4,4]]]`, []float64{2, 2}},
+		{"polygon of only short points", "Polygon", `[[[1],[2]]]`, nil},
+		{"polygon with an empty ring", "Polygon", `[[]]`, nil},
+		{"multipolygon with a short point", "MultiPolygon", `[[[[0,0],[7],[4,4]]]]`, []float64{2, 2}},
+		{"multipolygon of only short points", "MultiPolygon", `[[[[7]]]]`, nil},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

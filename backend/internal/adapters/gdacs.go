@@ -31,10 +31,11 @@ const gdacsWindowDays = 30
 type GDACSAdapter struct {
 	client  *http.Client
 	baseURL string
+	maxBody int64
 }
 
 func NewGDACSAdapter(client *http.Client) *GDACSAdapter {
-	return &GDACSAdapter{client: client, baseURL: gdacsBaseURL}
+	return &GDACSAdapter{client: client, baseURL: gdacsBaseURL, maxBody: maxResponseBytes}
 }
 
 func (a *GDACSAdapter) Source() string {
@@ -68,29 +69,16 @@ func (a *GDACSAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) 
 
 	req.URL.RawQuery = q.Encode()
 
-	resp, err := a.client.Do(req)
+	// GDACS answers 204 No Content when the window holds no events; fetchList
+	// reads that as an empty list.
+	features, err := fetchList[gdacsFeature](a.client, req, "gdacs", "features", a.maxBody)
 	if err != nil {
-		return nil, fmt.Errorf("gdacs: request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusNoContent {
-		return nil, nil
+		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("gdacs: unexpected status %d", resp.StatusCode)
-	}
-
-	var result gdacsResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("gdacs: decode response: %w", err)
-	}
-
-	events := make([]models.Event, 0, len(result.Features))
-	for _, f := range result.Features {
-		e := parseGDACSFeature(f)
-		events = append(events, e)
+	events := make([]models.Event, 0, len(features))
+	for _, f := range features {
+		events = append(events, parseGDACSFeature(f))
 	}
 
 	return events, nil
@@ -179,10 +167,6 @@ func gdacsAlertToSeverity(level string) string {
 }
 
 // GDACS GeoJSON response types
-
-type gdacsResponse struct {
-	Features []gdacsFeature `json:"features"`
-}
 
 type gdacsFeature struct {
 	Geometry   gdacsGeometry   `json:"geometry"`

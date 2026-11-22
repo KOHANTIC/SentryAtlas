@@ -2,7 +2,6 @@ package adapters
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -27,10 +26,11 @@ var eonetCategoryMap = map[string]string{
 type EONETAdapter struct {
 	client  *http.Client
 	baseURL string
+	maxBody int64
 }
 
 func NewEONETAdapter(client *http.Client) *EONETAdapter {
-	return &EONETAdapter{client: client, baseURL: eonetBaseURL}
+	return &EONETAdapter{client: client, baseURL: eonetBaseURL, maxBody: maxResponseBytes}
 }
 
 func (a *EONETAdapter) Source() string {
@@ -53,23 +53,13 @@ func (a *EONETAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) 
 	q.Set("status", "open")
 	req.URL.RawQuery = q.Encode()
 
-	resp, err := a.client.Do(req)
+	list, err := fetchList[eonetEvent](a.client, req, "eonet", "events", a.maxBody)
 	if err != nil {
-		return nil, fmt.Errorf("eonet: request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("eonet: unexpected status %d", resp.StatusCode)
+		return nil, err
 	}
 
-	var result eonetResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("eonet: decode response: %w", err)
-	}
-
-	events := make([]models.Event, 0, len(result.Events))
-	for _, e := range result.Events {
+	events := make([]models.Event, 0, len(list))
+	for _, e := range list {
 		events = append(events, parseEONETEvent(e))
 	}
 
@@ -119,10 +109,6 @@ func parseEONETEvent(e eonetEvent) models.Event {
 }
 
 // EONET response types
-
-type eonetResponse struct {
-	Events []eonetEvent `json:"events"`
-}
 
 type eonetEvent struct {
 	ID             string          `json:"id"`

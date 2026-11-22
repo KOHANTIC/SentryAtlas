@@ -137,8 +137,8 @@ func TestGDACSNoContent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FetchEvents on 204: %v, want nil error", err)
 	}
-	if events != nil {
-		t.Errorf("events = %v, want nil on 204 No Content", events)
+	if len(events) != 0 {
+		t.Errorf("events = %v, want none on 204 No Content", events)
 	}
 }
 

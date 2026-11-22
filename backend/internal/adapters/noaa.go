@@ -38,10 +38,11 @@ type NOAAAdapter struct {
 	client    *http.Client
 	userAgent string
 	baseURL   string
+	maxBody   int64
 }
 
 func NewNOAAAdapter(client *http.Client, userAgent string) *NOAAAdapter {
-	return &NOAAAdapter{client: client, userAgent: userAgent, baseURL: noaaBaseURL}
+	return &NOAAAdapter{client: client, userAgent: userAgent, baseURL: noaaBaseURL, maxBody: maxResponseBytes}
 }
 
 func (a *NOAAAdapter) Source() string {
@@ -69,23 +70,13 @@ func (a *NOAAAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
 	q.Set("message_type", "alert")
 	req.URL.RawQuery = q.Encode()
 
-	resp, err := a.client.Do(req)
+	features, err := fetchList[noaaFeature](a.client, req, "noaa", "features", a.maxBody)
 	if err != nil {
-		return nil, fmt.Errorf("noaa: request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("noaa: unexpected status %d", resp.StatusCode)
+		return nil, err
 	}
 
-	var result noaaResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("noaa: decode response: %w", err)
-	}
-
-	events := make([]models.Event, 0, len(result.Features))
-	for _, f := range result.Features {
+	events := make([]models.Event, 0, len(features))
+	for _, f := range features {
 		e := parseNOAAFeature(f)
 		if e.EventType == "" {
 			continue
@@ -169,10 +160,6 @@ func classifyNOAAEvent(event string) string {
 
 // NOAA GeoJSON-LD response types
 
-type noaaResponse struct {
-	Features []noaaFeature `json:"features"`
-}
-
 type noaaFeature struct {
 	Geometry   *noaaGeometry  `json:"geometry"`
 	Properties noaaProperties `json:"properties"`
@@ -194,28 +181,36 @@ func (g *noaaGeometry) centroid() []float64 {
 		}
 	case "Polygon":
 		var rings [][][]float64
-		if err := json.Unmarshal(g.Coordinates, &rings); err == nil && len(rings) > 0 && len(rings[0]) > 0 {
-			var sumLon, sumLat float64
-			for _, pt := range rings[0] {
-				sumLon += pt[0]
-				sumLat += pt[1]
-			}
-			n := float64(len(rings[0]))
-			return []float64{sumLon / n, sumLat / n}
+		if err := json.Unmarshal(g.Coordinates, &rings); err == nil && len(rings) > 0 {
+			return averagePoint(rings[0])
 		}
 	case "MultiPolygon":
 		var polys [][][][]float64
-		if err := json.Unmarshal(g.Coordinates, &polys); err == nil && len(polys) > 0 && len(polys[0]) > 0 && len(polys[0][0]) > 0 {
-			var sumLon, sumLat float64
-			for _, pt := range polys[0][0] {
-				sumLon += pt[0]
-				sumLat += pt[1]
-			}
-			n := float64(len(polys[0][0]))
-			return []float64{sumLon / n, sumLat / n}
+		if err := json.Unmarshal(g.Coordinates, &polys); err == nil && len(polys) > 0 && len(polys[0]) > 0 {
+			return averagePoint(polys[0][0])
 		}
 	}
 	return nil
+}
+
+// averagePoint is the mean of the ring's points, skipping any point without
+// both a longitude and a latitude, which would otherwise index out of range.
+// It is nil when no point is whole.
+func averagePoint(ring [][]float64) []float64 {
+	var sumLon, sumLat float64
+	n := 0
+	for _, pt := range ring {
+		if len(pt) < 2 {
+			continue
+		}
+		sumLon += pt[0]
+		sumLat += pt[1]
+		n++
+	}
+	if n == 0 {
+		return nil
+	}
+	return []float64{sumLon / float64(n), sumLat / float64(n)}
 }
 
 type noaaProperties struct {
