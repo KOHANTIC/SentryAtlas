@@ -59,8 +59,9 @@ func TestNWSMergesTheMessagesOfOneAlert(t *testing.T) {
 	if want := []string{"PZZ130", "PZZ131", "PZZ132"}; merged.Location == nil || !slices.Equal(merged.Location.Zones, want) {
 		t.Errorf("merged zones = %+v, want %v from both pieces", merged.Location, want)
 	}
-	if merged.Location.Center != nil {
-		t.Errorf("a zone-only alert has center %v; zone shapes arrive with #25", merged.Location.Center)
+	// Placed at its zones' center, in the Strait of Juan de Fuca (#25).
+	if c := merged.Location.Center; c == nil || c[0] < -124.5 || c[0] > -122.5 || c[1] < 47.8 || c[1] > 48.8 {
+		t.Errorf("zone-only alert center = %v, want its zones' center near [-123.7 48.3]", c)
 	}
 	if want := time.Date(2026, 11, 22, 17, 18, 0, 0, time.UTC); !merged.Time.Started.Equal(want) || merged.Time.Started.Location() != time.UTC {
 		t.Errorf("started = %v, want %v in UTC", merged.Time.Started, want)
@@ -124,8 +125,28 @@ func TestNWSV2FromTheRealAlerts(t *testing.T) {
 		if e.Time.Expires == nil {
 			t.Errorf("%s has no expiry; every recorded alert carries one", e.ID)
 		}
+		if e.Location.Center == nil {
+			t.Errorf("%s (zones %v) has no center; the zone table covers every recorded zone", e.ID, e.Location.Zones)
+		}
 	}
 	if polygons == 0 || zoneOnly == 0 {
 		t.Errorf("polygons %d, zone-only %d: the recording holds both", polygons, zoneOnly)
+	}
+}
+
+// Fire-weather zone ids repeat public zone ids for other areas, and the zone
+// table holds no fire zones, so a fire zone alone gives no center.
+func TestNWSFireZonesAreNotPlaced(t *testing.T) {
+	t.Parallel()
+	msg := strings.Replace(nwsMessage("urn:fire.001", "Alert", "2026-11-22T10:00:00-08:00", "/O.NEW.KMTR.FW.W.0007.261122T1800Z-261123T1800Z/", []string{"CAZ211"}),
+		"/zones/forecast/CAZ211", "/zones/fire/CAZ211", 1)
+	a := newTestNOAA(t, serveRaw(t, http.StatusOK, `{"features":[`+msg+`]}`))
+	events, err := a.FetchV2(context.Background())
+	if err != nil || len(events) != 1 {
+		t.Fatalf("FetchV2: %d events, %v", len(events), err)
+	}
+	loc := events[0].Location
+	if loc == nil || loc.Center != nil || !slices.Equal(loc.Zones, []string{"CAZ211"}) {
+		t.Errorf("location = %+v, want the fire zone listed and no center", loc)
 	}
 }

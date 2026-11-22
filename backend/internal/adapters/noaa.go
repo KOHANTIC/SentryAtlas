@@ -12,6 +12,7 @@ import (
 
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/event"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/zones"
 )
 
 const noaaBaseURL = "https://api.weather.gov/alerts/active"
@@ -175,7 +176,8 @@ func noaaEvent(messages []noaaFeature) (event.Event, bool) {
 	var started, updated time.Time
 	var ends, expires *time.Time
 	var severity *event.Severity
-	zones := map[string]bool{}
+	zoneIDs := map[string]bool{}   // every zone named
+	placeable := map[string]bool{} // those the zone table can place
 	var areas []string
 	var polygons [][][][]float64
 	for _, m := range messages {
@@ -206,7 +208,13 @@ func noaaEvent(messages []noaaFeature) (event.Event, bool) {
 			severity = &event.Severity{Level: level, SourceLevel: p.Severity}
 		}
 		for _, z := range p.AffectedZones {
-			zones[z[strings.LastIndex(z, "/")+1:]] = true
+			id := z[strings.LastIndex(z, "/")+1:]
+			zoneIDs[id] = true
+			// Fire-weather zone ids repeat public zone ids for other areas,
+			// and the table holds no fire zones.
+			if !strings.Contains(z, "/zones/fire/") {
+				placeable[id] = true
+			}
 		}
 		if p.AreaDesc != "" && !containsString(areas, p.AreaDesc) {
 			areas = append(areas, p.AreaDesc)
@@ -243,17 +251,18 @@ func noaaEvent(messages []noaaFeature) (event.Event, bool) {
 			Instruction: latest.Instruction,
 		}},
 	}
-	if loc := noaaLocation(polygons, zones); loc != nil {
+	if loc := noaaLocation(polygons, zoneIDs, placeable); loc != nil {
 		e.Location = loc
 	}
 	return e, true
 }
 
-// noaaLocation places an alert by its polygons, when it has any, and its
-// zones. A shape over event.MaxVertices points is left out; its center stays.
-func noaaLocation(polygons [][][][]float64, zones map[string]bool) *event.Location {
+// noaaLocation places an alert by its polygons, when it has any, and
+// otherwise at the center of the placeable zones it names. A shape over
+// event.MaxVertices points is left out; its center stays.
+func noaaLocation(polygons [][][][]float64, zoneIDs, placeable map[string]bool) *event.Location {
 	loc := &event.Location{}
-	for z := range zones {
+	for z := range zoneIDs {
 		loc.Zones = append(loc.Zones, z)
 	}
 	sort.Strings(loc.Zones)
@@ -263,6 +272,17 @@ func noaaLocation(polygons [][][][]float64, zones map[string]bool) *event.Locati
 		loc.Center = &c
 		if g := roundedGeometry(polygons); g != nil {
 			loc.Geometry = g
+		}
+	} else {
+		ids := make([]string, 0, len(placeable))
+		for z := range placeable {
+			ids = append(ids, z)
+		}
+		// Sorted, so the date-line reference, and so the center, is the same every poll.
+		sort.Strings(ids)
+		if center, ok := zones.Center(ids); ok {
+			c := event.Point{event.RoundCoordinate(center[0]), event.RoundCoordinate(center[1])}
+			loc.Center = &c
 		}
 	}
 	if loc.Center == nil && len(loc.Zones) == 0 {
