@@ -36,7 +36,7 @@ func TestNOAAFetchEventsParsing(t *testing.T) {
 	srv := serveFixture(t, "noaa.json", nil)
 	a := newTestNOAA(t, srv)
 
-	events, err := a.FetchEvents(context.Background(), FetchParams{})
+	events, err := a.FetchEvents(context.Background())
 	if err != nil {
 		t.Fatalf("FetchEvents: %v", err)
 	}
@@ -130,7 +130,7 @@ func TestNOAAUserAgentAndQuery(t *testing.T) {
 	srv := serveFixture(t, "noaa.json", &capture)
 	a := newTestNOAA(t, srv)
 
-	if _, err := a.FetchEvents(context.Background(), FetchParams{}); err != nil {
+	if _, err := a.FetchEvents(context.Background()); err != nil {
 		t.Fatalf("FetchEvents: %v", err)
 	}
 
@@ -149,39 +149,22 @@ func TestNOAAUserAgentAndQuery(t *testing.T) {
 	}
 }
 
-func TestNOAARequestedTypesFilter(t *testing.T) {
+// The window is every active alert, of every type and age; the service cuts
+// each request from it.
+func TestNOAAReturnsEveryActiveAlert(t *testing.T) {
 	t.Parallel()
 	srv := serveFixture(t, "noaa.json", nil)
 	a := newTestNOAA(t, srv)
 
-	events, err := a.FetchEvents(context.Background(), FetchParams{Types: []string{"flood"}})
+	events, err := a.FetchEvents(context.Background())
 	if err != nil {
 		t.Fatalf("FetchEvents: %v", err)
 	}
-	if len(events) != 1 {
-		t.Fatalf("got %d events, want 1; IDs: %v", len(events), eventIDs(events))
-	}
-	if events[0].ID != "noaa-urn:oid:2.49.0.1.840.0.flood1" {
-		t.Errorf("got %q, want the flood alert", events[0].ID)
-	}
-}
-
-func TestNOAASinceFilter(t *testing.T) {
-	t.Parallel()
-	srv := serveFixture(t, "noaa.json", nil)
-	a := newTestNOAA(t, srv)
-
-	since := time.Date(2026, 8, 9, 0, 0, 0, 0, time.UTC)
-	events, err := a.FetchEvents(context.Background(), FetchParams{Since: since})
-	if err != nil {
-		t.Fatalf("FetchEvents: %v", err)
-	}
-	// Only the tornado (08-10) and flood (08-09) alerts start on or after since.
-	if len(events) != 2 {
-		t.Fatalf("got %d events, want 2; IDs: %v", len(events), eventIDs(events))
+	if len(events) != 4 {
+		t.Fatalf("got %d events, want all 4; IDs: %v", len(events), eventIDs(events))
 	}
 	eventByID(t, events, "noaa-urn:oid:2.49.0.1.840.0.tornado1")
-	eventByID(t, events, "noaa-urn:oid:2.49.0.1.840.0.flood1")
+	eventByID(t, events, "noaa-urn:oid:2.49.0.1.840.0.winter1") // the oldest
 }
 
 func TestNOAACentroid(t *testing.T) {
@@ -250,7 +233,7 @@ func TestNOAANon200(t *testing.T) {
 	srv := serveRaw(t, 429, "too many requests")
 	a := newTestNOAA(t, srv)
 
-	_, err := a.FetchEvents(context.Background(), FetchParams{})
+	_, err := a.FetchEvents(context.Background())
 	if err == nil {
 		t.Fatal("expected error for status 429")
 	}
@@ -264,7 +247,7 @@ func TestNOAAMalformedJSON(t *testing.T) {
 	srv := serveRaw(t, 200, `<html>gateway error</html>`)
 	a := newTestNOAA(t, srv)
 
-	_, err := a.FetchEvents(context.Background(), FetchParams{})
+	_, err := a.FetchEvents(context.Background())
 	if err == nil {
 		t.Fatal("expected error for malformed JSON")
 	}

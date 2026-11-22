@@ -24,18 +24,6 @@ var eonetCategoryMap = map[string]string{
 	"drought":      "drought",
 }
 
-// Reverse map: our event type -> EONET category ID
-var eventTypeToEONET = map[string]string{
-	"wildfire":   "wildfires",
-	"volcano":    "volcanoes",
-	"storm":      "severeStorms",
-	"iceberg":    "seaLakeIce",
-	"earthquake": "earthquakes",
-	"flood":      "floods",
-	"landslide":  "landslides",
-	"drought":    "drought",
-}
-
 type EONETAdapter struct {
 	client  *http.Client
 	baseURL string
@@ -50,12 +38,12 @@ func (a *EONETAdapter) Source() string {
 }
 
 func (a *EONETAdapter) SupportedTypes() []string {
-	// "other" is emitted for EONET categories outside eonetCategoryMap;
-	// requesting it fetches all open events and filters server-side.
+	// "other" is emitted for EONET categories outside eonetCategoryMap.
 	return []string{"wildfire", "volcano", "storm", "iceberg", "earthquake", "flood", "landslide", "drought", "other"}
 }
 
-func (a *EONETAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {
+// FetchEvents fetches every open event in every category: the window.
+func (a *EONETAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("eonet: build request: %w", err)
@@ -63,15 +51,6 @@ func (a *EONETAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]m
 
 	q := req.URL.Query()
 	q.Set("status", "open")
-
-	if len(params.Types) > 0 {
-		for _, t := range params.Types {
-			if cat, ok := eventTypeToEONET[t]; ok {
-				q.Add("category", cat)
-			}
-		}
-	}
-
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := a.client.Do(req)
@@ -91,11 +70,7 @@ func (a *EONETAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]m
 
 	events := make([]models.Event, 0, len(result.Events))
 	for _, e := range result.Events {
-		parsed := parseEONETEvent(e)
-		if !params.Since.IsZero() && parsed.StartedAt.Before(params.Since) {
-			continue
-		}
-		events = append(events, parsed)
+		events = append(events, parseEONETEvent(e))
 	}
 
 	return events, nil

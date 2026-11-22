@@ -54,7 +54,8 @@ func (a *NOAAAdapter) SupportedTypes() []string {
 	return []string{"flood", "storm", "tornado", "hurricane", "winter_storm", "tsunami", "wildfire", "earthquake", "volcano", "weather"}
 }
 
-func (a *NOAAAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error) {
+// FetchEvents fetches every active alert: the window.
+func (a *NOAAAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("noaa: build request: %w", err)
@@ -83,23 +84,10 @@ func (a *NOAAAdapter) FetchEvents(ctx context.Context, params FetchParams) ([]mo
 		return nil, fmt.Errorf("noaa: decode response: %w", err)
 	}
 
-	requestedTypes := make(map[string]struct{})
-	for _, t := range params.Types {
-		requestedTypes[t] = struct{}{}
-	}
-
 	events := make([]models.Event, 0, len(result.Features))
 	for _, f := range result.Features {
 		e := parseNOAAFeature(f)
 		if e.EventType == "" {
-			continue
-		}
-		if len(requestedTypes) > 0 {
-			if _, ok := requestedTypes[e.EventType]; !ok {
-				continue
-			}
-		}
-		if !params.Since.IsZero() && e.StartedAt.Before(params.Since) {
 			continue
 		}
 		events = append(events, e)

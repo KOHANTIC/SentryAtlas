@@ -32,7 +32,7 @@ func TestUSGSFetchEventsParsing(t *testing.T) {
 	srv := serveFixture(t, "usgs.json", nil)
 	a := newTestUSGS(t, srv)
 
-	events, err := a.FetchEvents(context.Background(), FetchParams{})
+	events, err := a.FetchEvents(context.Background())
 	if err != nil {
 		t.Fatalf("FetchEvents: %v", err)
 	}
@@ -108,43 +108,22 @@ func TestUSGSFetchEventsParsing(t *testing.T) {
 	})
 }
 
-func TestUSGSQueryParams(t *testing.T) {
+// The window is USGS's past-month feed, read as it is with no query.
+func TestUSGSReadsTheMonthFeed(t *testing.T) {
 	t.Parallel()
+	if got := NewUSGSAdapter(nil).baseURL; !strings.HasSuffix(got, "/earthquakes/feed/v1.0/summary/all_month.geojson") {
+		t.Errorf("baseURL = %q, want the past-month summary feed", got)
+	}
 
-	t.Run("default starttime is set", func(t *testing.T) {
-		var capture reqCapture
-		srv := serveFixture(t, "usgs.json", &capture)
-		a := newTestUSGS(t, srv)
-
-		if _, err := a.FetchEvents(context.Background(), FetchParams{}); err != nil {
-			t.Fatalf("FetchEvents: %v", err)
-		}
-		q := capture.Query()
-		if got := q.Get("format"); got != "geojson" {
-			t.Errorf("format = %q, want geojson", got)
-		}
-		start := q.Get("starttime")
-		if start == "" {
-			t.Fatal("starttime not set")
-		}
-		if _, err := time.Parse(time.RFC3339, start); err != nil {
-			t.Errorf("starttime %q is not RFC3339: %v", start, err)
-		}
-	})
-
-	t.Run("since becomes starttime", func(t *testing.T) {
-		var capture reqCapture
-		srv := serveFixture(t, "usgs.json", &capture)
-		a := newTestUSGS(t, srv)
-
-		since := time.Date(2026, 8, 1, 12, 0, 0, 0, time.UTC)
-		if _, err := a.FetchEvents(context.Background(), FetchParams{Since: since}); err != nil {
-			t.Fatalf("FetchEvents: %v", err)
-		}
-		if got, want := capture.Query().Get("starttime"), since.Format(time.RFC3339); got != want {
-			t.Errorf("starttime = %q, want %q", got, want)
-		}
-	})
+	var capture reqCapture
+	srv := serveFixture(t, "usgs.json", &capture)
+	a := newTestUSGS(t, srv)
+	if _, err := a.FetchEvents(context.Background()); err != nil {
+		t.Fatalf("FetchEvents: %v", err)
+	}
+	if q := capture.Query(); len(q) != 0 {
+		t.Errorf("query = %v, want none: the window does not depend on the request", q)
+	}
 }
 
 func TestUSGSAlertToSeverity(t *testing.T) {
@@ -189,7 +168,7 @@ func TestUSGSNon200(t *testing.T) {
 	srv := serveRaw(t, 500, "internal error")
 	a := newTestUSGS(t, srv)
 
-	_, err := a.FetchEvents(context.Background(), FetchParams{})
+	_, err := a.FetchEvents(context.Background())
 	if err == nil {
 		t.Fatal("expected error for status 500")
 	}
@@ -203,7 +182,7 @@ func TestUSGSMalformedJSON(t *testing.T) {
 	srv := serveRaw(t, 200, "{not json")
 	a := newTestUSGS(t, srv)
 
-	_, err := a.FetchEvents(context.Background(), FetchParams{})
+	_, err := a.FetchEvents(context.Background())
 	if err == nil {
 		t.Fatal("expected error for malformed JSON")
 	}

@@ -8,15 +8,16 @@ import (
 )
 
 type Adapter interface {
-	FetchEvents(ctx context.Context, params FetchParams) ([]models.Event, error)
+	// FetchEvents fetches the source's fixed window, the same for every
+	// request, so one cached copy per source can answer all of them.
+	FetchEvents(ctx context.Context) ([]models.Event, error)
 	Source() string
 	SupportedTypes() []string
 }
 
-// FetchParams carries a request's parameters. Adapters only ever receive
-// Types and Since: BBox and Limit are applied service-side after the merge,
-// because passing them upstream would make every viewport a distinct cache
-// key and defeat the per-source cache entirely.
+// FetchParams carries a request's parameters. Adapters never see them: the
+// service applies all four to the cached window, because anything passed
+// upstream would make the cache key depend on the request.
 type FetchParams struct {
 	Types []string
 	BBox  *BBox
