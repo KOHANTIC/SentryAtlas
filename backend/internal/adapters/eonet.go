@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"sort"
 	"time"
@@ -129,15 +130,16 @@ func eonetV2(e eonetEvent) event.Event {
 		case "Point":
 			var p []float64
 			if json.Unmarshal(g.Coordinates, &p) == nil && len(p) >= 2 {
-				pt := event.Point{event.RoundCoordinate(p[0]), event.RoundCoordinate(p[1])}
-				if len(track) == 0 || track[len(track)-1] != pt {
-					track = append(track, pt)
+				if pt, ok := lonLat(p[0], p[1]); ok {
+					if len(track) == 0 || track[len(track)-1] != pt {
+						track = append(track, pt)
+					}
+					latestIsPolygon = false
 				}
-				latestIsPolygon = false
 			}
 		case "Polygon":
 			var rings [][][]float64
-			if json.Unmarshal(g.Coordinates, &rings) == nil && len(rings) > 0 {
+			if json.Unmarshal(g.Coordinates, &rings) == nil && len(rings) > 0 && wrapRings(rings) {
 				latestPolygon, latestIsPolygon = rings, true
 			}
 		}
@@ -170,6 +172,39 @@ func eonetV2(e eonetEvent) event.Event {
 		v.Location = &event.Location{Center: &center, Geometry: &event.Geometry{Type: "LineString", Coordinates: coords}}
 	}
 	return v
+}
+
+// lonLat is a position as a rounded point, its longitude wrapped into
+// -180..180; false when it cannot be one. EONET sends some longitudes past
+// 180° ([189, 7] is -171) and some latitudes past 90° ([14, 200]).
+func lonLat(lon, lat float64) (event.Point, bool) {
+	if math.IsNaN(lon) || math.IsNaN(lat) || lat < -90 || lat > 90 || lon < -360 || lon > 360 {
+		return event.Point{}, false
+	}
+	if lon > 180 {
+		lon -= 360
+	} else if lon < -180 {
+		lon += 360
+	}
+	return event.Point{event.RoundCoordinate(lon), event.RoundCoordinate(lat)}, true
+}
+
+// wrapRings wraps every vertex of a polygon in place, as lonLat does; false,
+// leaving the polygon unused, when a vertex cannot be a position.
+func wrapRings(rings [][][]float64) bool {
+	for _, ring := range rings {
+		for _, v := range ring {
+			if len(v) < 2 {
+				continue
+			}
+			p, ok := lonLat(v[0], v[1])
+			if !ok {
+				return false
+			}
+			v[0], v[1] = p[0], p[1]
+		}
+	}
+	return true
 }
 
 // eonetTime parses an EONET date into UTC; zero when absent or malformed.

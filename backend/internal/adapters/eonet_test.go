@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/event"
 )
 
 func newTestEONET(t *testing.T, srv *httptest.Server) *EONETAdapter {
@@ -203,5 +205,39 @@ func TestEONETV2FromTheRealEvents(t *testing.T) {
 		if !units[u] {
 			t.Errorf("no magnitude in %q; the recording holds one", u)
 		}
+	}
+}
+
+// EONET sent these two positions on 2026-11-22 (#82): a longitude past 180°,
+// which is wrapped, and a latitude past 90°, which cannot be placed.
+func TestEONETWrapsAndDropsImpossiblePositions(t *testing.T) {
+	t.Parallel()
+	decode := func(body string) eonetEvent {
+		var e eonetEvent
+		if err := json.Unmarshal([]byte(body), &e); err != nil {
+			t.Fatal(err)
+		}
+		return e
+	}
+	wrapped := eonetV2(decode(`{"id":"EONET_20386","title":"Typhoon","categories":[{"id":"severeStorms"}],"geometry":[
+		{"date":"2026-11-20T00:00:00Z","type":"Point","coordinates":[178.5,6.5]},
+		{"date":"2026-11-21T00:00:00Z","type":"Point","coordinates":[189,7]}]}`))
+	if err := wrapped.Validate(); err != nil {
+		t.Errorf("wrapped track: %v", err)
+	}
+	if c := wrapped.Location.Center; c == nil || *c != (event.Point{-171, 7}) {
+		t.Errorf("center = %v, want [-171 7]: 189° is -171°", c)
+	}
+
+	dropped := eonetV2(decode(`{"id":"EONET_20156","title":"Iceberg","categories":[{"id":"seaLakeIce"}],"geometry":[
+		{"date":"2026-11-20T00:00:00Z","type":"Point","coordinates":[14,200]}]}`))
+	if err := dropped.Validate(); err != nil || dropped.Location != nil {
+		t.Errorf("location %+v, err %v; want no location for a latitude of 200", dropped.Location, err)
+	}
+
+	poly := eonetV2(decode(`{"id":"EONET_1","title":"Fire","categories":[{"id":"wildfires"}],"geometry":[
+		{"date":"2026-11-20T00:00:00Z","type":"Polygon","coordinates":[[[10,10],[11,10],[11,95],[10,10]]]}]}`))
+	if poly.Location != nil {
+		t.Errorf("a polygon with a vertex at latitude 95 placed the event at %+v", poly.Location)
 	}
 }
