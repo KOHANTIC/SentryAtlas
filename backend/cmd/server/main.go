@@ -115,14 +115,24 @@ func run(logger *slog.Logger) error {
 
 	r.Get("/health", handler.Health(st))
 
+	// Keyed on the address from CLIENT_IP_HEADER only: headers a client can
+	// set itself, such as True-Client-IP or the start of X-Forwarded-For,
+	// would let anyone reset their own limit. One limiter for v1 and v2, so a
+	// client has one budget; /health stays exempt so platform probes are
+	// never throttled.
+	limit := httprate.LimitBy(rateLimitPerMin, time.Minute, httpx.RateLimitKey,
+		httprate.WithLimitHandler(httpx.TooManyRequests))
+
 	r.Route("/api/v1", func(r chi.Router) {
-		// Keyed on the address from CLIENT_IP_HEADER only: headers a client can
-		// set itself, such as True-Client-IP or the start of X-Forwarded-For,
-		// would let anyone reset their own limit. /health stays exempt so
-		// platform probes are never throttled.
-		r.Use(httprate.LimitBy(rateLimitPerMin, time.Minute, httpx.RateLimitKey,
-			httprate.WithLimitHandler(httpx.TooManyRequests)))
+		r.Use(limit)
 		r.Get("/events", eventsHandler.GetEvents)
+	})
+
+	v2 := handler.NewV2Handler(st)
+	r.Route("/api/v2", func(r chi.Router) {
+		r.Use(limit)
+		r.Get("/snapshot", v2.Snapshot)
+		r.Get("/events/{id}", v2.Event)
 	})
 
 	srv := &http.Server{
