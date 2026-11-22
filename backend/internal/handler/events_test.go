@@ -358,13 +358,13 @@ func TestGetEventsAllSourcesFail(t *testing.T) {
 	}
 }
 
-// upstreamFailure is a failure as the HTTP client reports it, address included,
-// which must reach clients only as a short reason.
-var upstreamFailure = errors.New(`bad: request failed: Get "https://upstream.example/feed?key=1": dial tcp: connection refused`)
+// errUpstreamFailure is a failure as the HTTP client reports it, address
+// included, which must reach clients only as a short reason.
+var errUpstreamFailure = errors.New(`bad: request failed: Get "https://upstream.example/feed?key=1": dial tcp: connection refused`)
 
 func TestGetEventsPartialFailureReportsSources(t *testing.T) {
 	t.Parallel()
-	bad := &fakeAdapter{source: "bad", err: upstreamFailure}
+	bad := &fakeAdapter{source: "bad", err: errUpstreamFailure}
 	good := &fakeAdapter{source: "good", events: makeEvents(1, "good")}
 	h := newTestHandler(t, bad, good)
 
@@ -533,7 +533,7 @@ func TestSSEEndToEnd(t *testing.T) {
 
 func TestSSEErrorAndEmptySources(t *testing.T) {
 	t.Parallel()
-	bad := &fakeAdapter{source: "bad", err: upstreamFailure}
+	bad := &fakeAdapter{source: "bad", err: errUpstreamFailure}
 	empty := &fakeAdapter{source: "empty"}
 	good := &fakeAdapter{source: "good", events: makeEvents(1, "good")}
 	h := newTestHandler(t, bad, empty, good)
