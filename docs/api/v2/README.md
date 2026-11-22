@@ -41,7 +41,7 @@ A `value` and the `unit` the source gives:
 |---|---|
 | USGS | the magnitude type (`mww`, `ml`, `md`, ...) |
 | EONET | `kts`, `acres` or `NM^2` |
-| GDACS | its severity unit (`km/h`, `km2`, ...) |
+| GDACS | its severity unit: `M` (earthquakes), `ha` (wildfires), `km/h` (cyclones), `km2` (droughts); none for floods and volcanoes |
 
 ## Time
 

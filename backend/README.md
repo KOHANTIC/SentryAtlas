@@ -9,7 +9,7 @@ Go API server that aggregates natural disaster data from multiple public sources
 | USGS | Earthquakes | `earthquake.usgs.gov/fdsnws/event/1/query` |
 | NASA EONET | Wildfires, volcanoes, storms, icebergs | `eonet.gsfc.nasa.gov/api/v3/events` |
 | NOAA/NWS | Floods, storms, tornados, hurricanes, winter storms | `api.weather.gov/alerts/active` |
-| GDACS | Earthquakes, cyclones, floods, volcanoes, droughts | `www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH` |
+| GDACS | Earthquakes, cyclones, floods, volcanoes, droughts, wildfires | `www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH` |
 
 ## Prerequisites
 
@@ -67,7 +67,7 @@ Each source is fetched for the same window whatever the request, and every reque
 | USGS | The past month of earthquakes of every magnitude (USGS's `all_month` summary feed) |
 | NASA EONET | Every event EONET lists as open, in every category |
 | NOAA/NWS | Every active alert |
-| GDACS | Every event type GDACS covers, from 30 days ago to today |
+| GDACS | Every event type GDACS covers, at every alert level, from 30 days ago to today |
 
 #### Event types
 
@@ -229,6 +229,13 @@ Made in #18:
 Made in #19:
 - EONET's `started_at` is the event's first observation, and `updated_at` its latest, where both were the latest.
 - `magnitude` is only set for USGS earthquakes. It has no unit, and EONET's values are acres, knots or square nautical miles, which would read as a quake's size. v2 carries them with their units. EONET's v1 magnitude was empty in practice, since EONET puts it where the old code did not look.
+
+Made in #20:
+- GDACS's Green alerts are included, and every page of results is read. GDACS returns only Orange and Red alerts unless asked, so the window held 7 events where it holds about 1,700, most of them Green wildfires and earthquakes.
+- GDACS's `updated_at` is when GDACS last modified the event, where it was the event's end date.
+- `metadata.severity_value` and `metadata.severity_unit` carry GDACS's severity (`M`, `ha`, `km/h`, `km2`), which was always empty: GDACS puts it where the old code did not look. Floods and volcanoes have none.
+- `metadata.country` lists the affected countries separated by `, `, without the trailing `, ` GDACS adds.
+- A GDACS event given as a polygon is placed at its area center, where it was dropped.
 
 Announced changes:
 
