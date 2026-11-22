@@ -7,10 +7,44 @@ import (
 	"log/slog"
 	"net/http"
 	"sync/atomic"
+	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
 )
+
+// RequestLog writes one line per request to logger: method, path, status,
+// bytes, duration and request id. It leaves out the query string, which holds
+// a visitor's map view, and the client address, and skips /health so the
+// platform's probes do not fill the log.
+func RequestLog(logger *slog.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/health" {
+				next.ServeHTTP(w, r)
+				return
+			}
+			// The wrapper keeps Flush and Unwrap, which the SSE stream needs.
+			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+			start := time.Now()
+			next.ServeHTTP(ww, r)
+
+			status := ww.Status()
+			if status == 0 {
+				// Nothing written: net/http sends 200.
+				status = http.StatusOK
+			}
+			logger.LogAttrs(r.Context(), slog.LevelInfo, "request",
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+				slog.Int("status", status),
+				slog.Int("bytes", ww.BytesWritten()),
+				slog.Int64("duration_ms", time.Since(start).Milliseconds()),
+				slog.String("request_id", middleware.GetReqID(r.Context())),
+			)
+		})
+	}
+}
 
 // warnedNoClientIP keeps the missing-address warning to one line per process.
 var warnedNoClientIP atomic.Bool

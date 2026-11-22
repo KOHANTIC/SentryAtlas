@@ -25,6 +25,10 @@ import (
 )
 
 func main() {
+	// One JSON format for every line, set first so config errors use it too.
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	port := envOrDefault("PORT", "8080")
 	cacheTTLMin := envPositiveIntOrDefault("CACHE_TTL_MINUTES", 5)
 	fetchTimeoutSec := envPositiveIntOrDefault("FETCH_TIMEOUT_SECONDS", 30)
@@ -74,7 +78,7 @@ func main() {
 	} else {
 		r.Use(middleware.ClientIPFromRemoteAddr)
 	}
-	r.Use(middleware.Logger)
+	r.Use(httpx.RequestLog(logger))
 	r.Use(middleware.Recoverer)
 	// Types listed explicitly: application/geo+json is not in the
 	// middleware's defaults, and it is the bulkiest response we serve.
