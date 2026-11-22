@@ -8,7 +8,7 @@ Real-time disaster monitoring: a Go backend, a Next.js map, and a static landing
 
 This repo is **public** (`KOHANTIC/SentryAtlas`, AGPL) and **`main` deploys both sites on every merge**: `sentryatlas.com` and `map.sentryatlas.com`. A ruleset on `main` requires a pull request, the `gate` check green and up to date, and linear history.
 
-Who does what (Kyro, 2026-11-22): Claude commits on a `type/short-subject` branch and, behind an approval prompt each time, pushes the branch, opens and edits the pull request, and applies repo settings. **Kyro merges every pull request**, and runs installs, servers, `doctl`, DigitalOcean and Cloudflare changes. The root `CLAUDE.md` § Working with Kyro item 5 owns the publication rule and records this exception.
+Who does what (Kyro, 2026-11-22): Claude runs this repo autonomously. It takes the next issue, plans it, builds it on a `type/short-subject` branch, pushes, opens the pull request, files new issues and arranges milestones, and **merges once CI is green**. After each merge it checks the live site and, if something broke, reverts at once. It stops for Kyro in two cases: before merging a change to public claims or wording (the privacy page, consent text, the design pick), and whenever it needs something outside the repo. Kyro runs installs, servers, `doctl`, DigitalOcean, Cloudflare and DNS changes, and the run ends with a final review with him and his check of the site. The root `CLAUDE.md` § Working with Kyro item 5 owns the publication rule and records this exception.
 
 Everything committed here is public. Nothing from the private parts of the tree (`KYROKOHAN/Finance/`, `Lore/PERSONAL.md`, `Lore/COMPENSATION.md`, `KOHANTIC/TaxDocs|Contractors|Documents/`) belongs in this repo, in a commit message, an issue or a pull request.
 
@@ -17,7 +17,7 @@ Everything committed here is public. Nothing from the private parts of the tree 
 - GitHub issues and milestones are the plan; live state is `gh issue list -R KOHANTIC/SentryAtlas`, never a copy. Each milestone's description lists its issues in order.
 - An issue has a type (Task, Bug or Feature), one `area:` label (`api`, `data`, `map`, `site`, `design`, `infra`, `docs`), a milestone and the assignee `kyrokohan`. A parked idea has `deferred`, no milestone, and a dated line in its Notes saying what it waits on.
 - An issue body has five headings: What, Why, Scope (a checklist), Out of scope, Notes. Issue and pull request text is public: no account, DNS or personal details. The private reasons behind product decisions are kept in `../../KOHANTIC/KOHANTIC.md`.
-- Every issue is planned with Kyro before code. A pull request carries its issue's labels and milestone and says `Fixes #N`, or `Part of #N` when it must not close the issue.
+- Every issue gets a written plan before code, and the pull request description carries it. A pull request carries its issue's labels and milestone and says `Fixes #N`, or `Part of #N` when it must not close the issue.
 - After a merge, read `main`'s CI job by job for the merged commit: a watch can print green before any check exists.
 
 ## Deploys
