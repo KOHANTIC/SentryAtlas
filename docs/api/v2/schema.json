@@ -38,6 +38,7 @@
       "properties": {
         "id": { "type": "string", "pattern": "^(usgs|eonet|noaa|gdacs)-.+", "description": "<source>-<upstream id>. Stays the same when the source updates the event." },
         "group_id": { "type": "string", "description": "Shared by the reports of one real event from different sources. Worked out again on every fetch: never a key." },
+        "primary": { "type": "boolean", "description": "Set on the one member of a group to draw; the others are the same event from another source. Absent outside a group." },
         "source": { "$ref": "#/$defs/Source" },
         "type": {
           "enum": ["earthquake", "wildfire", "volcano", "storm", "flood", "cyclone", "tornado", "hurricane", "winter_storm", "tsunami", "drought", "iceberg", "landslide", "weather", "other"]
