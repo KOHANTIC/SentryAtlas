@@ -114,6 +114,14 @@ func run(logger *slog.Logger) error {
 	}))
 
 	r.Get("/health", handler.Health(st))
+	// What an outside monitor alarms on: a source's copy older than this has
+	// missed many polls in a row (NWS's copy is withdrawn after an hour).
+	r.Get("/health/stale", handler.Stale(st, map[string]time.Duration{
+		noaa.Source():  30 * time.Minute,
+		usgs.Source():  time.Hour,
+		eonet.Source(): 2 * time.Hour,
+		gdacs.Source(): 2 * time.Hour,
+	}))
 
 	// Keyed on the address from CLIENT_IP_HEADER only: headers a client can
 	// set itself, such as True-Client-IP or the start of X-Forwarded-For,
