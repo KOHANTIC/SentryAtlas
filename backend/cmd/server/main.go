@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"net"
 	"net/http"
@@ -63,6 +64,9 @@ func main() {
 
 	r := chi.NewRouter()
 
+	// Temporary, for #7: first, so it sees the socket address before RealIP
+	// rewrites it. Removed once the rate limiter trusts the right header.
+	r.Use(clientAddressProbe)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
@@ -133,6 +137,31 @@ func main() {
 	}
 
 	slog.Info("server stopped")
+}
+
+// clientAddressProbe answers GET /health/client with the socket address and
+// the request headers, without credentials, to show which client address
+// headers the proxies in front of the API set and overwrite. Temporary, for #7.
+func clientAddressProbe(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/health/client" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		headers := make(map[string][]string, len(r.Header))
+		for name, values := range r.Header {
+			if name == "Cookie" || name == "Authorization" {
+				continue
+			}
+			headers[name] = values
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "no-store")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"remote_addr": r.RemoteAddr,
+			"headers":     headers,
+		})
+	})
 }
 
 func envOrDefault(key, fallback string) string {
