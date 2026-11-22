@@ -46,4 +46,6 @@ jobs:
           go-version: ${{ steps.go.outputs.version }}
           cache-dependency-path: backend/go.sum
       # Pinned so a new release cannot fail an unchanged tree. Dependabot does not update it.
-      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 ./...
+      # v1.7.0 is the newest that runs on Go 1.25 (v1.8.0 needs 1.26); move up with Go. The
+      # advisories come from the live database, not from the tool, so they stay current.
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
