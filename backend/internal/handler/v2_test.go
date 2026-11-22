@@ -233,3 +233,35 @@ func TestETagMatchesAndGzipAcceptance(t *testing.T) {
 		}
 	}
 }
+
+// The snapshot groups a quake that GDACS repeats from USGS (#26).
+func TestSnapshotGroupsTheSameQuake(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC().Add(-time.Hour)
+	quake := func(source, id string, lon float64, at time.Time) event.Event {
+		e := event.Event{ID: id, Source: source, Type: "earthquake", Title: "M 5.1", Time: event.Time{Started: at, Updated: at},
+			Magnitude: &event.Magnitude{Value: 5.1, Unit: "M"}, Location: &event.Location{Center: &event.Point{lon, -13.9}}}
+		if source == "usgs" {
+			e.Details.USGS = &event.USGS{Place: "Vanuatu"}
+		} else {
+			e.Details.GDACS = &event.GDACS{AlertLevel: "Green"}
+		}
+		return e
+	}
+	st := store.New(store.Source{Name: "usgs"}, store.Source{Name: "gdacs"})
+	if err := st.Put("usgs", []event.Event{quake("usgs", "usgs-us6000u4h7", 165.5628, now.Add(time.Second))}, now); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Put("gdacs", []event.Event{quake("gdacs", "gdacs-EQ-1573468", 165.6172, now)}, now); err != nil {
+		t.Fatal(err)
+	}
+	s := decodeSnapshot(t, get(t, v2Router(NewV2Handler(st)), "/api/v2/snapshot").Body.Bytes())
+	got := map[string]event.Event{}
+	for _, e := range s.Events {
+		got[e.ID] = e
+	}
+	u, g := got["usgs-us6000u4h7"], got["gdacs-EQ-1573468"]
+	if u.GroupID != "g-usgs-us6000u4h7" || g.GroupID != u.GroupID || !u.Primary || g.Primary {
+		t.Errorf("usgs %q primary %v, gdacs %q primary %v; want one group with USGS primary", u.GroupID, u.Primary, g.GroupID, g.Primary)
+	}
+}

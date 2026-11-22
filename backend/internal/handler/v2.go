@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/event"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/group"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/store"
 )
 
@@ -155,6 +156,8 @@ func (h *V2Handler) snapshot(window string, length time.Duration) (*builtSnapsho
 		}
 		snap.Sources = append(snap.Sources, st)
 	}
+	// Worked out on every build, on the snapshot's own copies.
+	group.Assign(snap.Events)
 
 	raw, err := json.Marshal(snap)
 	if err != nil {
