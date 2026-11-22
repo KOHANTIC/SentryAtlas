@@ -158,6 +158,9 @@ export default function MapView({ data, onBoundsChange }: MapViewProps) {
       new maplibregl.GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
         trackUserLocation: false,
+        // The default flies to street level (zoom 15), where a view a few
+        // blocks wide holds no events; zoom 7 shows the region around you.
+        fitBoundsOptions: { maxZoom: 7 },
       }),
       "bottom-right"
     );

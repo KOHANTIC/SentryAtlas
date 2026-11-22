@@ -137,31 +137,33 @@ export const UNCLUSTERED_POINT_LAYER: CircleLayerSpecification = {
   source: "events",
   paint: {
     "circle-color": colorMatchExpression,
+    // Visible from the opening world view, so the event colors read at once;
+    // smaller there so a week of events does not cover the continents.
     "circle-radius": [
-      "interpolate",
-      ["linear"],
-      ["coalesce", ["get", "magnitude"], 3],
-      0,
-      5,
-      5,
-      10,
-      8,
-      16,
+      "interpolate", ["linear"], ["zoom"],
+      2, [
+        "interpolate", ["linear"], ["coalesce", ["get", "magnitude"], 3],
+        0, 2,
+        5, 4,
+        8, 7,
+      ],
+      8, [
+        "interpolate", ["linear"], ["coalesce", ["get", "magnitude"], 3],
+        0, 5,
+        5, 10,
+        8, 16,
+      ],
     ],
     // Surface-colored ring: separates overlapping marks without adding a
     // bright halo on the dark basemap.
-    "circle-stroke-width": 1.5,
+    "circle-stroke-width": [
+      "interpolate", ["linear"], ["zoom"],
+      2, 0.5,
+      8, 1.5,
+    ],
     "circle-stroke-color": "#161616",
-    "circle-opacity": [
-      "interpolate", ["linear"], ["zoom"],
-      6, 0,
-      8, 0.9,
-    ],
-    "circle-stroke-opacity": [
-      "interpolate", ["linear"], ["zoom"],
-      6, 0,
-      8, 1,
-    ],
+    "circle-opacity": 0.9,
+    "circle-stroke-opacity": 1,
   },
 };
 
