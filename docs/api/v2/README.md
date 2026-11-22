@@ -83,7 +83,7 @@ All in UTC, each with one meaning:
 ## Location
 
 - **`center`** is `[longitude, latitude]`. It is set for every event that can be placed.
-  - An NWS alert issued for named zones gets its center from the zones' shapes (#25). Until then it carries only `zones`.
+  - An NWS alert issued for named zones, with no shape of its own, is centered on its zones: the mean of their centers, from NWS's zone shapefiles ([`docs/data/nws-zones.md`](../../data/nws-zones.md)). Fire-weather zones are not placed.
 - **`geometry`** is the full GeoJSON shape when the source gives one: a Point, an EONET track as a LineString, or an NWS alert's Polygon or MultiPolygon.
 - **`zones`** are NWS zone ids, such as `LMZ844`.
 - **Precision:** coordinates keep 5 decimals, about a meter.

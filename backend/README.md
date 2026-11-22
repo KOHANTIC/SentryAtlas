@@ -263,6 +263,9 @@ Made in #22:
 - `sources[]` adds `stale` and `fetched_at`.
 - Requests are answered from copies the server polls on its own (see Architecture), so none waits on a source.
 
+Made in #25:
+- An NWS alert that names zones but carries no shape now has `coordinates`: the mean of its zones' centers ([`docs/data/nws-zones.md`](../docs/data/nws-zones.md)). About nine in ten active alerts are like this, so most NWS events gain a point and now match a `bbox`.
+
 ## Tests
 
 ```bash
@@ -290,6 +293,7 @@ go test ./internal/handler -run Golden -update
 ```
 backend/
 ├── cmd/server/main.go              # Entry point, wiring, graceful shutdown
+├── cmd/zones/                      # Builds the NWS zone centers and outlines from NWS's shapefiles
 ├── internal/
 │   ├── adapters/
 │   │   ├── adapter.go              # Adapter interface, FetchParams, BBox
@@ -305,7 +309,8 @@ backend/
 │   ├── httpx/httpx.go              # Request log, rate-limit key, 429 answer
 │   ├── models/event.go             # Unified Event model, GeoJSON + flat JSON serialization
 │   ├── service/events.go           # v1 answers from the store: merge, filter, sort, limit
-│   └── store/                      # Each source's last good copy, and its poller
+│   ├── store/                      # Each source's last good copy, and its poller
+│   └── zones/                      # NWS zone centers, embedded, for alerts with no shape
 ├── .env.example
 ├── go.mod
 └── go.sum
