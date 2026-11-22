@@ -70,16 +70,18 @@ export default function Legend() {
       </div>
 
       <div className="px-3 py-2 border-b border-border">
+        {/* The glow's color follows heatmap-density: how many events are
+            near, with severe ones counting more. It is not one event's severity. */}
         <span className="text-[10px] font-medium text-foreground-muted uppercase tracking-wider">
-          Severity Intensity
+          Event density
         </span>
         <div
           className="mt-1.5 h-2.5 "
           style={{ background: SEVERITY_RAMP_GRADIENT }}
         />
         <div className="flex justify-between mt-1">
-          <span className="text-[10px] text-foreground-muted">Low</span>
-          <span className="text-[10px] text-foreground-muted">High</span>
+          <span className="text-[10px] text-foreground-muted">Few</span>
+          <span className="text-[10px] text-foreground-muted">Many or severe</span>
         </div>
       </div>
 

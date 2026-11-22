@@ -172,12 +172,15 @@ export default function Home() {
         )}
       </div>
 
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 hidden sm:block">
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
         <span className="text-[11px] text-foreground-muted bg-surface-overlay border border-border px-2 py-1 whitespace-nowrap">
-          Made with ♥ by the{" "}
-          <a href="https://kohantic.com" target="_blank" rel="noopener noreferrer" className="font-bold text-accent-400 hover:underline">KOHANTIC</a>{" "}
-          team ·{" "}
-          {/* AGPL §13: a network-facing deployment must offer users its source. */}
+          <span className="hidden sm:inline">
+            Made with ♥ by the{" "}
+            <a href="https://kohantic.com" target="_blank" rel="noopener noreferrer" className="font-bold text-accent-400 hover:underline">KOHANTIC</a>{" "}
+            team ·{" "}
+          </span>
+          {/* AGPL §13: a network-facing deployment must offer users its source,
+              so the link shows at every width, the credit only where it fits. */}
           <a
             href="https://github.com/KOHANTIC/SentryAtlas"
             target="_blank"
