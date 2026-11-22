@@ -226,7 +226,15 @@ Announced changes:
 go test -race ./...
 ```
 
-`internal/handler/golden_test.go` runs the whole chain (adapters, cache, service and handler) against the recorded upstream responses in `internal/adapters/testdata/` and compares each answer with `internal/handler/testdata/v1/`. After a deliberate change of values, rewrite the recorded answers and review the diff:
+`internal/adapters/testdata/live/` holds real responses from the four sources, trimmed to one record of each kind they sent (event class, geometry, status, unit, alert level), and a test requires every record to decode. To record them again from the live sources:
+
+```bash
+RECORD_LIVE=1 go test ./internal/adapters -run RecordLive -count=1
+```
+
+The other files in `internal/adapters/testdata/` are written by hand, for edge cases the real data may not show on a given day.
+
+`internal/handler/golden_test.go` runs the whole chain (adapters, cache, service and handler) against the hand-written responses in `internal/adapters/testdata/` and compares each answer with `internal/handler/testdata/v1/`. After a deliberate change of values, rewrite the recorded answers and review the diff:
 
 ```bash
 go test ./internal/handler -run Golden -update
