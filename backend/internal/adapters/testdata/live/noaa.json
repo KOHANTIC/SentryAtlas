@@ -1,0 +1,2016 @@
+{
+  "@context": [
+    "https://geojson.org/geojson-ld/geojson-context.jsonld",
+    {
+      "@version": "1.1",
+      "@vocab": "https://api.weather.gov/ontology#",
+      "wx": "https://api.weather.gov/ontology#"
+    }
+  ],
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -67.22,
+              18.59
+            ],
+            [
+              -67.67,
+              18.84
+            ],
+            [
+              -67.07,
+              19.14
+            ],
+            [
+              -66.98,
+              18.69
+            ],
+            [
+              -67.22,
+              18.59
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.d7a384fbdf531ad30df91099c55d5e6a46705300.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.d7a384fbdf531ad30df91099c55d5e6a46705300.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/AMZ711",
+          "https://api.weather.gov/zones/forecast/AMZ712"
+        ],
+        "areaDesc": "Atlantic Waters of Puerto Rico AND USVI from 10 NM to 19.5N; Coastal Waters of Northern Puerto Rico out 10 NM",
+        "category": "Met",
+        "certainty": "Observed",
+        "code": "IPAWSv1.0",
+        "description": "A Marine Weather Statement has been issued for the following areas...\nAtlantic Waters of Puerto Rico and USVI from 10 NM to 19.5N...\nCoastal Waters of Northern Puerto Rico out 10 NM...\n\n* At 415 PM AST, Doppler radar indicated a strong thunderstorm,\ncapable of producing winds to around 30 knots. This a strong\nthunderstorm was located over open waters of Atlantic Waters of\nPuerto Rico and USVI from 10 NM to 19.5N and Coastal Waters of\nNorthern Puerto Rico out 10 NM zones, moving northwest at 10 knots.\n\nLocations impacted include...\nMainly open waters of Atlantic Waters of Puerto Rico and USVI from\n10 NM to 19.5N and Coastal Waters of Northern Puerto Rico out 10\nNM.",
+        "effective": "2026-11-22T16:15:00-04:00",
+        "ends": null,
+        "event": "Marine Weather Statement",
+        "eventCode": {
+          "NationalWeatherService": [
+            "MWS"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T17:15:00-04:00",
+        "geocode": {
+          "SAME": [
+            "075711",
+            "075712"
+          ],
+          "UGC": [
+            "AMZ711",
+            "AMZ712"
+          ]
+        },
+        "headline": "Marine Weather Statement issued November 22 at 4:15PM AST by NWS San Juan PR",
+        "id": "urn:oid:2.49.0.1.840.0.d7a384fbdf531ad30df91099c55d5e6a46705300.001.1",
+        "instruction": "Report severe weather to the Coast Guard or nearest law enforcement\nagency. They will relay your report to the National Weather Service\noffice.\n\nMariners can expect gusty winds to around 30 knots, locally higher\nwaves, lightning strikes, and heavy downpours. Boaters should seek\nsafe harbor immediately until this storm passes.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T16:15:00-04:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "MWSSJU"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "STRONG THUNDERSTORM OVER THE NORTHWEST ATLANTIC WATERS"
+          ],
+          "WMOidentifier": [
+            "FZCA72 TJSJ 222015"
+          ],
+          "eventMotionDescription": [
+            "2026-11-22T20:13:00-00:00...storm...140DEG...11KT...18.71,-67.14"
+          ]
+        },
+        "references": [],
+        "response": "Monitor",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS San Juan PR",
+        "sent": "2026-11-22T16:15:00-04:00",
+        "severity": "Minor",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.2ce106bcc2c20135886c18b9f44b9ea7b01153e9.002.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.2ce106bcc2c20135886c18b9f44b9ea7b01153e9.002.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/LMZ844",
+          "https://api.weather.gov/zones/forecast/LMZ845",
+          "https://api.weather.gov/zones/forecast/LMZ846"
+        ],
+        "areaDesc": "St Joseph to South Haven MI; South Haven to Holland MI; Holland to Grand Haven MI",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...Northwest winds to 30 knots and waves 6 to 9 feet.\n\n* WHERE...St Joseph to Grand Haven.\n\n* WHEN...From 7 AM this morning to 4 AM EST Tuesday.\n\n* IMPACTS...Conditions will be hazardous to small craft.",
+        "effective": "2026-11-22T15:12:00-05:00",
+        "ends": "2026-11-24T04:00:00-05:00",
+        "event": "Small Craft Advisory",
+        "eventCode": {
+          "NationalWeatherService": [
+            "SCY"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T23:15:00-05:00",
+        "geocode": {
+          "SAME": [
+            "092844",
+            "092845",
+            "092846"
+          ],
+          "UGC": [
+            "LMZ844",
+            "LMZ845",
+            "LMZ846"
+          ]
+        },
+        "headline": "Small Craft Advisory issued November 22 at 3:12PM EST until November 24 at 4:00AM EST by NWS Grand Rapids MI",
+        "id": "urn:oid:2.49.0.1.840.0.2ce106bcc2c20135886c18b9f44b9ea7b01153e9.002.1",
+        "instruction": "Inexperienced mariners, especially those operating smaller\nvessels, should avoid navigating in hazardous conditions.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T15:12:00-05:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "MWWGRR"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "SMALL CRAFT ADVISORY REMAINS IN EFFECT UNTIL 4 AM EST TUESDAY"
+          ],
+          "VTEC": [
+            "/O.CON.KGRR.SC.Y.0089.000000T0000Z-261124T0900Z/"
+          ],
+          "WMOidentifier": [
+            "WHUS73 KGRR 222012"
+          ],
+          "eventEndingTime": [
+            "2026-11-24T04:00:00-05:00"
+          ],
+          "expiredReferences": [
+            "w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.3c8036b57f295ef34c7ac83ff5d7bbc242d765ab.002.1,2026-11-22T03:34:00-05:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.de2c878ce0b59d0b372bc22fbaef3b25a42f7811.002.1,2026-11-21T22:21:00-05:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.a4a83f65060d99e2eba5145cd9bb58cb5394fc40.002.1,2026-11-21T14:43:00-05:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.a7f5e103cdb8bac2248a87ef7436a0fa79408fa2.001.1,2026-11-21T11:40:00-05:00"
+          ]
+        },
+        "references": [],
+        "response": "Avoid",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Grand Rapids MI",
+        "sent": "2026-11-22T15:12:00-05:00",
+        "severity": "Minor",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -92.88,
+              34.62
+            ],
+            [
+              -92.87,
+              34.59
+            ],
+            [
+              -92.81,
+              34.59
+            ],
+            [
+              -92.81,
+              34.56
+            ],
+            [
+              -92.79,
+              34.56
+            ],
+            [
+              -92.79,
+              34.5
+            ],
+            [
+              -92.74,
+              34.5
+            ],
+            [
+              -92.74,
+              34.47
+            ],
+            [
+              -92.69,
+              34.47
+            ],
+            [
+              -92.69,
+              34.44
+            ],
+            [
+              -93.08,
+              34.32
+            ],
+            [
+              -93.15,
+              34.4
+            ],
+            [
+              -92.88,
+              34.62
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.85fd93501a37409838c13cd74dd77ba0547dc277.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.85fd93501a37409838c13cd74dd77ba0547dc277.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/ARZ042",
+          "https://api.weather.gov/zones/forecast/ARZ054"
+        ],
+        "areaDesc": "Garland; Hot Spring",
+        "category": "Met",
+        "certainty": "Observed",
+        "code": "IPAWSv1.0",
+        "description": "At 205 PM CST, Doppler radar was tracking a strong thunderstorm near\nHot Springs Memorial Field, or near Hot Springs, moving northeast at\n30 mph.\n\nHAZARD...Winds in excess of 40 mph and half inch hail.\n\nSOURCE...Radar indicated.\n\nIMPACT...Gusty winds could knock down tree limbs and blow around\nunsecured objects. Minor damage to outdoor objects is\npossible.\n\nLocations impacted include...\nHot Springs...                    Malvern...\nRockport...                       Lonsdale...\nMagnet Cove...                    Red Oak...\nDe Roche...                       Lake Catherine State Park...\nGlen Rose...",
+        "effective": "2026-11-22T14:05:00-06:00",
+        "ends": null,
+        "event": "Special Weather Statement",
+        "eventCode": {
+          "NationalWeatherService": [
+            "SPS"
+          ],
+          "SAME": [
+            "SPS"
+          ]
+        },
+        "expires": "2026-11-22T14:30:00-06:00",
+        "geocode": {
+          "SAME": [
+            "005051",
+            "005059"
+          ],
+          "UGC": [
+            "ARZ042",
+            "ARZ054"
+          ]
+        },
+        "headline": "Special Weather Statement issued November 22 at 2:05PM CST by NWS Little Rock AR",
+        "id": "urn:oid:2.49.0.1.840.0.85fd93501a37409838c13cd74dd77ba0547dc277.001.1",
+        "instruction": "If outdoors, consider seeking shelter inside a building.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T14:05:00-06:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "SPSLZK"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "EAS-ORG": [
+            "WXR"
+          ],
+          "NWSheadline": [
+            "A strong thunderstorm will impact portions of southeastern Garland and northeastern Hot Spring Counties through 230 PM CST"
+          ],
+          "WMOidentifier": [
+            "WWUS84 KLZK 222005"
+          ],
+          "eventMotionDescription": [
+            "2026-11-22T20:05:00-00:00...storm...240DEG...27KT...34.42,-93.07"
+          ],
+          "maxHailSize": [
+            "0.50"
+          ],
+          "maxWindGust": [
+            "40 MPH"
+          ]
+        },
+        "references": [],
+        "response": "Execute",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Little Rock AR",
+        "sent": "2026-11-22T14:05:00-06:00",
+        "severity": "Moderate",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.c8eb52b57daecc08aeeb4b1b4a6a867bfb7515b6.001.4",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.c8eb52b57daecc08aeeb4b1b4a6a867bfb7515b6.001.4",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/PZZ271",
+          "https://api.weather.gov/zones/forecast/PZZ272",
+          "https://api.weather.gov/zones/forecast/PZZ273"
+        ],
+        "areaDesc": "Waters from Cape Shoalwater WA to Cape Falcon OR from 10 to 60 nm; Waters from Cape Falcon to Cape Foulweather OR from 10 to 60 nm; Waters from Cape Foulweather to Florence OR from 10 to 60 nm",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...For the Small Craft Advisory, seas 12 to 14 ft at 12\nseconds and south winds 20 to 25 kt with gusts up to 30 kt. For\nthe Gale Warning, seas 13 to 18 ft at 12 seconds and south winds\n25 to 35 kt with gusts up to 45 kt expected. For the Storm\nWarning, seas 18 to 23 ft at 12 seconds and southeast winds 30\nto 40 kt with gusts up to 55 kt expected.\n\n* WHERE...Outer Coastal Waters from Cape Shoalwater to Florence\n10 to 60 NM offshore.\n\n* WHEN...Small Craft Advisory, until 4 AM PST Monday. Gale\nWarning, from 4 AM to 10 PM PST Monday. Storm Warning, from 10\nPM Monday to 4 PM PST Tuesday.\n\n* IMPACTS...Very strong winds will cause hazardous seas which\ncould capsize or damage vessels and reduce visibility.",
+        "effective": "2026-11-22T12:03:00-08:00",
+        "ends": "2026-11-23T22:00:00-08:00",
+        "event": "Gale Warning",
+        "eventCode": {
+          "NationalWeatherService": [
+            "GLW"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-23T04:15:00-08:00",
+        "geocode": {
+          "SAME": [
+            "057271",
+            "057272",
+            "057273"
+          ],
+          "UGC": [
+            "PZZ271",
+            "PZZ272",
+            "PZZ273"
+          ]
+        },
+        "headline": "Gale Warning issued November 22 at 12:03PM PST until November 23 at 10:00PM PST by NWS Portland OR",
+        "id": "urn:oid:2.49.0.1.840.0.c8eb52b57daecc08aeeb4b1b4a6a867bfb7515b6.001.4",
+        "instruction": "A Storm Warning means winds of 48 to 63 knots are imminent or\noccurring. Recreational boaters should remain in port, or take\nshelter until winds and waves subside. Commercial vessels should\nprepare for very strong winds and dangerous sea conditions, and\nconsider remaining in port or taking shelter in port until winds\nand waves subside.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-23T04:00:00-08:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "MWWPQR"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "SMALL CRAFT ADVISORY REMAINS IN EFFECT UNTIL 4 AM PST MONDAY... ...GALE WARNING IN EFFECT FROM 4 AM TO 10 PM PST MONDAY... ...STORM WARNING IN EFFECT FROM 10 PM MONDAY TO 4 PM PST TUESDAY"
+          ],
+          "VTEC": [
+            "/O.NEW.KPQR.GL.W.0019.261123T1200Z-261124T0600Z/"
+          ],
+          "WMOidentifier": [
+            "WHUS76 KPQR 222003"
+          ],
+          "eventEndingTime": [
+            "2026-11-23T22:00:00-08:00"
+          ]
+        },
+        "references": [],
+        "response": "Avoid",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Portland OR",
+        "sent": "2026-11-22T12:03:00-08:00",
+        "severity": "Moderate",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.c8eb52b57daecc08aeeb4b1b4a6a867bfb7515b6.001.3",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.c8eb52b57daecc08aeeb4b1b4a6a867bfb7515b6.001.3",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/PZZ271",
+          "https://api.weather.gov/zones/forecast/PZZ272",
+          "https://api.weather.gov/zones/forecast/PZZ273"
+        ],
+        "areaDesc": "Waters from Cape Shoalwater WA to Cape Falcon OR from 10 to 60 nm; Waters from Cape Falcon to Cape Foulweather OR from 10 to 60 nm; Waters from Cape Foulweather to Florence OR from 10 to 60 nm",
+        "category": "Met",
+        "certainty": "Observed",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...For the Small Craft Advisory, seas 12 to 14 ft at 12\nseconds and south winds 20 to 25 kt with gusts up to 30 kt. For\nthe Gale Warning, seas 13 to 18 ft at 12 seconds and south winds\n25 to 35 kt with gusts up to 45 kt expected. For the Storm\nWarning, seas 18 to 23 ft at 12 seconds and southeast winds 30\nto 40 kt with gusts up to 55 kt expected.\n\n* WHERE...Outer Coastal Waters from Cape Shoalwater to Florence\n10 to 60 NM offshore.\n\n* WHEN...Small Craft Advisory, until 4 AM PST Monday. Gale\nWarning, from 4 AM to 10 PM PST Monday. Storm Warning, from 10\nPM Monday to 4 PM PST Tuesday.\n\n* IMPACTS...Very strong winds will cause hazardous seas which\ncould capsize or damage vessels and reduce visibility.",
+        "effective": "2026-11-22T12:03:00-08:00",
+        "ends": "2026-11-24T16:00:00-08:00",
+        "event": "Storm Warning",
+        "eventCode": {
+          "NationalWeatherService": [
+            "SRW"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-23T04:15:00-08:00",
+        "geocode": {
+          "SAME": [
+            "057271",
+            "057272",
+            "057273"
+          ],
+          "UGC": [
+            "PZZ271",
+            "PZZ272",
+            "PZZ273"
+          ]
+        },
+        "headline": "Storm Warning issued November 22 at 12:03PM PST until November 24 at 4:00PM PST by NWS Portland OR",
+        "id": "urn:oid:2.49.0.1.840.0.c8eb52b57daecc08aeeb4b1b4a6a867bfb7515b6.001.3",
+        "instruction": "A Storm Warning means winds of 48 to 63 knots are imminent or\noccurring. Recreational boaters should remain in port, or take\nshelter until winds and waves subside. Commercial vessels should\nprepare for very strong winds and dangerous sea conditions, and\nconsider remaining in port or taking shelter in port until winds\nand waves subside.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-23T22:00:00-08:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "MWWPQR"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "SMALL CRAFT ADVISORY REMAINS IN EFFECT UNTIL 4 AM PST MONDAY... ...GALE WARNING IN EFFECT FROM 4 AM TO 10 PM PST MONDAY... ...STORM WARNING IN EFFECT FROM 10 PM MONDAY TO 4 PM PST TUESDAY"
+          ],
+          "VTEC": [
+            "/O.NEW.KPQR.SR.W.0004.261124T0600Z-261125T0000Z/"
+          ],
+          "WMOidentifier": [
+            "WHUS76 KPQR 222003"
+          ],
+          "eventEndingTime": [
+            "2026-11-24T16:00:00-08:00"
+          ]
+        },
+        "references": [],
+        "response": "Avoid",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Portland OR",
+        "sent": "2026-11-22T12:03:00-08:00",
+        "severity": "Severe",
+        "status": "Actual",
+        "urgency": "Immediate",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.b03b5515a8d3c65c252ac170cfdf8945d7e8c9dd.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.b03b5515a8d3c65c252ac170cfdf8945d7e8c9dd.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/NMZ033",
+          "https://api.weather.gov/zones/forecast/NMZ034",
+          "https://api.weather.gov/zones/forecast/TXZ045",
+          "https://api.weather.gov/zones/forecast/TXZ046",
+          "https://api.weather.gov/zones/forecast/TXZ047",
+          "https://api.weather.gov/zones/forecast/TXZ050",
+          "https://api.weather.gov/zones/forecast/TXZ051",
+          "https://api.weather.gov/zones/forecast/TXZ277"
+        ],
+        "areaDesc": "Central Lea County; Southern Lea County; Gaines; Dawson; Borden; Andrews; Martin; Davis Mountains",
+        "category": "Met",
+        "certainty": "Observed",
+        "code": "IPAWSv1.0",
+        "description": "The Freeze Watch has been replaced. Please see the latest information from NWS Midland/Odessa TX on this developing situation.",
+        "effective": "2026-11-22T12:44:00-07:00",
+        "ends": "2026-11-23T09:00:00-07:00",
+        "event": "Freeze Watch",
+        "eventCode": {
+          "NationalWeatherService": [
+            "FZA"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T12:59:32-07:00",
+        "geocode": {
+          "SAME": [
+            "035025",
+            "048165",
+            "048115",
+            "048033",
+            "048003",
+            "048317",
+            "048043",
+            "048243",
+            "048377"
+          ],
+          "UGC": [
+            "NMZ033",
+            "NMZ034",
+            "TXZ045",
+            "TXZ046",
+            "TXZ047",
+            "TXZ050",
+            "TXZ051",
+            "TXZ277"
+          ]
+        },
+        "headline": "The Freeze Watch has been replaced. Please see the latest information from NWS Midland/Odessa TX on this developing situation.",
+        "id": "urn:oid:2.49.0.1.840.0.b03b5515a8d3c65c252ac170cfdf8945d7e8c9dd.001.1",
+        "instruction": "Take steps now to protect tender plants from the cold.\n\nCover outdoor faucets. To prevent water pipes from freezing wrap or\ndrain or allow them to drip slowly.\n\nBring pets indoors, or ensure that they have warm, dry shelter.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T23:00:00-07:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "NPWMAF"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "FREEZE WARNING IN EFFECT FROM 11 PM MST /MIDNIGHT CST/ THIS EVENING TO 9 AM MST /10 AM CST/ MONDAY"
+          ],
+          "VTEC": [
+            "/O.UPG.KMAF.FZ.A.0002.261123T0600Z-261123T1600Z/"
+          ],
+          "WMOidentifier": [
+            "WWUS74 KMAF 221944"
+          ],
+          "eventEndingTime": [
+            "2026-11-23T09:00:00-07:00"
+          ],
+          "expiredReferences": [
+            "w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.b18fc283f1fa07c6cba1fe090583ea0e0b6aca3c.002.1,2026-11-22T00:11:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.b18fc283f1fa07c6cba1fe090583ea0e0b6aca3c.001.1,2026-11-22T00:11:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.7283aceb2357f21d413c2eedff6a5e2a7f347722.001.1,2026-11-21T13:24:00-07:00"
+          ]
+        },
+        "references": [],
+        "response": "Monitor",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Midland/Odessa TX",
+        "sent": "2026-11-22T12:44:00-07:00",
+        "severity": "Severe",
+        "status": "Actual",
+        "urgency": "Past",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.b03b5515a8d3c65c252ac170cfdf8945d7e8c9dd.001.2",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.b03b5515a8d3c65c252ac170cfdf8945d7e8c9dd.001.2",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/NMZ033",
+          "https://api.weather.gov/zones/forecast/NMZ034",
+          "https://api.weather.gov/zones/forecast/TXZ045",
+          "https://api.weather.gov/zones/forecast/TXZ046",
+          "https://api.weather.gov/zones/forecast/TXZ047",
+          "https://api.weather.gov/zones/forecast/TXZ050",
+          "https://api.weather.gov/zones/forecast/TXZ051",
+          "https://api.weather.gov/zones/forecast/TXZ277"
+        ],
+        "areaDesc": "Central Lea County; Southern Lea County; Gaines; Dawson; Borden; Andrews; Martin; Davis Mountains",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...Sub-freezing temperatures as low as 30 expected.\n\n* WHERE...In New Mexico, Central Lea and Southern Lea Counties. In\nTexas, Davis Mountains, and Andrews, Borden, Dawson, Gaines, and\nMartin Counties.\n\n* WHEN...From 11 PM MST /midnight CST/ this evening to 9 AM MST /10\nAM CST/ Monday.\n\n* IMPACTS...Frost and freeze conditions could kill crops, other\nsensitive vegetation and possibly damage unprotected outdoor\nplumbing.",
+        "effective": "2026-11-22T12:44:00-07:00",
+        "ends": "2026-11-23T09:00:00-07:00",
+        "event": "Freeze Warning",
+        "eventCode": {
+          "NationalWeatherService": [
+            "FZW"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-23T09:00:00-07:00",
+        "geocode": {
+          "SAME": [
+            "035025",
+            "048165",
+            "048115",
+            "048033",
+            "048003",
+            "048317",
+            "048043",
+            "048243",
+            "048377"
+          ],
+          "UGC": [
+            "NMZ033",
+            "NMZ034",
+            "TXZ045",
+            "TXZ046",
+            "TXZ047",
+            "TXZ050",
+            "TXZ051",
+            "TXZ277"
+          ]
+        },
+        "headline": "Freeze Warning issued November 22 at 12:44PM MST until November 23 at 9:00AM MST by NWS Midland/Odessa TX",
+        "id": "urn:oid:2.49.0.1.840.0.b03b5515a8d3c65c252ac170cfdf8945d7e8c9dd.001.2",
+        "instruction": "Take steps now to protect tender plants from the cold.\n\nCover outdoor faucets. To prevent water pipes from freezing wrap or\ndrain or allow them to drip slowly.\n\nBring pets indoors, or ensure that they have warm, dry shelter.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T23:00:00-07:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "NPWMAF"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "FREEZE WARNING IN EFFECT FROM 11 PM MST /MIDNIGHT CST/ THIS EVENING TO 9 AM MST /10 AM CST/ MONDAY"
+          ],
+          "VTEC": [
+            "/O.NEW.KMAF.FZ.W.0002.261123T0600Z-261123T1600Z/"
+          ],
+          "WMOidentifier": [
+            "WWUS74 KMAF 221944"
+          ],
+          "eventEndingTime": [
+            "2026-11-23T09:00:00-07:00"
+          ]
+        },
+        "references": [],
+        "response": "Execute",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Midland/Odessa TX",
+        "sent": "2026-11-22T12:44:00-07:00",
+        "severity": "Severe",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.8e0b802957d4cd343f38c8ce4c1352ebce27ffb8.001.2",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.8e0b802957d4cd343f38c8ce4c1352ebce27ffb8.001.2",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/CAZ043",
+          "https://api.weather.gov/zones/forecast/CAZ552"
+        ],
+        "areaDesc": "San Diego County Coastal Areas; Orange County Coastal",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...For the Coastal Flood Advisory, minor coastal flooding.\nFor the Coastal Flood Warning, significant coastal flooding\nexpected.\n\n* WHERE...San Diego County Coastal Areas and Orange County\nCoastal Areas.\n\n* WHEN...For the Coastal Flood Advisory, until 4 AM PST Tuesday.\nFor the Coastal Flood Warning, from 4 AM Tuesday to 1 PM PST\nFriday. Most susceptible time of flooding will be around the\ntime of the morning high tide, with peak tides trending from 7\nAM on Monday to 10 AM on Friday.\n\n* IMPACTS...Numerous roads may be closed. Low lying property\nincluding homes, businesses, and some critical infrastructure\nwill be inundated. Some shoreline erosion will occur.\n\n* ADDITIONAL DETAILS...King tides peak Tuesday through Wednesday,\nreaching 7.9-8.3 feet, likely re-breaking the all-time tidal\nrecords set back in late October. Background surf on top of the\ntides will remain around 3-5 feet through Wednesday, but an\nincoming swell Wednesday into Thursday will bring a sharp\nincrease to the surf by Thursday morning's high tide. Breaking\nwaves may reach 6-8 feet with sets up to 10 feet on west-facing\nbeaches. Surf then moderates some into Friday, but still looks\nto be around 5-8 feet.",
+        "effective": "2026-11-22T11:40:00-08:00",
+        "ends": "2026-11-27T13:00:00-08:00",
+        "event": "Coastal Flood Warning",
+        "eventCode": {
+          "NationalWeatherService": [
+            "CFW"
+          ],
+          "SAME": [
+            "CFW"
+          ]
+        },
+        "expires": "2026-11-22T19:45:00-08:00",
+        "geocode": {
+          "SAME": [
+            "006073",
+            "006059"
+          ],
+          "UGC": [
+            "CAZ043",
+            "CAZ552"
+          ]
+        },
+        "headline": "Coastal Flood Warning issued November 22 at 11:40AM PST until November 27 at 1:00PM PST by NWS San Diego CA",
+        "id": "urn:oid:2.49.0.1.840.0.8e0b802957d4cd343f38c8ce4c1352ebce27ffb8.001.2",
+        "instruction": "Take the necessary actions to protect flood-prone property. Do\nNOT drive around barricades or through flooded areas.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-24T04:00:00-08:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "CFWSGX"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "EAS-ORG": [
+            "WXR"
+          ],
+          "NWSheadline": [
+            "COASTAL FLOOD ADVISORY REMAINS IN EFFECT UNTIL 4 AM PST TUESDAY... ...COASTAL FLOOD WARNING IN EFFECT FROM 4 AM TUESDAY TO 1 PM PST FRIDAY"
+          ],
+          "VTEC": [
+            "/O.NEW.KSGX.CF.W.0003.261124T1200Z-261127T2100Z/"
+          ],
+          "WMOidentifier": [
+            "WHUS46 KSGX 221940"
+          ],
+          "eventEndingTime": [
+            "2026-11-27T13:00:00-08:00"
+          ]
+        },
+        "references": [],
+        "response": "Avoid",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS San Diego CA",
+        "sent": "2026-11-22T11:40:00-08:00",
+        "severity": "Severe",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -67.02,
+              18.5
+            ],
+            [
+              -67.02,
+              18.51
+            ],
+            [
+              -66.95,
+              18.48
+            ],
+            [
+              -66.95,
+              18.49
+            ],
+            [
+              -66.91,
+              18.48
+            ],
+            [
+              -66.84,
+              18.49
+            ],
+            [
+              -66.81,
+              18.39
+            ],
+            [
+              -66.82,
+              18.34
+            ],
+            [
+              -66.85,
+              18.36
+            ],
+            [
+              -66.88,
+              18.36
+            ],
+            [
+              -66.88,
+              18.37
+            ],
+            [
+              -66.9,
+              18.37
+            ],
+            [
+              -66.92,
+              18.39
+            ],
+            [
+              -66.94,
+              18.39
+            ],
+            [
+              -66.94,
+              18.38
+            ],
+            [
+              -67.03,
+              18.39
+            ],
+            [
+              -67.06,
+              18.48
+            ],
+            [
+              -67.1,
+              18.52
+            ],
+            [
+              -67.03,
+              18.51
+            ],
+            [
+              -67.02,
+              18.5
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.00b7a94f17d569c517c8386df09c230345fc086a.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.00b7a94f17d569c517c8386df09c230345fc086a.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/county/PRC027",
+          "https://api.weather.gov/zones/county/PRC071",
+          "https://api.weather.gov/zones/county/PRC115"
+        ],
+        "areaDesc": "Camuy, PR; Isabela, PR; Quebradillas, PR",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...Urban area and small stream flooding caused by excessive\nrainfall is expected.\n\n* WHERE...Camuy, Isabela, Quebradillas...\n\n* WHEN...Until 530 PM AST.\n\n* IMPACTS...Rises in small streams and normally dry arroyos. Water\nover roadways. Overflowing poor drainage areas.\n\n* ADDITIONAL DETAILS...\n- At 332 PM AST, Doppler radar indicated heavy rain due to\nthunderstorms. This  will cause urban and small stream flooding.\nBetween 1 and 2 inches of rain have fallen.\n- Additional rainfall amounts of 1 to 1.5 inches are expected over\nthe area. This additional rain will result in minor flooding.\n- Some locations that will experience flooding include...\nQuebradillas, Camuy, Isabela, San Antonio, Cacao, Piedra Gorda,\nMora and Quebrada.",
+        "effective": "2026-11-22T15:32:00-04:00",
+        "ends": "2026-11-22T17:30:00-04:00",
+        "event": "Flood Advisory",
+        "eventCode": {
+          "NationalWeatherService": [
+            "FAY"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T17:30:00-04:00",
+        "geocode": {
+          "SAME": [
+            "072027",
+            "072071",
+            "072115"
+          ],
+          "UGC": [
+            "PRC027",
+            "PRC071",
+            "PRC115"
+          ]
+        },
+        "headline": "Flood Advisory issued November 22 at 3:32PM AST until November 22 at 5:30PM AST by NWS San Juan PR",
+        "id": "urn:oid:2.49.0.1.840.0.00b7a94f17d569c517c8386df09c230345fc086a.001.1",
+        "instruction": "Turn around, don't drown when encountering flooded roads. Most flood\ndeaths occur in vehicles.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T15:32:00-04:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "FLSSJU"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "FLOOD ADVISORY IN EFFECT UNTIL 530 PM AST THIS AFTERNOON"
+          ],
+          "VTEC": [
+            "/O.NEW.TJSJ.FA.Y.0388.261122T1932Z-261122T2130Z/"
+          ],
+          "WMOidentifier": [
+            "WGCA82 TJSJ 221932"
+          ],
+          "eventEndingTime": [
+            "2026-11-22T17:30:00-04:00"
+          ]
+        },
+        "references": [],
+        "response": "Avoid",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS San Juan PR",
+        "sent": "2026-11-22T15:32:00-04:00",
+        "severity": "Minor",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.a82725fe1f1be0e1d9ce62d7023afef7b5fcf6b4.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.a82725fe1f1be0e1d9ce62d7023afef7b5fcf6b4.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/MTZ040",
+          "https://api.weather.gov/zones/forecast/MTZ056",
+          "https://api.weather.gov/zones/forecast/MTZ063",
+          "https://api.weather.gov/zones/forecast/MTZ064",
+          "https://api.weather.gov/zones/forecast/MTZ065",
+          "https://api.weather.gov/zones/forecast/MTZ066",
+          "https://api.weather.gov/zones/forecast/MTZ141",
+          "https://api.weather.gov/zones/forecast/MTZ172",
+          "https://api.weather.gov/zones/forecast/MTZ228"
+        ],
+        "areaDesc": "Northern Park; Red Lodge Foothills; Judith Gap; Paradise Valley; Livingston Area; Beartooth Foothills; Northern Sweet Grass; Melville Foothills; Southern Wheatland",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...Areas of dense fog producing visibility of a quarter mile or\nless.\n\n* WHERE...Portions of central and south central Montana, especially\non the east side of the mountains.\n\n* WHEN...Until 10 AM MST Monday.\n\n* IMPACTS...Travel will be impacted by poor visibility and locally\nslick roads. Highways which will be impacted by fog include US-212\nnear Red Lodge, I-90 over Bozeman Pass, US-191 through Melville,\nand other routes along the eastern slopes of the mountains.\n\n* ADDITIONAL DETAILS...Visibilities may improve a bit this afternoon,\nbut will become worse again after sunset. A combination of fog and\nlow clouds will remain in place until winds become westerly on\nMonday.",
+        "effective": "2026-11-22T12:21:00-07:00",
+        "ends": "2026-11-23T10:00:00-07:00",
+        "event": "Dense Fog Advisory",
+        "eventCode": {
+          "NationalWeatherService": [
+            "FGY"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-23T10:00:00-07:00",
+        "geocode": {
+          "SAME": [
+            "030067",
+            "030009",
+            "030037",
+            "030107",
+            "030095",
+            "030097"
+          ],
+          "UGC": [
+            "MTZ040",
+            "MTZ056",
+            "MTZ063",
+            "MTZ064",
+            "MTZ065",
+            "MTZ066",
+            "MTZ141",
+            "MTZ172",
+            "MTZ228"
+          ]
+        },
+        "headline": "Dense Fog Advisory issued November 22 at 12:21PM MST until November 23 at 10:00AM MST by NWS Billings MT",
+        "id": "urn:oid:2.49.0.1.840.0.a82725fe1f1be0e1d9ce62d7023afef7b5fcf6b4.001.1",
+        "instruction": "If driving, slow down, use your low beam headlights, and leave plenty\nof distance ahead of you.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T12:21:00-07:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "NPWBYZ"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "DENSE FOG ADVISORY IN EFFECT UNTIL 10 AM MST MONDAY"
+          ],
+          "VTEC": [
+            "/O.NEW.KBYZ.FG.Y.0010.261122T1921Z-261123T1700Z/"
+          ],
+          "WMOidentifier": [
+            "WWUS75 KBYZ 221921"
+          ],
+          "eventEndingTime": [
+            "2026-11-23T10:00:00-07:00"
+          ]
+        },
+        "references": [],
+        "response": "Execute",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Billings MT",
+        "sent": "2026-11-22T12:21:00-07:00",
+        "severity": "Moderate",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.343be1bb7e2485dc0908ecc7f5df67706a27545e.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.343be1bb7e2485dc0908ecc7f5df67706a27545e.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/TXZ451",
+          "https://api.weather.gov/zones/forecast/TXZ454",
+          "https://api.weather.gov/zones/forecast/TXZ455"
+        ],
+        "areaDesc": "Kenedy Island; Willacy Island; Cameron Island",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...Isolated minor coastal flooding.\n\n* WHERE...Kenedy Island, Willacy Island and Cameron Island\nCounties.\n\n* WHEN...Through late Monday night.\n\n* IMPACTS...Wave run-up may approach the dunes along narrow\nbeaches. Beach equipment, such as umbrellas and chairs, could\nbe moved by waves. Vehicles driving along narrow beaches may\nexperience higher water levels. Elevated water levels may also\noccur across the Laguna Madre and South Bay, and along State\nHighway 4 west of Boca Chica State Park.\n\n* ADDITIONAL DETAILS...Max inundation is expected near high tide\nat 340 PM today and 452 PM Monday.",
+        "effective": "2026-11-22T13:19:00-06:00",
+        "ends": "2026-11-24T06:00:00-06:00",
+        "event": "Coastal Flood Statement",
+        "eventCode": {
+          "NationalWeatherService": [
+            "CFS"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-23T06:00:00-06:00",
+        "geocode": {
+          "SAME": [
+            "048261",
+            "048489",
+            "048061"
+          ],
+          "UGC": [
+            "TXZ451",
+            "TXZ454",
+            "TXZ455"
+          ]
+        },
+        "headline": "Coastal Flood Statement issued November 22 at 1:19PM CST until November 24 at 6:00AM CST by NWS Brownsville TX",
+        "id": "urn:oid:2.49.0.1.840.0.343be1bb7e2485dc0908ecc7f5df67706a27545e.001.1",
+        "instruction": "Do not drive through flooded roadways.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T13:19:00-06:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "CFWBRO"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "COASTAL FLOOD STATEMENT IN EFFECT THROUGH LATE MONDAY NIGHT"
+          ],
+          "VTEC": [
+            "/O.NEW.KBRO.CF.S.0014.261122T1919Z-261124T1200Z/"
+          ],
+          "WMOidentifier": [
+            "WHUS44 KBRO 221919"
+          ],
+          "eventEndingTime": [
+            "2026-11-24T06:00:00-06:00"
+          ]
+        },
+        "references": [],
+        "response": "Monitor",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Brownsville TX",
+        "sent": "2026-11-22T13:19:00-06:00",
+        "severity": "Minor",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.0c9d66f27c1ddec1f4f08bb03db00eb33c3663e7.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.0c9d66f27c1ddec1f4f08bb03db00eb33c3663e7.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/ANZ080",
+          "https://api.weather.gov/zones/forecast/ANZ081"
+        ],
+        "areaDesc": "Waters from Eastport ME to Schoodic Point ME from 25 to 60 NM or the Hague Line; Waters from Schoodic Point ME to Stonington ME from 25 to 60 NM",
+        "category": "Met",
+        "certainty": "Observed",
+        "code": "IPAWSv1.0",
+        "description": "The Gale Watch has been cancelled and is no longer in effect.",
+        "effective": "2026-11-22T14:16:00-05:00",
+        "ends": "2026-11-23T10:00:00-05:00",
+        "event": "Gale Watch",
+        "eventCode": {
+          "NationalWeatherService": [
+            "GLA"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T14:31:42-05:00",
+        "geocode": {
+          "SAME": [
+            "073080",
+            "073081"
+          ],
+          "UGC": [
+            "ANZ080",
+            "ANZ081"
+          ]
+        },
+        "headline": "The Gale Watch has been cancelled.",
+        "id": "urn:oid:2.49.0.1.840.0.0c9d66f27c1ddec1f4f08bb03db00eb33c3663e7.001.1",
+        "instruction": null,
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-23T03:00:00-05:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "MWWCAR"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "GALE WATCH IS CANCELLED"
+          ],
+          "VTEC": [
+            "/O.CAN.KCAR.GL.A.0024.261123T0800Z-261123T1500Z/"
+          ],
+          "WMOidentifier": [
+            "WHUS71 KCAR 221916"
+          ],
+          "eventEndingTime": [
+            "2026-11-23T10:00:00-05:00"
+          ],
+          "expiredReferences": [
+            "w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.a78a1b9479597b3b4cca75fcc3896a1079231785.001.1,2026-11-22T01:43:00-05:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.346c1da305db43629cc8713e7c43182850f720b4.001.1,2026-11-22T00:34:00-05:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.592638eb591e59b01d8ed6243c00be0de10419ea.001.1,2026-11-21T13:08:00-05:00"
+          ]
+        },
+        "references": [],
+        "response": "AllClear",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Caribou ME",
+        "sent": "2026-11-22T14:16:00-05:00",
+        "severity": "Minor",
+        "status": "Actual",
+        "urgency": "Past",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.40a2355f9ea462f1c6f376ce878c199405403962.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.40a2355f9ea462f1c6f376ce878c199405403962.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/MIZ002",
+          "https://api.weather.gov/zones/forecast/MIZ003",
+          "https://api.weather.gov/zones/forecast/MIZ004",
+          "https://api.weather.gov/zones/forecast/MIZ084"
+        ],
+        "areaDesc": "Ontonagon; Houghton; Baraga; Southern Houghton",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...Lake effect snow expected. Total snow accumulations between\n2 and 5 inches. Up to 8 inches underneath the dominant lake effect\nsnow band.\n\n* WHERE...Baraga, Northern Houghton, Ontonagon, and Southern Houghton\nCounties.\n\n* WHEN...From 7 PM this evening to 11 AM EST Monday.\n\n* IMPACTS...Plan on slippery road conditions. Moderate to heavy\nsnowfall rates will cause visibility to fall below 1 mile at times.\nThe hazardous conditions will impact the Monday morning commute.\n\n* ADDITIONAL DETAILS...A dominant lake effect band with heavy\nsnowfall rates up to 1 inch per hour at times will yield an area of\n6-8 inches of snow. Medium confidence in exact placement of this\nband. Area of focus is between Ontonagon, Painesdale, Herman,\nCovington, and Bruce Crossing. Heaviest snowfall expected to remain\nsouth of Houghton.",
+        "effective": "2026-11-22T14:09:00-05:00",
+        "ends": "2026-11-23T11:00:00-05:00",
+        "event": "Winter Weather Advisory",
+        "eventCode": {
+          "NationalWeatherService": [
+            "WWY"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T21:15:00-05:00",
+        "geocode": {
+          "SAME": [
+            "026131",
+            "026061",
+            "026013"
+          ],
+          "UGC": [
+            "MIZ002",
+            "MIZ003",
+            "MIZ004",
+            "MIZ084"
+          ]
+        },
+        "headline": "Winter Weather Advisory issued November 22 at 2:09PM EST until November 23 at 11:00AM EST by NWS Marquette MI",
+        "id": "urn:oid:2.49.0.1.840.0.40a2355f9ea462f1c6f376ce878c199405403962.001.1",
+        "instruction": "Slow down and use caution while traveling.\n\nDuring lake effect snow, the weather can vary from bands of locally\nheavy snow to dry weather just a few miles away. Visibilities can\nalso vary greatly. Be prepared for rapid changes in weather,\nvisibility, and road conditions.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T19:00:00-05:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "WSWMQT"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "WINTER WEATHER ADVISORY IN EFFECT FROM 7 PM THIS EVENING TO 11 AM EST MONDAY"
+          ],
+          "VTEC": [
+            "/O.NEW.KMQT.WW.Y.0027.261123T0000Z-261123T1600Z/"
+          ],
+          "WMOidentifier": [
+            "WWUS43 KMQT 221909"
+          ],
+          "eventEndingTime": [
+            "2026-11-23T11:00:00-05:00"
+          ]
+        },
+        "references": [],
+        "response": "Execute",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Marquette MI",
+        "sent": "2026-11-22T14:09:00-05:00",
+        "severity": "Moderate",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.b5b5f9a24c3db923074f43968e8072f9d641e4fe.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.b5b5f9a24c3db923074f43968e8072f9d641e4fe.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/TXZ245",
+          "https://api.weather.gov/zones/forecast/TXZ342",
+          "https://api.weather.gov/zones/forecast/TXZ343",
+          "https://api.weather.gov/zones/forecast/TXZ344",
+          "https://api.weather.gov/zones/forecast/TXZ345",
+          "https://api.weather.gov/zones/forecast/TXZ346",
+          "https://api.weather.gov/zones/forecast/TXZ347",
+          "https://api.weather.gov/zones/forecast/TXZ442",
+          "https://api.weather.gov/zones/forecast/TXZ443",
+          "https://api.weather.gov/zones/forecast/TXZ447"
+        ],
+        "areaDesc": "Coastal Aransas; Coastal Kleberg; Coastal Nueces; Coastal San Patricio; Aransas Islands; Coastal Refugio; Coastal Calhoun; Kleberg Islands; Nueces Islands; Calhoun Islands",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...Minor coastal flooding.\n\n* WHERE...Coastal Aransas, Coastal Kleberg, Coastal Nueces,\nCoastal San Patricio, Aransas Islands, Coastal Refugio,\nCoastal Calhoun, Kleberg Islands, Nueces Islands and Calhoun\nIslands Counties.\n\n* WHEN...Until 6 AM CST Monday.\n\n* IMPACTS...Flooding of lots, parks, and roads with only\nisolated road closures expected.",
+        "effective": "2026-11-22T12:32:00-06:00",
+        "ends": "2026-11-23T06:00:00-06:00",
+        "event": "Coastal Flood Advisory",
+        "eventCode": {
+          "NationalWeatherService": [
+            "CFY"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-23T06:00:00-06:00",
+        "geocode": {
+          "SAME": [
+            "048007",
+            "048273",
+            "048355",
+            "048409",
+            "048391",
+            "048057"
+          ],
+          "UGC": [
+            "TXZ245",
+            "TXZ342",
+            "TXZ343",
+            "TXZ344",
+            "TXZ345",
+            "TXZ346",
+            "TXZ347",
+            "TXZ442",
+            "TXZ443",
+            "TXZ447"
+          ]
+        },
+        "headline": "Coastal Flood Advisory issued November 22 at 12:32PM CST until November 23 at 6:00AM CST by NWS Corpus Christi TX",
+        "id": "urn:oid:2.49.0.1.840.0.b5b5f9a24c3db923074f43968e8072f9d641e4fe.001.1",
+        "instruction": "If travel is required, allow extra time as some roads may be\nclosed. Do not drive around barricades or through water of\nunknown depth. Take the necessary actions to protect flood-prone\nproperty.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T12:32:00-06:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "CFWCRP"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "COASTAL FLOOD ADVISORY REMAINS IN EFFECT UNTIL 6 AM CST MONDAY"
+          ],
+          "VTEC": [
+            "/O.CON.KCRP.CF.Y.0025.000000T0000Z-261123T1200Z/"
+          ],
+          "WMOidentifier": [
+            "WHUS44 KCRP 221832"
+          ],
+          "eventEndingTime": [
+            "2026-11-23T06:00:00-06:00"
+          ],
+          "expiredReferences": [
+            "w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.bf61ee87dca5a848747f6140cfef43fc1e22a0c3.001.1,2026-11-22T00:51:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.f56ad5c17e1802870b33066fdb03194087fc4ecf.001.1,2026-11-21T12:27:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.291c70ad9f24605adc8e693ae947138576c4c5f8.001.1,2026-11-21T00:14:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.b3c1e1458bead2ba41e8a5802684a0022246e79c.001.1,2026-11-20T15:25:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.fc33664855f6d5778774e8c7c73e76abd7be80fc.001.1,2026-11-19T12:37:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.e4ce2b29d3d51ef76d193509b4ec813ee5f2a4f5.001.1,2026-11-20T10:44:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.25aa35a405b7864d1a1c91bae6e01aa7f1a3bc40.001.1,2026-11-18T22:50:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.296df863eb154ce11abbea0ac96c55a984076c50.001.1,2026-11-18T12:57:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.11d948109f21c2da3e1315a4c97a7beabae2d4d4.001.1,2026-11-18T09:56:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.1dda9991382fdebafb31c18ee682f9e19a0b25f2.001.1,2026-11-17T22:28:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.1f06bd7b276522dd26d2d25d5b93e0feae116ffd.001.1,2026-11-17T18:48:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.5cc4d3af2e051251301ce6ef365ac77e6fd29db0.002.1,2026-11-17T12:59:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.5cc4d3af2e051251301ce6ef365ac77e6fd29db0.001.1,2026-11-17T12:59:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.72785144d468dfc4a1dfb011adf2789678dd8d2f.001.1,2026-11-16T23:22:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.0031146a47a58e058776b0015d3245f6a6d8ff5d.001.1,2026-11-16T16:49:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.da52aa5bdab62d096a63422335c94be5986016e6.001.1,2026-11-16T00:44:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.857dcd9f40e5723d42e33270cd8808a4ac4cf6be.001.1,2026-11-15T13:53:00-06:00 w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.c989205c158b3053443ed06532b366af00f64879.001.1,2026-11-15T04:15:00-06:00"
+          ]
+        },
+        "references": [],
+        "response": "Monitor",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Corpus Christi TX",
+        "sent": "2026-11-22T12:32:00-06:00",
+        "severity": "Minor",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -66.25,
+              18.45
+            ],
+            [
+              -66.21,
+              18.46
+            ],
+            [
+              -66.19,
+              18.45
+            ],
+            [
+              -66.21,
+              18.47
+            ],
+            [
+              -66.19,
+              18.48
+            ],
+            [
+              -66.16,
+              18.45
+            ],
+            [
+              -66.14,
+              18.48
+            ],
+            [
+              -66.16,
+              18.44
+            ],
+            [
+              -66.14,
+              18.46
+            ],
+            [
+              -66.14,
+              18.44
+            ],
+            [
+              -66.11,
+              18.44
+            ],
+            [
+              -66.1,
+              18.42
+            ],
+            [
+              -66.11,
+              18.37
+            ],
+            [
+              -66.25,
+              18.45
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.3ca591feb28e7469d75ec490b68dbc7f000fc068.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.3ca591feb28e7469d75ec490b68dbc7f000fc068.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/county/PRC021",
+          "https://api.weather.gov/zones/county/PRC033",
+          "https://api.weather.gov/zones/county/PRC061",
+          "https://api.weather.gov/zones/county/PRC137"
+        ],
+        "areaDesc": "Bayamon, PR; Catano, PR; Guaynabo, PR; Toa Baja, PR",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "FFWSJU\n\nThe National Weather Service in San Juan has issued a\n\n* Flash Flood Warning for...\nBayamon...Catano...Guaynabo and Toa Baja...\n\n* Until 500 PM AST.\n\n* At 201 PM AST, Doppler radar indicated strong thunderstorms\nproducing heavy rain across the warned area, including northern\nGuaynabo and northern Bayamon. Up to 3 inches of rain have fallen.\nAdditional rainfall amounts of 1 to 3 inches are possible in the\nwarned area. Flash flooding is ongoing or expected to begin\nshortly.\n\nHAZARD...Flash flooding caused by thunderstorms.\n\nSOURCE...Radar indicated.\n\nIMPACT...Flash flooding of small creeks and streams, urban areas,\nhighways, streets and underpasses as well as other poor\ndrainage and low-lying areas.\n\n* Some locations that will experience flash flooding include...\nSabana Seca, Catano, Guaynabo, Levittown and Ingenio.",
+        "effective": "2026-11-22T14:01:00-04:00",
+        "ends": "2026-11-22T17:00:00-04:00",
+        "event": "Flash Flood Warning",
+        "eventCode": {
+          "NationalWeatherService": [
+            "FFW"
+          ],
+          "SAME": [
+            "FFW"
+          ]
+        },
+        "expires": "2026-11-22T17:00:00-04:00",
+        "geocode": {
+          "SAME": [
+            "072021",
+            "072033",
+            "072061",
+            "072137"
+          ],
+          "UGC": [
+            "PRC021",
+            "PRC033",
+            "PRC061",
+            "PRC137"
+          ]
+        },
+        "headline": "Flash Flood Warning issued November 22 at 2:01PM AST until November 22 at 5:00PM AST by NWS San Juan PR",
+        "id": "urn:oid:2.49.0.1.840.0.3ca591feb28e7469d75ec490b68dbc7f000fc068.001.1",
+        "instruction": "Turn around, don't drown when encountering flooded roads. Most flood\ndeaths occur in vehicles.\n\nBe aware of your surroundings and do not drive on flooded roads.\n\nPlease report observed flooding to local emergency services or law\nenforcement and request they pass this information to the National\nWeather Service when you can do so safely.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T14:01:00-04:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "FFWSJU"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "EAS-ORG": [
+            "WXR"
+          ],
+          "VTEC": [
+            "/O.NEW.TJSJ.FF.W.0044.261122T1801Z-261122T2100Z/"
+          ],
+          "WMOidentifier": [
+            "WGCA52 TJSJ 221801"
+          ],
+          "eventEndingTime": [
+            "2026-11-22T17:00:00-04:00"
+          ],
+          "flashFloodDetection": [
+            "RADAR INDICATED"
+          ]
+        },
+        "references": [],
+        "response": "Avoid",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS San Juan PR",
+        "sent": "2026-11-22T14:01:00-04:00",
+        "severity": "Severe",
+        "status": "Actual",
+        "urgency": "Immediate",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.04137e75506c591659f59bd6565a6d6fe3cd7cf3.010.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.04137e75506c591659f59bd6565a6d6fe3cd7cf3.010.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/PKZ861"
+        ],
+        "areaDesc": "Flaxman Island to Demarcation Point from 15 to 75 NM",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "Arctic Alaska Coastal Waters out 100 NM\n\nWind forecasts reflect the predominant speed and direction\nexpected. Sea forecasts represent the average of the highest one-\nthird of the combined wind-wave and swell height.\n\n.TODAY...E winds 15 kt. Seas building to 3 ft. Moderate freezing\nspray.\n.TONIGHT...E winds 15 kt. Seas 3 ft. Heavy freezing spray.\n.MON...E winds 25 kt. Seas 5 ft. Extreme freezing spray.\n.MON NIGHT...E winds 30 kt. Seas 7 ft. Extreme freezing spray.\n.TUE...E winds 35 kt. Seas 9 ft. Blowing snow. Extreme freezing\nspray.\n.TUE NIGHT...E winds 40 kt. Seas 13 ft. Blowing snow. Extreme\nfreezing spray.\n.WED...E winds 40 kt. Seas 11 ft.\n.THU...E winds 40 kt. Seas 8 ft.",
+        "effective": "2026-11-22T03:45:00-09:00",
+        "ends": "2026-11-23T05:00:00-09:00",
+        "event": "Heavy Freezing Spray Warning",
+        "eventCode": {
+          "NationalWeatherService": [
+            "UPW"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T18:00:00-09:00",
+        "geocode": {
+          "SAME": [
+            "058861"
+          ],
+          "UGC": [
+            "PKZ861"
+          ]
+        },
+        "headline": "Heavy Freezing Spray Warning issued November 22 at 3:45AM AKST until November 23 at 5:00AM AKST by NWS Fairbanks AK",
+        "id": "urn:oid:2.49.0.1.840.0.04137e75506c591659f59bd6565a6d6fe3cd7cf3.010.1",
+        "instruction": null,
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T17:00:00-09:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "CWFNSB"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "HEAVY FREEZING SPRAY WARNING IN EFFECT LATE TONIGHT"
+          ],
+          "VTEC": [
+            "/O.NEW.PAFG.UP.W.5530.261123T0200Z-261123T1400Z/"
+          ],
+          "WMOidentifier": [
+            "FZAK51 PAFG 221245"
+          ],
+          "eventEndingTime": [
+            "2026-11-23T05:00:00-09:00"
+          ]
+        },
+        "references": [],
+        "response": "Avoid",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Fairbanks AK",
+        "sent": "2026-11-22T03:45:00-09:00",
+        "severity": "Severe",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.c3e51611d4c1b4ad7ad9188bfedc86f87b668285.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.c3e51611d4c1b4ad7ad9188bfedc86f87b668285.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/county/WAC045"
+        ],
+        "areaDesc": "Mason, WA",
+        "category": "Met",
+        "certainty": "Possible",
+        "code": "IPAWSv1.0",
+        "description": "ESFSEW\n\nA series of progressive systems will bring rain to western Washington\nstarting Tuesday and continuing into the weekend. The heaviest\nrainfall is expected late Wednesday into Thursday, with rainfall\namounts over the Olympics ranging generally between 2 to 3 inches.\nThis will lead to rises on the Skokomish River in Mason County late\nWednesday into Thursday. Flooding will be possible starting midweek\nand continuing into the weekend.\n\nPlease monitor the latest river forecasts from the National Weather\nService for additional information.",
+        "effective": "2026-11-22T01:21:00-08:00",
+        "ends": null,
+        "event": "Hydrologic Outlook",
+        "eventCode": {
+          "NationalWeatherService": [
+            "ESF"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T16:15:00-08:00",
+        "geocode": {
+          "SAME": [
+            "053045"
+          ],
+          "UGC": [
+            "WAC045"
+          ]
+        },
+        "headline": "Hydrologic Outlook issued November 22 at 1:21AM PST by NWS Seattle WA",
+        "id": "urn:oid:2.49.0.1.840.0.c3e51611d4c1b4ad7ad9188bfedc86f87b668285.001.1",
+        "instruction": null,
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-22T01:21:00-08:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "ESFSEW"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "THREAT OF RIVER FLOODING WEDNESDAY NIGHT THROUGH THE WEEKEND FOR MASON COUNTY"
+          ],
+          "WMOidentifier": [
+            "FGUS76 KSEW 220921"
+          ]
+        },
+        "references": [],
+        "response": "Monitor",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Seattle WA",
+        "sent": "2026-11-22T01:21:00-08:00",
+        "severity": "Unknown",
+        "status": "Actual",
+        "urgency": "Future",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.74f47431e2338f0f22db3e1fcfcb9b2f47107297.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.74f47431e2338f0f22db3e1fcfcb9b2f47107297.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/AKZ844"
+        ],
+        "areaDesc": "Fairbanks Metro Area",
+        "category": "Met",
+        "certainty": "Unknown",
+        "code": "IPAWSv1.0",
+        "description": "The Department of Environmental Conservation has issued an Air\nQuality Alert which is IN EFFECT UNTIL 2 PM AKST SUNDAY.\n\nNorth Pole has a Stage 2 alert.\n\nFairbanks has no alert.",
+        "effective": "2026-11-21T23:04:00-09:00",
+        "ends": null,
+        "event": "Air Quality Alert",
+        "eventCode": {
+          "NationalWeatherService": [
+            "AQA"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T23:15:00-09:00",
+        "geocode": {
+          "SAME": [
+            "002090"
+          ],
+          "UGC": [
+            "AKZ844"
+          ]
+        },
+        "headline": "Air Quality Alert issued November 21 at 11:04PM AKST by NWS Fairbanks AK",
+        "id": "urn:oid:2.49.0.1.840.0.74f47431e2338f0f22db3e1fcfcb9b2f47107297.001.1",
+        "instruction": null,
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": "Non-Weather Emergency Message. Not sent to IPAWS.",
+        "onset": "2026-11-21T23:04:00-09:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "AQAAFG"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "AIR QUALITY ALERT IN EFFECT UNTIL 2 PM AKST SUNDAY"
+          ],
+          "WMOidentifier": [
+            "AEAK79 PAFG 220804"
+          ]
+        },
+        "references": [],
+        "response": "Monitor",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Fairbanks AK",
+        "sent": "2026-11-21T23:04:00-09:00",
+        "severity": "Unknown",
+        "status": "Actual",
+        "urgency": "Unknown",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.6527a6c5c1d2dd6adf6c66868098f528ded4c84a.003.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.6527a6c5c1d2dd6adf6c66868098f528ded4c84a.003.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/PKZ803"
+        ],
+        "areaDesc": "Kwikpak Pass to Cape Stephens out to 15 NM",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "Northwestern Alaska Coastal Waters out 100 NM\n\nWind forecasts reflect the predominant speed and direction\nexpected. Sea forecasts represent the average of the highest one-\nthird of the combined wind-wave and swell height.\n\n.TONIGHT...E winds 25 kt.\n.SUN...E winds 30 kt.\n.SUN NIGHT...SE winds 30 kt.\n.MON...SE winds 25 kt.\n.MON NIGHT...SE winds 20 kt.\n.TUE...SE winds 10 kt.\n.TUE NIGHT...W winds 10 kt.\n.WED...NW winds 10 kt.\n.THU...SE winds 15 kt.",
+        "effective": "2026-11-21T15:49:00-09:00",
+        "ends": "2026-11-22T17:00:00-09:00",
+        "event": "Brisk Wind Advisory",
+        "eventCode": {
+          "NationalWeatherService": [
+            "BWY"
+          ],
+          "SAME": [
+            "NWS"
+          ]
+        },
+        "expires": "2026-11-22T06:00:00-09:00",
+        "geocode": {
+          "SAME": [
+            "058803"
+          ],
+          "UGC": [
+            "PKZ803"
+          ]
+        },
+        "headline": "Brisk Wind Advisory issued November 21 at 3:49PM AKST until November 22 at 5:00PM AKST by NWS Fairbanks AK",
+        "id": "urn:oid:2.49.0.1.840.0.6527a6c5c1d2dd6adf6c66868098f528ded4c84a.003.1",
+        "instruction": null,
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-21T17:00:00-09:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "CWFWCZ"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "NWSheadline": [
+            "BRISK WIND ADVISORY IN EFFECT FROM LATE TONIGHT THROUGH SUNDAY AFTERNOON"
+          ],
+          "VTEC": [
+            "/O.NEW.PAFG.BW.Y.3351.261122T0200Z-261123T0200Z/"
+          ],
+          "WMOidentifier": [
+            "FZAK52 PAFG 220049"
+          ],
+          "eventEndingTime": [
+            "2026-11-22T17:00:00-09:00"
+          ]
+        },
+        "references": [],
+        "response": "Avoid",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Fairbanks AK",
+        "sent": "2026-11-21T15:49:00-09:00",
+        "severity": "Minor",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -113.56,
+              32.83
+            ],
+            [
+              -114.02,
+              32.69
+            ],
+            [
+              -114.08,
+              32.72
+            ],
+            [
+              -114.11,
+              32.68
+            ],
+            [
+              -114.16,
+              32.69
+            ],
+            [
+              -114.22,
+              32.66
+            ],
+            [
+              -114.3,
+              32.67
+            ],
+            [
+              -114.37,
+              32.75
+            ],
+            [
+              -114.43,
+              32.74
+            ],
+            [
+              -114.44,
+              32.78
+            ],
+            [
+              -114.35,
+              32.78
+            ],
+            [
+              -114.27,
+              32.7
+            ],
+            [
+              -114.21,
+              32.7
+            ],
+            [
+              -114.16,
+              32.73
+            ],
+            [
+              -114.13,
+              32.72
+            ],
+            [
+              -114.11,
+              32.75
+            ],
+            [
+              -114.06,
+              32.76
+            ],
+            [
+              -114.01,
+              32.73
+            ],
+            [
+              -113.95,
+              32.77
+            ],
+            [
+              -113.58,
+              32.88
+            ],
+            [
+              -113.56,
+              32.83
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.2745f4fa458bfc73ec89e51965114c9e810b61b2.001.1",
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.2745f4fa458bfc73ec89e51965114c9e810b61b2.001.1",
+        "@type": "wx:Alert",
+        "affectedZones": [
+          "https://api.weather.gov/zones/county/AZC027"
+        ],
+        "areaDesc": "Yuma, AZ",
+        "category": "Met",
+        "certainty": "Likely",
+        "code": "IPAWSv1.0",
+        "description": "* WHAT...Flooding caused by an upstream dam release is expected.\n\n* WHERE...Central Yuma County in southwestern Arizona...\n\n* WHEN...Until 315 PM MST Friday Nov 27.\n\n* IMPACTS...Flooding of rivers, creeks, streams, and other low-lying\nand flood-prone locations is expected. Low-water crossings are\nlikely to become inundated with water and may not be passable.\n\n* ADDITIONAL DETAILS...\n- At 313 PM MST, a streamflow gauge has indicated that water from\nan upstream dam release from Painted Rock Dam has reached\nDateland. Flooding is expected along the Gila River within the\nwarned area.\n- Some locations that will experience flooding include...\nFarmlands and low-water crossings along the Gila River.\n- http://www.weather.gov/safety/flood",
+        "effective": "2026-11-20T15:20:00-07:00",
+        "ends": "2026-11-27T15:15:00-07:00",
+        "event": "Flood Warning",
+        "eventCode": {
+          "NationalWeatherService": [
+            "FAW"
+          ],
+          "SAME": [
+            "FLW"
+          ]
+        },
+        "expires": "2026-11-27T15:15:00-07:00",
+        "geocode": {
+          "SAME": [
+            "004027"
+          ],
+          "UGC": [
+            "AZC027"
+          ]
+        },
+        "headline": "Flood Warning issued November 20 at 3:20PM MST until November 27 at 3:15PM MST by NWS Phoenix AZ",
+        "id": "urn:oid:2.49.0.1.840.0.2745f4fa458bfc73ec89e51965114c9e810b61b2.001.1",
+        "instruction": "Turn around, don't drown when encountering flooded roads. Most flood\ndeaths occur in vehicles.\n\nBe aware of your surroundings and do not drive on flooded roads.",
+        "language": "en-US",
+        "messageType": "Alert",
+        "note": null,
+        "onset": "2026-11-20T15:20:00-07:00",
+        "parameters": {
+          "AWIPSidentifier": [
+            "FLWPSR"
+          ],
+          "BLOCKCHANNEL": [
+            "EAS",
+            "NWEM",
+            "CMAS"
+          ],
+          "EAS-ORG": [
+            "WXR"
+          ],
+          "NWSheadline": [
+            "FLOOD WARNING IN EFFECT UNTIL 315 PM MST FRIDAY"
+          ],
+          "VTEC": [
+            "/O.NEW.KPSR.FA.W.0045.261120T2220Z-261127T2215Z/"
+          ],
+          "WMOidentifier": [
+            "WGUS45 KPSR 202220"
+          ],
+          "eventEndingTime": [
+            "2026-11-27T15:15:00-07:00"
+          ]
+        },
+        "references": [],
+        "response": "Avoid",
+        "scope": "Public",
+        "sender": "w-nws.webmaster@noaa.gov",
+        "senderName": "NWS Phoenix AZ",
+        "sent": "2026-11-20T15:20:00-07:00",
+        "severity": "Severe",
+        "status": "Actual",
+        "urgency": "Expected",
+        "web": "http://www.weather.gov"
+      },
+      "type": "Feature"
+    }
+  ],
+  "title": "Current watches, warnings, and advisories",
+  "type": "FeatureCollection",
+  "updated": "2026-11-22T20:24:58+00:00"
+}

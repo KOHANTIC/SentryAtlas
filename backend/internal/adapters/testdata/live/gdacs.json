@@ -1,0 +1,252 @@
+{
+  "bbox": null,
+  "features": [
+    {
+      "bbox": [
+        14.216,
+        47.431,
+        14.216,
+        47.431
+      ],
+      "geometry": {
+        "coordinates": [
+          14.216,
+          47.431
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "Class": "Point_Centroid",
+        "affectedcountries": [
+          {
+            "countryname": "Albania",
+            "iso2": "AL",
+            "iso3": "ALB"
+          },
+          {
+            "countryname": "Austria",
+            "iso2": "AT",
+            "iso3": "AUT"
+          },
+          {
+            "countryname": "Bosnia \u0026 Herzegovina",
+            "iso2": "BA",
+            "iso3": "BIH"
+          },
+          {
+            "countryname": "Belgium",
+            "iso2": "BE",
+            "iso3": "BEL"
+          },
+          {
+            "countryname": "Bulgaria",
+            "iso2": "BG",
+            "iso3": "BGR"
+          },
+          {
+            "countryname": "Belarus",
+            "iso2": "BY",
+            "iso3": "BLR"
+          },
+          {
+            "countryname": "Switzerland",
+            "iso2": "CH",
+            "iso3": "CHE"
+          },
+          {
+            "countryname": "Czech Republic",
+            "iso2": "CZ",
+            "iso3": "CZE"
+          },
+          {
+            "countryname": "Germany",
+            "iso2": "DE",
+            "iso3": "DEU"
+          },
+          {
+            "countryname": "Denmark",
+            "iso2": "DK",
+            "iso3": "DNK"
+          },
+          {
+            "countryname": "Spain",
+            "iso2": "ES",
+            "iso3": "ESP"
+          },
+          {
+            "countryname": "France",
+            "iso2": "FR",
+            "iso3": "FRA"
+          },
+          {
+            "countryname": "Croatia",
+            "iso2": "HR",
+            "iso3": "HRV"
+          },
+          {
+            "countryname": "Hungary",
+            "iso2": "HU",
+            "iso3": "HUN"
+          },
+          {
+            "countryname": "Ireland",
+            "iso2": "IE",
+            "iso3": "IRL"
+          },
+          {
+            "countryname": "Italy",
+            "iso2": "IT",
+            "iso3": "ITA"
+          },
+          {
+            "countryname": "Liechtenstein",
+            "iso2": "LI",
+            "iso3": "LIE"
+          },
+          {
+            "countryname": "Luxembourg",
+            "iso2": "LU",
+            "iso3": "LUX"
+          },
+          {
+            "countryname": "Montenegro",
+            "iso2": "ME",
+            "iso3": "MNE"
+          },
+          {
+            "countryname": "Poland",
+            "iso2": "PL",
+            "iso3": "POL"
+          },
+          {
+            "countryname": "Romania",
+            "iso2": "RO",
+            "iso3": "ROU"
+          },
+          {
+            "countryname": "Serbia",
+            "iso2": "RS",
+            "iso3": "SRB"
+          },
+          {
+            "countryname": "Sweden",
+            "iso2": "SE",
+            "iso3": "SWE"
+          },
+          {
+            "countryname": "Slovenia",
+            "iso2": "SI",
+            "iso3": "SVN"
+          },
+          {
+            "countryname": "Slovakia",
+            "iso2": "SK",
+            "iso3": "SVK"
+          },
+          {
+            "countryname": "Ukraine",
+            "iso2": "UA",
+            "iso3": "UKR"
+          }
+        ],
+        "alertlevel": "Orange",
+        "alertscore": 2,
+        "country": "Albania, Austria, Bosnia \u0026 Herzegovina, Belgium, Bulgaria, Belarus, Switzerland, Czech Republic, Germany, Denmark, Spain, France, Croatia, Hungary, Ireland, Italy, Liechtenstein, Luxembourg, Montenegro, Poland, Romania, Serbia, Sweden, Slovenia, Slovakia, Ukraine, ",
+        "datemodified": "2026-11-22T05:57:03",
+        "description": "Drought in Albania, Austria, Bosnia  and  Herzegovina, Belgium, Bulgaria, Belarus, Switzerland, Czech Republic, Germany, Denmark, Spain, France, Croatia, Hungary, Ireland, Italy, Liechtenstein, Luxembourg, Montenegro, Poland, Romania, Serbia, Sweden, Slovenia, Slovakia, Ukraine, ",
+        "episodealertlevel": "Orange",
+        "episodealertscore": 1.25,
+        "episodeid": 28,
+        "eventid": 1018332,
+        "eventname": "Europe-2026",
+        "eventtype": "DR",
+        "fromdate": "2025-12-21T00:00:00",
+        "glide": "DR-2025-000239-ALB",
+        "htmldescription": "Orange Drought in Albania, Austria, Bosnia  and  Herzegovina, Belgium, Bulgaria, Belarus, Switzerland, Czech Republic, Germany, Denmark, Spain, France, Croatia, Hungary, Ireland, Italy, Liechtenstein, Luxembourg, Montenegro, Poland, Romania, Serbia, Sweden, Slovenia, Slovakia, Ukraine, from: 21 Dec 2025  to: 20 Nov 2026 .",
+        "icon": "https://www.gdacs.org/images/gdacs_icons/maps/Orange/DR.png",
+        "iconoverall": "https://www.gdacs.org/images/gdacs_icons/maps/Orange/DR.png",
+        "iscurrent": "false",
+        "iso3": "ALB",
+        "istemporary": "false",
+        "name": "Drought in Albania, Austria, Bosnia  and  Herzegovina, Belgium, Bulgaria, Belarus, Switzerland, Czech Republic, Germany, Denmark, Spain, France, Croatia, Hungary, Ireland, Italy, Liechtenstein, Luxembourg, Montenegro, Poland, Romania, Serbia, Sweden, Slovenia, Slovakia, Ukraine, ",
+        "polygonlabel": "Centroid",
+        "severitydata": {
+          "severity": 1121702,
+          "severitytext": "Medium impact for agricultural drought in 1121702 km2",
+          "severityunit": "km2"
+        },
+        "source": "GDO",
+        "sourceid": "",
+        "todate": "2026-11-20T00:00:00",
+        "url": {
+          "details": "https://www.gdacs.org/gdacsapi/api/events/geteventdata?eventtype=DR\u0026eventid=1018332",
+          "geometry": "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=DR\u0026eventid=1018332\u0026episodeid=28",
+          "report": "https://www.gdacs.org/report.aspx?eventid=1018332\u0026episodeid=28\u0026eventtype=DR"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "bbox": [
+        80.2,
+        15.8,
+        80.2,
+        15.8
+      ],
+      "geometry": {
+        "coordinates": [
+          80.2,
+          15.8
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "Class": "Point_Centroid",
+        "affectedcountries": [
+          {
+            "countryname": "India",
+            "iso2": "IN",
+            "iso3": "IND"
+          }
+        ],
+        "alertlevel": "Red",
+        "alertscore": 3,
+        "country": "India",
+        "countryonland": "",
+        "datemodified": "2026-11-04T06:01:20",
+        "description": "Tropical Cyclone MURASU-26",
+        "episodealertlevel": "Red",
+        "episodealertscore": 3,
+        "episodeid": 10,
+        "eventid": 1001346,
+        "eventname": "MURASU-26",
+        "eventtype": "TC",
+        "fromdate": "2026-11-01T00:00:00",
+        "glide": "TC-2026-000199-IND",
+        "htmldescription": "Red Tropical Cyclone MURASU-26 in India from: 01 Nov 2026  to: 03 Nov 2026 .",
+        "icon": "https://www.gdacs.org/images/gdacs_icons/maps/Red/TC.png",
+        "iconoverall": "https://www.gdacs.org/images/gdacs_icons/maps/Red/TC.png",
+        "iscurrent": "false",
+        "iso3": "IND",
+        "istemporary": "false",
+        "name": "Tropical Cyclone MURASU-26",
+        "polygonlabel": "Centroid",
+        "severitydata": {
+          "severity": 157.4064,
+          "severitytext": "Hurricane/Typhoon \u003e 74 mph (maximum wind speed of 157 km/h)",
+          "severityunit": "km/h"
+        },
+        "source": "JTWC",
+        "sourceid": "",
+        "todate": "2026-11-03T06:00:00",
+        "url": {
+          "details": "https://www.gdacs.org/gdacsapi/api/events/geteventdata?eventtype=TC\u0026eventid=1001346",
+          "geometry": "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=TC\u0026eventid=1001346\u0026episodeid=10",
+          "report": "https://www.gdacs.org/report.aspx?eventid=1001346\u0026episodeid=10\u0026eventtype=TC"
+        }
+      },
+      "type": "Feature"
+    }
+  ],
+  "type": "FeatureCollection"
+}

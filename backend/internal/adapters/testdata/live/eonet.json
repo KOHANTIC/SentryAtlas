@@ -1,0 +1,251 @@
+{
+  "description": "Natural events from EONET.",
+  "events": [
+    {
+      "categories": [
+        {
+          "id": "wildfires",
+          "title": "Wildfires"
+        }
+      ],
+      "closed": null,
+      "description": null,
+      "geometry": [
+        {
+          "coordinates": [
+            -82.7985,
+            36.36301667
+          ],
+          "date": "2026-11-18T14:11:00Z",
+          "magnitudeUnit": "acres",
+          "magnitudeValue": 500,
+          "type": "Point"
+        }
+      ],
+      "id": "EONET_26568",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_26568",
+      "sources": [
+        {
+          "id": "IRWIN",
+          "url": "https://irwin.doi.gov/observer/incidents/2026-TNTNS-261114"
+        }
+      ],
+      "title": "Wildfire Greene - Caney Creek Lane, Greene, Tennessee"
+    },
+    {
+      "categories": [
+        {
+          "id": "severeStorms",
+          "title": "Severe Storms"
+        }
+      ],
+      "closed": null,
+      "description": null,
+      "geometry": [
+        {
+          "coordinates": [
+            86.8,
+            11.4
+          ],
+          "date": "2026-11-16T18:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 35,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            87.2,
+            11.7
+          ],
+          "date": "2026-11-17T00:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 35,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            87.3,
+            12
+          ],
+          "date": "2026-11-17T06:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 40,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            87.3,
+            12.2
+          ],
+          "date": "2026-11-17T12:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 40,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            87.3,
+            13.1
+          ],
+          "date": "2026-11-17T18:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 45,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            86.9,
+            13
+          ],
+          "date": "2026-11-18T00:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 45,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            86.9,
+            13.1
+          ],
+          "date": "2026-11-18T06:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 40,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            86.5,
+            13.6
+          ],
+          "date": "2026-11-18T12:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 40,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            86.4,
+            13.8
+          ],
+          "date": "2026-11-18T18:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 35,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            86.2,
+            14.6
+          ],
+          "date": "2026-11-19T00:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 35,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            85.4,
+            15.1
+          ],
+          "date": "2026-11-19T06:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 35,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            85.3,
+            16
+          ],
+          "date": "2026-11-19T12:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 35,
+          "type": "Point"
+        },
+        {
+          "coordinates": [
+            84.7,
+            17.2
+          ],
+          "date": "2026-11-19T18:00:00Z",
+          "magnitudeUnit": "kts",
+          "magnitudeValue": 30,
+          "type": "Point"
+        }
+      ],
+      "id": "EONET_26494",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_26494",
+      "sources": [
+        {
+          "id": "JTWC",
+          "url": "https://www.metoc.navy.mil/jtwc/products/io0526.tcw"
+        }
+      ],
+      "title": "Tropical Cyclone Akvan"
+    },
+    {
+      "categories": [
+        {
+          "id": "seaLakeIce",
+          "title": "Sea and Lake Ice"
+        }
+      ],
+      "closed": null,
+      "description": null,
+      "geometry": [
+        {
+          "coordinates": [
+            163.35,
+            -69.76
+          ],
+          "date": "2026-10-30T00:00:00Z",
+          "magnitudeUnit": "NM^2",
+          "magnitudeValue": 19.62,
+          "type": "Point"
+        }
+      ],
+      "id": "EONET_25990",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_25990",
+      "sources": [
+        {
+          "id": "NATICE",
+          "url": "https://usicecenter.gov/pub/Iceberg_Tabular.csv"
+        }
+      ],
+      "title": "Iceberg B22K"
+    },
+    {
+      "categories": [
+        {
+          "id": "volcanoes",
+          "title": "Volcanoes"
+        }
+      ],
+      "closed": null,
+      "description": null,
+      "geometry": [
+        {
+          "coordinates": [
+            -71.378,
+            -36.868
+          ],
+          "date": "2026-06-15T00:00:00Z",
+          "magnitudeUnit": null,
+          "magnitudeValue": null,
+          "type": "Point"
+        }
+      ],
+      "id": "EONET_20710",
+      "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_20710",
+      "sources": [
+        {
+          "id": "SIVolcano",
+          "url": "https://volcano.si.edu/volcano.cfm?vn=357070"
+        }
+      ],
+      "title": "Nevados del Chillan Volcano, Chile"
+    }
+  ],
+  "link": "https://eonet.gsfc.nasa.gov/api/v3/events",
+  "title": "EONET Events"
+}
