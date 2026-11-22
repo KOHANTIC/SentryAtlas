@@ -1,12 +1,38 @@
-# SentryAtlas API v2: the event model
+# SentryAtlas API v2
 
-v2 is not served yet. `/api/v2/snapshot` and `/api/v2/events/{id}` arrive with #23, and v1 stays (see `backend/README.md`, Compatibility).
+v2 is served at `/api/v2/snapshot` and `/api/v2/events/{id}`, beside v1, which stays (see `backend/README.md`, Compatibility).
 
 | File | What it is |
 |---|---|
 | `schema.json` | JSON Schema (2020-12) of a snapshot and its events |
 | `snapshot.example.json` | A small snapshot built from real records of 2026-11-22, one or two per source |
 | `backend/internal/event/` | The same model in Go. Its tests hold the schema's fields and the example to it |
+
+## Endpoints
+
+Both are read from copies the server polls on its own, never from a source while you wait. They allow any origin, share v1's rate limit, and answer `503` with `Cache-Control: no-store` until every source has been polled once after a start.
+
+### `GET /api/v2/snapshot`
+
+The whole world in one response that every visitor shares, for a client to filter itself.
+
+- **`window`:** `7d` (the default) or `30d`, the events whose `time.updated` falls in that many days. Any other parameter or value is a `400`, so the responses stay few enough for a cache to keep.
+- **Contents:** a snapshot as in `schema.json`. Events leave out `description` and `details.noaa.instruction`, which only the detail endpoint carries. `sources[].count` counts this snapshot's events.
+- **Built once per poll:** the server builds and gzips it when a poll is recorded, or after a minute so expired events leave, not per request.
+- **Caching:**
+  - `Cache-Control: public, max-age=30` and `Vary: Accept-Encoding`;
+  - gzip when the client accepts it;
+  - a weak `ETag`, and `If-None-Match` with it answers `304`. The tag leaves out `generated`, so it changes only when the data does.
+
+### `GET /api/v2/events/{id}`
+
+One event in full, with its long text and full geometry, and its source's status:
+
+```json
+{ "event": { "id": "usgs-ak0261d6m9t2", "...": "..." }, "source": { "source": "usgs", "ok": true, "fetched_at": "2026-11-22T21:54:57Z", "stale": false, "count": 9443 } }
+```
+
+`404` when no event with that id is being served. `Cache-Control: public, max-age=30`.
 
 ## Events
 
