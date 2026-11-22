@@ -24,6 +24,7 @@ const (
 
 type EventsHandler struct {
 	service *service.EventsService
+	calls   callCounts
 }
 
 func NewEventsHandler(svc *service.EventsService) *EventsHandler {
@@ -36,6 +37,7 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	h.calls.add(format, r)
 
 	if format == "sse" {
 		// No default limit here: SSE is the map's own chunked path and is

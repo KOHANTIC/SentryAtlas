@@ -88,6 +88,7 @@ func run(logger *slog.Logger) error {
 	defer waitPollers()
 
 	eventsHandler := handler.NewEventsHandler(service.NewEventsService(adapterList, st))
+	go eventsHandler.ReportCalls(ctx, time.Hour)
 
 	r := chi.NewRouter()
 
