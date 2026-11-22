@@ -8,36 +8,61 @@ on:
 permissions:
   contents: read
 
+# Never download a different Go than the one a job asked for.
+env:
+  GOTOOLCHAIN: local
+
+# A newer push to the same branch or pull request makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     name: Backend (Go)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          go-version-file: backend/go.mod
+          persist-credentials: false
+      # The Go release is written once, in the Dockerfile production is built from, so the
+      # tests run on the release that ships.
+      - name: Go release from the Dockerfile
+        id: go
+        run: |
+          version=$(sed -nE 's/^FROM golang:([0-9]+\.[0-9]+)-alpine.*/\1/p' Dockerfile)
+          test -n "$version" || { echo "backend/Dockerfile has no FROM golang:X.Y-alpine line"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: ${{ steps.go.outputs.version }}
           cache-dependency-path: backend/go.sum
       - run: go build ./...
       - run: go vet ./...
       - run: go test -race -count=1 -cover ./...
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
+          # Pinned so a new release cannot fail an unchanged tree. Dependabot does not update it.
+          version: v2.15.0
           working-directory: backend
 
   frontend:
     name: Frontend (Next.js)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -49,12 +74,15 @@ jobs:
   landing:
     name: Landing (Next.js)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: landing
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -62,3 +90,46 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+
+  # The images the platform deploys, built from the same directory it builds them from, and
+  # not pushed anywhere. The landing site is not an image: the job above builds it as the
+  # platform does.
+  docker:
+    name: Docker (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [backend, frontend]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: docker build
+        env:
+          APP: ${{ matrix.app }}
+        run: |
+          if [ "$APP" = frontend ]; then
+            # Inlined at build time; production sets it to the map's own address.
+            docker build --build-arg NEXT_PUBLIC_API_URL=https://map.sentryatlas.com frontend
+          else
+            docker build "$APP"
+          fi
+
+  # The one check the main ruleset requires: it passes only when every job above passed.
+  # It runs on always(), not !cancelled(): a cancelled run would then skip it, and a skipped
+  # check counts as passing for a required one.
+  gate:
+    name: gate
+    if: always()
+    needs: [backend, frontend, landing, docker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: every job passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$RESULTS" | jq -e 'all(.[]; .result == "success")' > /dev/null
