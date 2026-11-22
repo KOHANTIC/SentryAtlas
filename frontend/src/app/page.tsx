@@ -172,7 +172,9 @@ export default function Home() {
         )}
       </div>
 
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
+      {/* On phones the map's attribution bar spans the bottom edge, so the
+          link sits above it; from sm up the attribution stays at the right. */}
+      <div className="absolute bottom-11 sm:bottom-2 left-1/2 -translate-x-1/2 z-10">
         <span className="text-[11px] text-foreground-muted bg-surface-overlay border border-border px-2 py-1 whitespace-nowrap">
           <span className="hidden sm:inline">
             Made with ♥ by the{" "}
