@@ -31,7 +31,7 @@ Three components, deployed as two DigitalOcean apps:
                         └───────────┴───────────┴───────────┘
 ```
 
-- **Backend** — Go API that fetches from 4 upstream sources concurrently, caches per source in memory, and serves a unified `/api/v1/events` endpoint as GeoJSON, flat JSON, or a Server-Sent Events stream
+- **Backend** — Go API that polls 4 upstream sources on its own schedule, keeps each one's last good copy in memory, and serves a unified `/api/v1/events` endpoint as GeoJSON, flat JSON, or a Server-Sent Events stream
 - **Frontend** — Next.js app with MapLibre GL for interactive map rendering, filtering by event type, time range, and viewport
 - **Landing** — Static marketing site built with Next.js (`output: "export"`)
 
@@ -79,10 +79,11 @@ sentryatlas/
 │   ├── cmd/server/          # Entry point
 │   ├── internal/
 │   │   ├── adapters/        # USGS, EONET, NOAA, GDACS integrations
-│   │   ├── cache/           # Generic in-memory TTL cache
-│   │   ├── handler/         # HTTP handler and query parsing
-│   │   ├── models/          # Unified Event model, event-type registry
-│   │   └── service/         # Fan-out orchestration
+│   │   ├── event/           # The v2 event model and its v1 projection
+│   │   ├── handler/         # HTTP handlers and query parsing
+│   │   ├── models/          # The v1 event model, event-type registry
+│   │   ├── service/         # v1 answers from the store
+│   │   └── store/           # Each source's last good copy, and its poller
 │   └── Dockerfile
 ├── frontend/                # Next.js map application
 │   ├── src/
