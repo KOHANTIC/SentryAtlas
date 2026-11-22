@@ -1,0 +1,7 @@
+{
+  "status": 400,
+  "content_type": "application/json",
+  "body": {
+    "error": "invalid bbox: expected 4 values: minLon,minLat,maxLon,maxLat"
+  }
+}

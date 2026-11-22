@@ -1,0 +1,7 @@
+{
+  "status": 400,
+  "content_type": "application/json",
+  "body": {
+    "error": "invalid type \"meteor\": valid types are earthquake, wildfire, volcano, storm, flood, cyclone, tornado, hurricane, winter_storm, tsunami, drought, iceberg, landslide, weather, other"
+  }
+}
