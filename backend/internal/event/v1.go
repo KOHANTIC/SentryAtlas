@@ -40,6 +40,14 @@ func (d Details) v1Metadata() map[string]any {
 			m["depth"] = *d.USGS.DepthKm
 		}
 		return m
+	case d.NOAA != nil:
+		return map[string]any{
+			"event":       d.NOAA.Event,
+			"area_desc":   d.NOAA.Area,
+			"urgency":     d.NOAA.Urgency,
+			"certainty":   d.NOAA.Certainty,
+			"sender_name": d.NOAA.Sender,
+		}
 	}
 	return nil
 }

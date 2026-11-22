@@ -6,8 +6,8 @@
     "events": [
       {
         "coordinates": {
-          "latitude": 32.4,
-          "longitude": -96.6
+          "latitude": 32.5,
+          "longitude": -96.5
         },
         "description": "A severe thunderstorm capable of producing a tornado was located near Dallas.",
         "event_type": "tornado",
