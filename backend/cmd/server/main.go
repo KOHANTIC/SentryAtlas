@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,6 +19,7 @@ import (
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/cache"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/handler"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/httpx"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
 )
@@ -30,6 +29,11 @@ func main() {
 	cacheTTLMin := envPositiveIntOrDefault("CACHE_TTL_MINUTES", 5)
 	fetchTimeoutSec := envPositiveIntOrDefault("FETCH_TIMEOUT_SECONDS", 30)
 	rateLimitPerMin := envPositiveIntOrDefault("RATE_LIMIT_PER_MINUTE", 60)
+
+	// The header the proxy in front of the API writes the client address
+	// into, overwriting any value a client sends. Empty means no proxy: the
+	// TCP peer is the client, as on a local run.
+	clientIPHeader := os.Getenv("CLIENT_IP_HEADER")
 
 	// NWS policy requires an identifying User-Agent with contact info.
 	// Overridable so that forks don't misidentify as SentryAtlas.
@@ -64,11 +68,12 @@ func main() {
 
 	r := chi.NewRouter()
 
-	// Temporary, for #7: first, so it sees the socket address before RealIP
-	// rewrites it. Removed once the rate limiter trusts the right header.
-	r.Use(clientAddressProbe)
 	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
+	if clientIPHeader != "" {
+		r.Use(middleware.ClientIPFromHeader(clientIPHeader))
+	} else {
+		r.Use(middleware.ClientIPFromRemoteAddr)
+	}
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	// Types listed explicitly: application/geo+json is not in the
@@ -91,19 +96,12 @@ func main() {
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
-		// Trust model: middleware.RealIP (above) rewrites RemoteAddr from
-		// X-Forwarded-For, which the platform's load balancer sets from the
-		// true client — so RemoteAddr here is the client, not the proxy.
-		// CanonicalizeIP buckets IPv6 by /64. /health stays exempt so
-		// orchestrator probes can never be throttled.
-		r.Use(httprate.LimitBy(rateLimitPerMin, time.Minute,
-			func(r *http.Request) (string, error) {
-				ip, _, err := net.SplitHostPort(r.RemoteAddr)
-				if err != nil {
-					ip = r.RemoteAddr
-				}
-				return httprate.CanonicalizeIP(ip), nil
-			}))
+		// Keyed on the address from CLIENT_IP_HEADER only: headers a client can
+		// set itself, such as True-Client-IP or the start of X-Forwarded-For,
+		// would let anyone reset their own limit. /health stays exempt so
+		// platform probes are never throttled.
+		r.Use(httprate.LimitBy(rateLimitPerMin, time.Minute, httpx.RateLimitKey,
+			httprate.WithLimitHandler(httpx.TooManyRequests)))
 		r.Get("/events", eventsHandler.GetEvents)
 	})
 
@@ -116,7 +114,9 @@ func main() {
 	}
 
 	go func() {
-		slog.Info("server starting", "port", port)
+		// Empty client_ip_header behind a proxy would put every visitor in one
+		// rate-limit bucket, so the startup line says which source is in use.
+		slog.Info("server starting", "port", port, "client_ip_header", clientIPHeader)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			slog.Error("server failed", "error", err)
 			os.Exit(1)
@@ -137,31 +137,6 @@ func main() {
 	}
 
 	slog.Info("server stopped")
-}
-
-// clientAddressProbe answers GET /health/client with the socket address and
-// the request headers, without credentials, to show which client address
-// headers the proxies in front of the API set and overwrite. Temporary, for #7.
-func clientAddressProbe(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet || r.URL.Path != "/health/client" {
-			next.ServeHTTP(w, r)
-			return
-		}
-		headers := make(map[string][]string, len(r.Header))
-		for name, values := range r.Header {
-			if name == "Cookie" || name == "Authorization" {
-				continue
-			}
-			headers[name] = values
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Cache-Control", "no-store")
-		_ = json.NewEncoder(w).Encode(map[string]any{
-			"remote_addr": r.RemoteAddr,
-			"headers":     headers,
-		})
-	})
 }
 
 func envOrDefault(key, fallback string) string {

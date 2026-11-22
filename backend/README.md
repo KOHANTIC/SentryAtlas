@@ -41,6 +41,7 @@ All configuration is via environment variables. Every variable has a sensible de
 | `PORT` | `8080` | Port the HTTP server listens on |
 | `CACHE_TTL_MINUTES` | `5` | How long upstream responses are cached in memory |
 | `FETCH_TIMEOUT_SECONDS` | `30` | Max time to wait for upstream APIs to respond |
+| `CLIENT_IP_HEADER` | empty | Header the proxy in front of the API writes the client address into, overwriting any value a client sends. The rate limit keys on it. Empty: the TCP peer, for running with no proxy. |
 
 ## API
 
