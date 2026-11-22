@@ -1,0 +1,158 @@
+{
+  "generated": "2026-11-22T21:00:00Z",
+  "window": "30d",
+  "sources": [
+    { "source": "usgs", "ok": true, "fetched_at": "2026-11-22T20:59:12Z", "stale": false, "count": 1 },
+    { "source": "eonet", "ok": true, "fetched_at": "2026-11-22T20:58:40Z", "stale": false, "count": 1 },
+    { "source": "noaa", "ok": true, "fetched_at": "2026-11-22T20:59:30Z", "stale": false, "count": 2 },
+    { "source": "gdacs", "ok": true, "fetched_at": "2026-11-22T20:55:02Z", "stale": false, "count": 1 }
+  ],
+  "events": [
+    {
+      "id": "usgs-aka2026xaubpp",
+      "source": "usgs",
+      "type": "earthquake",
+      "title": "M 4.1 - 28 km NNE of Chenega, Alaska",
+      "magnitude": { "value": 4.1, "unit": "ml" },
+      "time": {
+        "started": "2026-11-21T04:29:14.724Z",
+        "updated": "2026-11-21T07:14:05.116Z"
+      },
+      "location": {
+        "center": [-147.79, 60.301],
+        "geometry": { "type": "Point", "coordinates": [-147.79, 60.301] }
+      },
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/aka2026xaubpp",
+      "details": {
+        "usgs": {
+          "kind": "earthquake",
+          "status": "reviewed",
+          "depth_km": 3.6,
+          "tsunami": true,
+          "felt": 16,
+          "cdi": 3.4,
+          "mmi": 4.399,
+          "significance": 264,
+          "detail_url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/aka2026xaubpp.geojson"
+        }
+      }
+    },
+    {
+      "id": "eonet-EONET_26494",
+      "source": "eonet",
+      "type": "storm",
+      "title": "Tropical Cyclone Akvan",
+      "magnitude": { "value": 30, "unit": "kts" },
+      "time": {
+        "started": "2026-11-16T18:00:00Z",
+        "updated": "2026-11-19T18:00:00Z"
+      },
+      "location": {
+        "center": [84.7, 17.2],
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [86.8, 11.4], [87.2, 11.7], [87.3, 12], [87.3, 12.2], [87.3, 13.1], [86.9, 13], [86.9, 13.1],
+            [86.5, 13.6], [86.4, 13.8], [86.2, 14.6], [85.4, 15.1], [85.3, 16], [84.7, 17.2]
+          ]
+        }
+      },
+      "url": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_26494",
+      "details": {
+        "eonet": {
+          "categories": ["severeStorms"],
+          "sources": [{ "id": "JTWC", "url": "https://www.metoc.navy.mil/jtwc/products/io0526.tcw" }]
+        }
+      }
+    },
+    {
+      "id": "noaa-urn:oid:2.49.0.1.840.0.d7a384fbdf531ad30df91099c55d5e6a46705300.001.1",
+      "source": "noaa",
+      "type": "weather",
+      "title": "Marine Weather Statement issued November 22 at 4:15PM AST by NWS San Juan PR",
+      "severity": { "level": "minor", "source_level": "Minor" },
+      "time": {
+        "started": "2026-11-22T20:15:00Z",
+        "updated": "2026-11-22T20:15:00Z",
+        "expires": "2026-11-22T21:15:00Z"
+      },
+      "location": {
+        "center": [-67.235, 18.815],
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[-67.22, 18.59], [-67.67, 18.84], [-67.07, 19.14], [-66.98, 18.69], [-67.22, 18.59]]]
+        },
+        "zones": ["AMZ711", "AMZ712"]
+      },
+      "url": "http://www.weather.gov",
+      "details": {
+        "noaa": {
+          "event": "Marine Weather Statement",
+          "urgency": "Expected",
+          "certainty": "Observed",
+          "response": "Monitor",
+          "message_type": "Alert",
+          "sender": "NWS San Juan PR",
+          "area": "Atlantic Waters of Puerto Rico AND USVI from 10 NM to 19.5N; Coastal Waters of Northern Puerto Rico out 10 NM"
+        }
+      }
+    },
+    {
+      "id": "noaa-urn:oid:2.49.0.1.840.0.2ce106bcc2c20135886c18b9f44b9ea7b01153e9.002.1",
+      "source": "noaa",
+      "type": "weather",
+      "title": "Small Craft Advisory issued November 22 at 3:12PM EST until November 24 at 4:00AM EST by NWS Grand Rapids MI",
+      "severity": { "level": "minor", "source_level": "Minor" },
+      "time": {
+        "started": "2026-11-22T20:12:00Z",
+        "updated": "2026-11-22T20:12:00Z",
+        "ends": "2026-11-24T09:00:00Z",
+        "expires": "2026-11-23T04:15:00Z"
+      },
+      "location": {
+        "zones": ["LMZ844", "LMZ845", "LMZ846"]
+      },
+      "url": "http://www.weather.gov",
+      "details": {
+        "noaa": {
+          "event": "Small Craft Advisory",
+          "urgency": "Expected",
+          "certainty": "Likely",
+          "response": "Avoid",
+          "message_type": "Alert",
+          "sender": "NWS Grand Rapids MI",
+          "area": "St Joseph to South Haven MI; South Haven to Holland MI; Holland to Grand Haven MI"
+        }
+      }
+    },
+    {
+      "id": "gdacs-TC-1001346",
+      "source": "gdacs",
+      "type": "cyclone",
+      "title": "Tropical Cyclone MURASU-26",
+      "severity": { "level": "extreme", "source_level": "Red" },
+      "magnitude": { "value": 157.4064, "unit": "km/h" },
+      "time": {
+        "started": "2026-11-01T00:00:00Z",
+        "updated": "2026-11-04T06:01:20Z",
+        "ends": "2026-11-03T06:00:00Z"
+      },
+      "location": {
+        "center": [80.2, 15.8],
+        "geometry": { "type": "Point", "coordinates": [80.2, 15.8] }
+      },
+      "url": "https://www.gdacs.org/report.aspx?eventid=1001346&episodeid=10&eventtype=TC",
+      "details": {
+        "gdacs": {
+          "alert_level": "Red",
+          "alert_score": 3,
+          "episode_id": 10,
+          "countries": ["India"],
+          "current": false,
+          "severity_text": "Hurricane/Typhoon > 74 mph (maximum wind speed of 157 km/h)",
+          "footprint_url": "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=TC&eventid=1001346&episodeid=10"
+        }
+      }
+    }
+  ]
+}
