@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/event"
 )
 
 func newTestUSGS(t *testing.T, srv *httptest.Server) *USGSAdapter {
@@ -22,8 +24,8 @@ func TestUSGSSourceAndSupportedTypes(t *testing.T) {
 	if got := a.Source(); got != "usgs" {
 		t.Errorf("Source() = %q, want %q", got, "usgs")
 	}
-	if got := a.SupportedTypes(); !slices.Equal(got, []string{"earthquake"}) {
-		t.Errorf("SupportedTypes() = %v, want [earthquake]", got)
+	if got := a.SupportedTypes(); !slices.Equal(got, []string{"earthquake", "landslide", "other"}) {
+		t.Errorf("SupportedTypes() = %v, want [earthquake landslide other]", got)
 	}
 }
 
@@ -88,9 +90,9 @@ func TestUSGSFetchEventsParsing(t *testing.T) {
 		if e.Severity != "" {
 			t.Errorf("Severity = %q, want empty for null alert", e.Severity)
 		}
-		// Two-element coordinates: no depth available.
-		if got := e.Metadata["depth"]; got != 0.0 {
-			t.Errorf("Metadata[depth] = %v, want 0 when absent", got)
+		// Two-element coordinates: the depth is unknown, not 0 km.
+		if got, ok := e.Metadata["depth"]; ok {
+			t.Errorf("Metadata[depth] = %v, want no depth when the feed gives none", got)
 		}
 	})
 
@@ -145,21 +147,63 @@ func TestUSGSAlertToSeverity(t *testing.T) {
 	}
 }
 
-func TestUSGSDepthFromCoords(t *testing.T) {
+// TestUSGSV2FromTheRealFeed maps the recorded feed onto v2: every event is
+// valid, and each kind, status and flag lands where the model says.
+func TestUSGSV2FromTheRealFeed(t *testing.T) {
 	t.Parallel()
-	cases := []struct {
-		name   string
-		coords []float64
-		want   float64
-	}{
-		{"three coords", []float64{1, 2, 42.5}, 42.5},
-		{"two coords", []float64{1, 2}, 0},
-		{"nil", nil, 0},
+	srv := serveFixture(t, "live/usgs.json", nil)
+	a := newTestUSGS(t, srv)
+
+	events, err := a.FetchV2(context.Background())
+	if err != nil {
+		t.Fatalf("FetchV2: %v", err)
 	}
-	for _, tc := range cases {
-		if got := depthFromCoords(tc.coords); got != tc.want {
-			t.Errorf("%s: depthFromCoords(%v) = %v, want %v", tc.name, tc.coords, got, tc.want)
+	byKind := map[string]event.Event{}
+	for _, e := range events {
+		if err := e.Validate(); err != nil {
+			t.Errorf("%s is not a valid v2 event: %v", e.ID, err)
 		}
+		if e.Time.Started.Location() != time.UTC {
+			t.Errorf("%s started is not UTC", e.ID)
+		}
+		byKind[e.Details.USGS.Kind] = e
+	}
+
+	for kind, want := range map[string]string{
+		"earthquake": "earthquake", "landslide": "landslide",
+		"quarry blast": "other", "explosion": "other", "ice quake": "other", "other event": "other",
+	} {
+		e, ok := byKind[kind]
+		if !ok {
+			t.Errorf("no recorded %q", kind)
+			continue
+		}
+		if e.Type != want {
+			t.Errorf("a %q is type %q, want %q", kind, e.Type, want)
+		}
+	}
+
+	var tsunami, alerted, automatic bool
+	for _, e := range events {
+		d := e.Details.USGS
+		if d.Tsunami {
+			tsunami = true
+		}
+		if d.Status == "automatic" {
+			automatic = true
+		}
+		if e.Severity != nil {
+			alerted = true
+			if e.Severity.SourceLevel != d.Alert {
+				t.Errorf("%s severity source_level %q, want the PAGER alert %q", e.ID, e.Severity.SourceLevel, d.Alert)
+			}
+		}
+		if e.Magnitude != nil && e.Magnitude.Unit == "" {
+			t.Errorf("%s magnitude has no unit", e.ID)
+		}
+	}
+	if !tsunami || !alerted || !automatic {
+		t.Errorf("tsunami %v, PAGER alert %v, automatic %v: want each in the recorded feed", tsunami, alerted, automatic)
 	}
 }
 
