@@ -121,7 +121,7 @@ loop:
 			if batch.Err != nil {
 				sources = append(sources, models.SourceStatus{
 					Source: batch.Source,
-					Error:  batch.Err.Error(),
+					Error:  service.Reason(batch.Err),
 				})
 				continue
 			}

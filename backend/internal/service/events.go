@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
+	"runtime/debug"
 	"sort"
 	"sync"
 	"time"
@@ -59,7 +61,17 @@ func (s *EventsService) fetchAdapter(a adapters.Adapter) ([]models.Event, error)
 		return cached, nil
 	}
 
-	result, err, _ := s.sfGroup.Do(key, func() (any, error) {
+	result, err, _ := s.sfGroup.Do(key, func() (_ any, err error) {
+		// Adapter work runs outside the HTTP recoverer, so a panic here would
+		// end the process. Recovered inside the singleflight call, it becomes
+		// this source's failure for every request waiting on it.
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("adapter panicked", "source", key, "panic", fmt.Sprint(r), "stack", string(debug.Stack()))
+				err = fmt.Errorf("%s: %w: %v", key, errInternal, r)
+			}
+		}()
+
 		ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 		defer cancel()
 		events, err := a.FetchEvents(ctx)
@@ -102,7 +114,7 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 				)
 				statuses = append(statuses, models.SourceStatus{
 					Source: a.Source(),
-					Error:  err.Error(),
+					Error:  Reason(err),
 				})
 				return
 			}

@@ -358,9 +358,13 @@ func TestGetEventsAllSourcesFail(t *testing.T) {
 	}
 }
 
+// upstreamFailure is a failure as the HTTP client reports it, address included,
+// which must reach clients only as a short reason.
+var upstreamFailure = errors.New(`bad: request failed: Get "https://upstream.example/feed?key=1": dial tcp: connection refused`)
+
 func TestGetEventsPartialFailureReportsSources(t *testing.T) {
 	t.Parallel()
-	bad := &fakeAdapter{source: "bad", err: errors.New("down")}
+	bad := &fakeAdapter{source: "bad", err: upstreamFailure}
 	good := &fakeAdapter{source: "good", events: makeEvents(1, "good")}
 	h := newTestHandler(t, bad, good)
 
@@ -379,8 +383,8 @@ func TestGetEventsPartialFailureReportsSources(t *testing.T) {
 	for _, s := range fc.Sources {
 		byName[s.Source] = s
 	}
-	if st := byName["bad"]; st.OK || st.Error != "down" {
-		t.Errorf("bad status = %+v, want failure with message", st)
+	if st := byName["bad"]; st.OK || st.Error != "could not be reached" {
+		t.Errorf("bad status = %+v, want failure with the short reason and no address", st)
 	}
 	if st := byName["good"]; !st.OK {
 		t.Errorf("good status = %+v, want OK", st)
@@ -529,7 +533,7 @@ func TestSSEEndToEnd(t *testing.T) {
 
 func TestSSEErrorAndEmptySources(t *testing.T) {
 	t.Parallel()
-	bad := &fakeAdapter{source: "bad", err: errors.New("down")}
+	bad := &fakeAdapter{source: "bad", err: upstreamFailure}
 	empty := &fakeAdapter{source: "empty"}
 	good := &fakeAdapter{source: "good", events: makeEvents(1, "good")}
 	h := newTestHandler(t, bad, empty, good)
@@ -560,8 +564,8 @@ func TestSSEErrorAndEmptySources(t *testing.T) {
 	for _, s := range done.Sources {
 		byName[s.Source] = s
 	}
-	if st := byName["bad"]; st.OK || st.Error != "down" {
-		t.Errorf("bad status = %+v, want failure with message", st)
+	if st := byName["bad"]; st.OK || st.Error != "could not be reached" {
+		t.Errorf("bad status = %+v, want failure with the short reason and no address", st)
 	}
 	if st := byName["empty"]; !st.OK {
 		t.Errorf("empty status = %+v, want OK (reachable, just no events)", st)
