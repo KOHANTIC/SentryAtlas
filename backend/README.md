@@ -215,6 +215,10 @@ Made in #5: `sources[].error` is a short reason, without upstream addresses or G
 
 Made in #6: a box over the date line returns the events on both sides of it. A box with NaN, an infinite value or a latitude outside -90..90 answers 400, where it answered 200 with nothing.
 
+Made in #17:
+- USGS events that are not earthquakes stop being labelled `earthquake`. Quarry blasts, explosions and ice quakes are `other`; landslides are `landslide`. A request for `other` or `landslide` now includes USGS.
+- A USGS event without a depth has no `metadata.depth`, where it had `0`.
+
 Announced changes:
 
 - **#19:** EONET's `started_at` becomes the event's first observation, not its latest.
