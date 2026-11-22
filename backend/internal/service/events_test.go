@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -148,8 +149,8 @@ func TestGetEventsLimitTruncatesAfterSort(t *testing.T) {
 
 func TestGetEventsAllSourcesFailed(t *testing.T) {
 	t.Parallel()
-	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, err: errors.New("alpha down")}
-	b := &fakeAdapter{source: "beta", types: []string{"flood"}, err: errors.New("beta down")}
+	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, err: fmt.Errorf("alpha: %w", &adapters.StatusError{Code: 503})}
+	b := &fakeAdapter{source: "beta", types: []string{"flood"}, err: errors.New(`Get "https://beta.example/feed": dial tcp: connection refused`)}
 	s := newTestService(t, a, b)
 
 	events, statuses, err := s.GetEvents(context.Background(), adapters.FetchParams{})
@@ -163,12 +164,12 @@ func TestGetEventsAllSourcesFailed(t *testing.T) {
 		t.Fatalf("statuses = %+v, want 2", statuses)
 	}
 	stA := statusBySource(t, statuses, "alpha")
-	if stA.OK || stA.Error != "alpha down" {
-		t.Errorf("alpha status = %+v, want !OK with error", stA)
+	if stA.OK || stA.Error != "answered HTTP 503" {
+		t.Errorf("alpha status = %+v, want !OK with the short reason", stA)
 	}
 	stB := statusBySource(t, statuses, "beta")
-	if stB.OK || stB.Error != "beta down" {
-		t.Errorf("beta status = %+v, want !OK with error", stB)
+	if stB.OK || stB.Error != "could not be reached" {
+		t.Errorf("beta status = %+v, want !OK with the short reason and no address", stB)
 	}
 }
 
