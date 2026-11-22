@@ -254,9 +254,7 @@ func filterEvents(events []models.Event, params adapters.FetchParams) []models.E
 			if len(e.Geometry.Coordinates) < 2 {
 				continue
 			}
-			lon, lat := e.Geometry.Coordinates[0], e.Geometry.Coordinates[1]
-			if lon < params.BBox.MinLon || lon > params.BBox.MaxLon ||
-				lat < params.BBox.MinLat || lat > params.BBox.MaxLat {
+			if !params.BBox.Contains(e.Geometry.Coordinates[0], e.Geometry.Coordinates[1]) {
 				continue
 			}
 		}
