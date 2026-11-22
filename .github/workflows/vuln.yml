@@ -1,0 +1,49 @@
+name: vuln
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # A report can land against code that has not changed, so look every Monday.
+    - cron: "41 6 * * 1"
+
+permissions:
+  contents: read
+
+# As in ci.yml: never download a different Go than the one the job asked for.
+env:
+  GOTOOLCHAIN: local
+
+concurrency:
+  group: vuln-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Known vulnerabilities in the Go release and in the modules the backend reaches. It is not
+  # part of the gate check: a report against the standard library would otherwise block every
+  # pull request until Go is updated.
+  govulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The release production is built with, as in ci.yml.
+      - name: Go release from the Dockerfile
+        id: go
+        run: |
+          version=$(sed -nE 's/^FROM golang:([0-9]+\.[0-9]+)-alpine.*/\1/p' Dockerfile)
+          test -n "$version" || { echo "backend/Dockerfile has no FROM golang:X.Y-alpine line"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: ${{ steps.go.outputs.version }}
+          cache-dependency-path: backend/go.sum
+      # Pinned so a new release cannot fail an unchanged tree. Dependabot does not update it.
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 ./...
