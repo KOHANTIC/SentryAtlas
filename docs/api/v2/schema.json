@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KOHANTIC/SentryAtlas/blob/main/docs/api/v2/schema.json",
+  "title": "SentryAtlas v2 snapshot",
+  "description": "Every event for one window, from all four sources. backend/internal/event holds the same model in Go, and its tests keep the two in step.",
+  "$ref": "#/$defs/Snapshot",
+  "$defs": {
+    "Snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generated", "window", "sources", "events"],
+      "properties": {
+        "generated": { "type": "string", "format": "date-time" },
+        "window": { "enum": ["7d", "30d"] },
+        "sources": { "type": "array", "items": { "$ref": "#/$defs/SourceStatus" } },
+        "events": { "type": "array", "items": { "$ref": "#/$defs/Event" } }
+      }
+    },
+    "SourceStatus": {
+      "description": "How fresh one source's part of the snapshot is.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "ok", "stale", "count"],
+      "properties": {
+        "source": { "$ref": "#/$defs/Source" },
+        "ok": { "type": "boolean" },
+        "fetched_at": { "type": "string", "format": "date-time", "description": "When the source last answered; absent if it never has." },
+        "stale": { "type": "boolean", "description": "True when the last fetch failed and an older copy is served." },
+        "error": { "type": "string", "description": "A short reason, when the last fetch failed. For people, not for parsing." },
+        "count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "Source": { "enum": ["usgs", "eonet", "noaa", "gdacs"] },
+    "Event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "type", "title", "time", "details"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^(usgs|eonet|noaa|gdacs)-.+", "description": "<source>-<upstream id>. Stays the same when the source updates the event." },
+        "group_id": { "type": "string", "description": "Shared by the reports of one real event from different sources. Worked out again on every fetch: never a key." },
+        "source": { "$ref": "#/$defs/Source" },
+        "type": {
+          "enum": ["earthquake", "wildfire", "volcano", "storm", "flood", "cyclone", "tornado", "hurricane", "winter_storm", "tsunami", "drought", "iceberg", "landslide", "weather", "other"]
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "description": "The source's own text. Only the event-detail endpoint carries it." },
+        "severity": { "$ref": "#/$defs/Severity" },
+        "magnitude": { "$ref": "#/$defs/Magnitude" },
+        "time": { "$ref": "#/$defs/Time" },
+        "location": { "$ref": "#/$defs/Location" },
+        "url": { "type": "string", "description": "The source's own page for the event." },
+        "details": { "$ref": "#/$defs/Details" }
+      }
+    },
+    "Severity": {
+      "description": "A level on one scale for every source, with the source's own word kept beside it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "source_level"],
+      "properties": {
+        "level": { "enum": ["extreme", "severe", "moderate", "minor"] },
+        "source_level": { "type": "string" }
+      }
+    },
+    "Magnitude": {
+      "description": "A value in the unit the source gives: a magnitude type such as mww or ml for earthquakes, kts for wind, acres for a fire.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit"],
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Time": {
+      "description": "Each time has one meaning whatever the source. All are UTC.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["started", "updated"],
+      "properties": {
+        "started": { "type": "string", "format": "date-time", "description": "When the event began: an earthquake's origin, a fire's first observation, an alert's onset." },
+        "updated": { "type": "string", "format": "date-time", "description": "When the source last changed its record." },
+        "ends": { "type": "string", "format": "date-time", "description": "When the source expects the event to be over." },
+        "expires": { "type": "string", "format": "date-time", "description": "When the record stops being valid, as an alert does." }
+      }
+    },
+    "Location": {
+      "description": "Absent when the source gives nothing to place the event by.",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "center": { "$ref": "#/$defs/Point" },
+        "geometry": { "$ref": "#/$defs/Geometry" },
+        "zones": { "type": "array", "items": { "type": "string" }, "description": "NWS zone ids, such as LMZ844." }
+      }
+    },
+    "Point": {
+      "description": "[longitude, latitude], rounded to 5 decimals.",
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "minimum": -180, "maximum": 180 },
+        { "type": "number", "minimum": -90, "maximum": 90 }
+      ],
+      "items": false,
+      "minItems": 2
+    },
+    "Geometry": {
+      "description": "A GeoJSON geometry of at most 1000 points.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "coordinates"],
+      "properties": {
+        "type": { "enum": ["Point", "LineString", "Polygon", "MultiPolygon"] },
+        "coordinates": { "type": "array" }
+      },
+      "oneOf": [
+        { "properties": { "type": { "const": "Point" }, "coordinates": { "$ref": "#/$defs/Point" } } },
+        { "properties": { "type": { "const": "LineString" }, "coordinates": { "type": "array", "items": { "$ref": "#/$defs/Point" }, "minItems": 2 } } },
+        { "properties": { "type": { "const": "Polygon" }, "coordinates": { "type": "array", "items": { "type": "array", "items": { "$ref": "#/$defs/Point" }, "minItems": 4 } } } },
+        { "properties": { "type": { "const": "MultiPolygon" }, "coordinates": { "type": "array", "items": { "type": "array", "items": { "type": "array", "items": { "$ref": "#/$defs/Point" }, "minItems": 4 } } } } }
+      ]
+    },
+    "Details": {
+      "description": "What only the event's source says. Holds exactly the part named by the event's source.",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "maxProperties": 1,
+      "properties": {
+        "usgs": { "$ref": "#/$defs/USGS" },
+        "eonet": { "$ref": "#/$defs/EONET" },
+        "noaa": { "$ref": "#/$defs/NWS" },
+        "gdacs": { "$ref": "#/$defs/GDACS" }
+      }
+    },
+    "USGS": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "status", "tsunami", "significance"],
+      "properties": {
+        "kind": { "type": "string", "description": "USGS's event type: earthquake, quarry blast, explosion, ice quake and others. Only earthquakes have the event type earthquake." },
+        "status": { "type": "string", "description": "automatic or reviewed." },
+        "depth_km": { "type": "number" },
+        "tsunami": { "type": "boolean" },
+        "felt": { "type": "integer", "minimum": 0, "description": "Number of Did You Feel It? reports." },
+        "cdi": { "type": "number", "description": "Reported intensity." },
+        "mmi": { "type": "number", "description": "Instrumental intensity." },
+        "significance": { "type": "integer" },
+        "alert": { "type": "string", "description": "PAGER alert level, when USGS issued one." },
+        "detail_url": { "type": "string", "description": "USGS's detail feed, which lists ShakeMap, PAGER and the event's other products." }
+      }
+    },
+    "EONET": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["categories"],
+      "properties": {
+        "categories": { "type": "array", "items": { "type": "string" } },
+        "closed": { "type": "string", "format": "date-time" },
+        "sources": { "type": "array", "items": { "$ref": "#/$defs/Link" }, "description": "The agencies EONET took the event from." }
+      }
+    },
+    "NWS": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event", "urgency", "certainty", "message_type", "sender", "area"],
+      "properties": {
+        "event": { "type": "string", "description": "The product, such as Small Craft Advisory." },
+        "urgency": { "type": "string" },
+        "certainty": { "type": "string" },
+        "response": { "type": "string" },
+        "message_type": { "type": "string" },
+        "sender": { "type": "string" },
+        "area": { "type": "string", "description": "The places the alert covers." },
+        "instruction": { "type": "string", "description": "The alert's safety text, word for word. Only the event-detail endpoint carries it." }
+      }
+    },
+    "GDACS": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alert_level", "episode_id", "current"],
+      "properties": {
+        "alert_level": { "type": "string" },
+        "alert_score": { "type": "number" },
+        "episode_id": { "type": "integer" },
+        "countries": { "type": "array", "items": { "type": "string" } },
+        "current": { "type": "boolean" },
+        "severity_text": { "type": "string" },
+        "footprint_url": { "type": "string", "description": "GDACS's polygon endpoint for the event's footprint." }
+      }
+    },
+    "Link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "url"],
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string" }
+      }
+    }
+  }
+}
