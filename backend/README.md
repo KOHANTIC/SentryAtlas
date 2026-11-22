@@ -54,9 +54,20 @@ Events from all sources, merged and sorted newest first by `started_at`. Events 
 |-------|---------|-------------|
 | `types` | all | Comma-separated event types (list below). An unknown type is a 400. |
 | `bbox` | none | `minLon,minLat,maxLon,maxLat`. Events without coordinates are left out. A box that crosses the date line returns nothing today (#6). |
-| `since` | none | Only events starting at or after this time: RFC 3339 (`2026-08-09T00:00:00Z`) or `YYYY-MM-DD`, read as UTC. |
+| `since` | none | Only events starting at or after this time: RFC 3339 (`2026-08-09T00:00:00Z`) or `YYYY-MM-DD`, read as UTC. It narrows each source's window (below) and cannot reach past it. |
 | `limit` | 500 for `geojson` and `json`, none for `sse` | Most events to return. Above 1000 is treated as 1000. |
 | `format` | `geojson` | `geojson`, `json` or `sse`. Anything else is a 400. |
+
+#### Windows
+
+Each source is fetched for the same window whatever the request, and every request is cut from that copy:
+
+| Source | Window |
+|--------|--------|
+| USGS | The past month of earthquakes of every magnitude (USGS's `all_month` summary feed) |
+| NASA EONET | Every event EONET lists as open, in every category |
+| NOAA/NWS | Every active alert |
+| GDACS | Every event type GDACS covers, from 30 days ago to today |
 
 #### Event types
 
@@ -194,9 +205,14 @@ A 200 in `geojson` or `json` carries `Cache-Control: public, max-age=60`; the st
 - **May change:** new fields may appear, and values may become more correct. Error message text is for people, not for parsing.
 - **Recorded:** `internal/handler/testdata/v1/shape.txt` lists every field v1 returns and its JSON types; the golden files beside it hold whole responses. A pull request that changes `shape.txt` changes the API and says why.
 
-Announced changes, each within the rules above:
+Made in #4, each within the rules above:
 
-- **#4:** a `since` earlier than the window each source is fetched for returns only what is inside the window.
+- A `since` earlier than a source's window returns only what is inside the window.
+- A request without `since` gets each source's whole window, so USGS now gives 30 days where it gave 7. With the default `limit` of 500 the newest 500 are the same, since a week holds far more quakes than that.
+- EONET events in categories SentryAtlas does not map yet (`other`) are fetched for every request, and are returned when `other` is asked for.
+
+Announced changes:
+
 - **#5:** `sources[].error` becomes a short reason, without upstream addresses.
 - **#19:** EONET's `started_at` becomes the event's first observation, not its latest.
 - **#22:** a 502 only happens before the first fetch after a start; after that, a failing source is served from its last good copy and reported in `sources`.
@@ -241,11 +257,11 @@ backend/
 
 ## Architecture
 
-All adapters are queried concurrently. If one upstream source fails, results from the others are still returned. Responses are cached in memory for the configured TTL to avoid hammering public APIs.
+Each source is fetched for its fixed window and kept in memory for `CACHE_TTL_MINUTES`, under the source's name alone, so every request in that time is answered from the same copy and the sources hear from the API once per TTL, not once per visitor. Concurrent requests share one fetch. The sources are fetched concurrently; if one fails, results from the others are still returned.
 
 ```
-Client → chi Router → Events Handler → Events Service → In-Memory Cache
-                                              ↓ (cache miss)
+Client → chi Router → Events Handler → Events Service → In-Memory Cache (one entry per source)
+                                              ↓ (expired)
                                      ┌────────┼────────┐────────┐
                                    USGS    EONET     NOAA     GDACS
                                      └────────┼────────┘────────┘
