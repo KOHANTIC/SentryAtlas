@@ -53,7 +53,7 @@ Events from all sources, merged and sorted newest first by `started_at`. Events 
 | Param | Default | Description |
 |-------|---------|-------------|
 | `types` | all | Comma-separated event types (list below). An unknown type is a 400. |
-| `bbox` | none | `minLon,minLat,maxLon,maxLat`. Events without coordinates are left out. A box that crosses the date line returns nothing today (#6). |
+| `bbox` | none | `minLon,minLat,maxLon,maxLat`. Events without coordinates are left out. A box over the date line works written either way: unwrapped as a map sends it (`170,-30,190,0`) or with the west edge east of the east edge (`170,-30,-170,0`). 360° wide or more is the whole world. NaN, infinite values or a latitude outside -90..90 is a 400. |
 | `since` | none | Only events starting at or after this time: RFC 3339 (`2026-08-09T00:00:00Z`) or `YYYY-MM-DD`, read as UTC. It narrows each source's window (below) and cannot reach past it. |
 | `limit` | 500 for `geojson` and `json`, none for `sse` | Most events to return. Above 1000 is treated as 1000. |
 | `format` | `geojson` | `geojson`, `json` or `sse`. Anything else is a 400. |
@@ -212,6 +212,8 @@ Made in #4, each within the rules above:
 - EONET events in categories SentryAtlas does not map yet (`other`) are fetched for every request, and are returned when `other` is asked for.
 
 Made in #5: `sources[].error` is a short reason, without upstream addresses or Go error text.
+
+Made in #6: a box over the date line returns the events on both sides of it. A box with NaN, an infinite value or a latitude outside -90..90 answers 400, where it answered 200 with nothing.
 
 Announced changes:
 
