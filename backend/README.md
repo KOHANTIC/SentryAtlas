@@ -57,6 +57,20 @@ Each source is polled on its own schedule (NWS every 2 minutes, USGS every 5, EO
 - **`stale`:** the last poll failed, or sent an implausible copy, and an older copy is in use.
 - **NWS limit:** an NWS copy over an hour old is withdrawn.
 
+### `GET /health/stale`
+
+For an outside monitor. Answers `503` with `"status":"stale"` while any source's copy is older than its limit, or it has none yet, and `200` with `"status":"ok"` otherwise. `stale` names the sources past their limit. Not rate-limited or cached.
+
+```json
+{ "status": "stale", "stale": ["noaa"] }
+```
+
+| Source | Limit | Polled every |
+|---|---|---|
+| NWS | 30 minutes | 2 minutes |
+| USGS | 1 hour | 5 minutes |
+| EONET, GDACS | 2 hours | 10 minutes |
+
 ### `GET /api/v2/snapshot` and `GET /api/v2/events/{id}`
 
 v2: one shared, cacheable snapshot of every source (`window=7d` or `30d`), and each event in full. [`docs/api/v2/README.md`](../docs/api/v2/README.md) documents both, with the event model and its schema.
@@ -280,13 +294,29 @@ RECORD_LIVE=1 go test ./internal/adapters -run RecordLive -count=1
 
 The other files in `internal/adapters/testdata/` are written by hand, for edge cases the real data may not show on a given day.
 
-`internal/handler/golden_test.go` runs the whole chain (adapters, cache, service and handler) against the hand-written responses in `internal/adapters/testdata/` and compares each answer with `internal/handler/testdata/v1/`. After a deliberate change of values, rewrite the recorded answers and review the diff:
+`internal/handler/golden_test.go` runs the whole chain (adapters, store, service and handler) against the hand-written responses in `internal/adapters/testdata/` and compares each answer with `internal/handler/testdata/v1/`. After a deliberate change of values, rewrite the recorded answers and review the diff:
 
 ```bash
 go test ./internal/handler -run Golden -update
 ```
 
 `-update-shape` rewrites `shape.txt`, which is a change to the API (see Compatibility).
+
+## Monitoring
+
+The fixtures only prove the adapters against the day they were recorded. Two checks watch the real thing.
+
+- **Weekly live source check** (`.github/workflows/sources.yml`, Mondays and by hand):
+  - runs the adapters against the live sources;
+  - fails when a source does not answer, a record cannot be read, an event breaks the model, or a field every recorded record has is gone from every live one;
+  - new fields are listed in the run summary, not failed;
+  - a failure opens an issue labelled `source check`, or comments on the open one;
+  - it is not part of the `gate` check. To run it locally:
+
+  ```bash
+  LIVE_CONTRACT=1 go test ./internal/adapters -run 'TestLiveContract$' -count=1 -v
+  ```
+- **Outside monitor on `/health/stale`:** set up by the maintainer outside this repo. It alarms on any answer but `200`, checked every few minutes with a retry or two, since a new deploy answers `503` for the seconds before its first polls.
 
 ## Project Structure
 
