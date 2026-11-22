@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -55,5 +56,36 @@ func TestHealthIsStartingUntilEverySourceIsTried(t *testing.T) {
 	}
 	if noaa.OK || noaa.Error != "timed out" || noaa.AgeSeconds != nil {
 		t.Errorf("noaa = %+v, want its failure and no age, since it never answered", noaa)
+	}
+}
+
+func TestStaleAlarmsPastASourcesLimit(t *testing.T) {
+	t.Parallel()
+	st := store.New(store.Source{Name: "usgs"}, store.Source{Name: "noaa"})
+	limits := map[string]time.Duration{"usgs": time.Hour, "noaa": 30 * time.Minute}
+	check := func() (int, string) {
+		rec := httptest.NewRecorder()
+		Stale(st, limits)(rec, httptest.NewRequest(http.MethodGet, "/health/stale", nil))
+		if cc := rec.Header().Get("Cache-Control"); cc != "no-store" {
+			t.Errorf("Cache-Control = %q, want no-store", cc)
+		}
+		return rec.Code, strings.TrimSpace(rec.Body.String())
+	}
+	if code, body := check(); code != http.StatusServiceUnavailable || body != `{"status":"stale","stale":["usgs","noaa"]}` {
+		t.Errorf("before any copy: %d %s, want 503 with both", code, body)
+	}
+	for _, src := range []string{"usgs", "noaa"} {
+		if err := st.Put(src, []event.Event{}, time.Now().Add(-20*time.Minute)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if code, body := check(); code != http.StatusOK || body != `{"status":"ok","stale":[]}` {
+		t.Errorf("both 20 minutes old: %d %s, want 200", code, body)
+	}
+	if err := st.Put("noaa", []event.Event{}, time.Now().Add(-45*time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	if code, body := check(); code != http.StatusServiceUnavailable || body != `{"status":"stale","stale":["noaa"]}` {
+		t.Errorf("noaa 45 minutes old: %d %s, want 503 naming noaa", code, body)
 	}
 }
