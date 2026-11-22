@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ import (
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/httpx"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/store"
 )
 
 func main() {
@@ -29,6 +31,15 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
+	// run returns rather than exits, so its deferred cleanup always runs.
+	if err := run(logger); err != nil {
+		slog.Error("server failed", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("server stopped")
+}
+
+func run(logger *slog.Logger) error {
 	port := envOrDefault("PORT", "8080")
 	cacheTTLMin := envPositiveIntOrDefault("CACHE_TTL_MINUTES", 5)
 	fetchTimeoutSec := envPositiveIntOrDefault("FETCH_TIMEOUT_SECONDS", 30)
@@ -51,23 +62,38 @@ func main() {
 	}
 
 	httpClient := &http.Client{Timeout: time.Duration(fetchTimeoutSec) * time.Second}
+	fetchTimeout := time.Duration(fetchTimeoutSec) * time.Second
 
-	adapterList := []adapters.Adapter{
-		adapters.NewUSGSAdapter(httpClient),
-		adapters.NewEONETAdapter(httpClient),
-		adapters.NewNOAAAdapter(httpClient, nwsUserAgent),
-		adapters.NewGDACSAdapter(httpClient),
-	}
+	usgs := adapters.NewUSGSAdapter(httpClient)
+	eonet := adapters.NewEONETAdapter(httpClient)
+	noaa := adapters.NewNOAAAdapter(httpClient, nwsUserAgent)
+	gdacs := adapters.NewGDACSAdapter(httpClient)
+	adapterList := []adapters.Adapter{usgs, eonet, noaa, gdacs}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	// Each source on its own schedule: NWS alerts change by the minute,
+	// USGS's month feed every few, EONET and GDACS more slowly. An NWS copy
+	// an hour old may hold alerts since cancelled, so it is withdrawn.
+	st := store.New(
+		store.Source{Name: usgs.Source()},
+		store.Source{Name: eonet.Source()},
+		store.Source{Name: noaa.Source(), MaxAge: time.Hour},
+		store.Source{Name: gdacs.Source()},
+	)
+	waitPollers := store.Run(ctx, st, []store.Poll{
+		{Fetcher: usgs, Interval: 5 * time.Minute},
+		{Fetcher: eonet, Interval: 10 * time.Minute},
+		{Fetcher: noaa, Interval: 2 * time.Minute},
+		{Fetcher: gdacs, Interval: 10 * time.Minute},
+	}, store.Config{Timeout: fetchTimeout, RetryAfter: 30 * time.Second})
+	defer waitPollers()
 
 	eventsCache := cache.New[[]models.Event](time.Duration(cacheTTLMin) * time.Minute)
 	defer eventsCache.Close()
 
-	eventsSvc := service.NewEventsService(
-		adapterList,
-		eventsCache,
-		time.Duration(fetchTimeoutSec)*time.Second,
-	)
-
+	eventsSvc := service.NewEventsService(adapterList, eventsCache, fetchTimeout)
 	eventsHandler := handler.NewEventsHandler(eventsSvc)
 
 	r := chi.NewRouter()
@@ -93,11 +119,7 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`))
-	})
+	r.Get("/health", handler.Health(st))
 
 	r.Route("/api/v1", func(r chi.Router) {
 		// Keyed on the address from CLIENT_IP_HEADER only: headers a client can
@@ -117,30 +139,29 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
+	served := make(chan error, 1)
 	go func() {
 		// Empty client_ip_header behind a proxy would put every visitor in one
 		// rate-limit bucket, so the startup line says which source is in use.
 		slog.Info("server starting", "port", port, "client_ip_header", clientIPHeader)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			slog.Error("server failed", "error", err)
-			os.Exit(1)
-		}
+		served <- srv.ListenAndServe()
 	}()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	slog.Info("server shutting down")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := srv.Shutdown(ctx); err != nil {
-		slog.Error("server forced to shutdown", "error", err)
-		os.Exit(1)
+	select {
+	case err := <-served:
+		stop()
+		return err
+	case <-ctx.Done():
 	}
 
-	slog.Info("server stopped")
+	// The signal also stopped the pollers; the deferred wait collects them.
+	slog.Info("server shutting down")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		return errors.Join(errors.New("forced to shut down"), err)
+	}
+	return nil
 }
 
 func envOrDefault(key, fallback string) string {
