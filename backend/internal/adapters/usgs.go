@@ -2,7 +2,6 @@ package adapters
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -17,10 +16,11 @@ const usgsBaseURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/a
 type USGSAdapter struct {
 	client  *http.Client
 	baseURL string
+	maxBody int64
 }
 
 func NewUSGSAdapter(client *http.Client) *USGSAdapter {
-	return &USGSAdapter{client: client, baseURL: usgsBaseURL}
+	return &USGSAdapter{client: client, baseURL: usgsBaseURL, maxBody: maxResponseBytes}
 }
 
 func (a *USGSAdapter) Source() string {
@@ -37,23 +37,13 @@ func (a *USGSAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
 		return nil, fmt.Errorf("usgs: build request: %w", err)
 	}
 
-	resp, err := a.client.Do(req)
+	features, err := fetchList[usgsFeature](a.client, req, "usgs", "features", a.maxBody)
 	if err != nil {
-		return nil, fmt.Errorf("usgs: request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("usgs: unexpected status %d", resp.StatusCode)
+		return nil, err
 	}
 
-	var result usgsResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("usgs: decode response: %w", err)
-	}
-
-	events := make([]models.Event, 0, len(result.Features))
-	for _, f := range result.Features {
+	events := make([]models.Event, 0, len(features))
+	for _, f := range features {
 		events = append(events, parseUSGSFeature(f))
 	}
 
@@ -123,10 +113,6 @@ func depthFromCoords(coords []float64) float64 {
 }
 
 // USGS GeoJSON response types
-
-type usgsResponse struct {
-	Features []usgsFeature `json:"features"`
-}
 
 type usgsFeature struct {
 	ID         string         `json:"id"`
