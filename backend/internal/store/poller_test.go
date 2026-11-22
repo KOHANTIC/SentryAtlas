@@ -192,3 +192,25 @@ func TestJitterStaysWithinATenth(t *testing.T) {
 		t.Errorf("jitter at the middle = %v, want the interval", got)
 	}
 }
+
+// An event that breaks the v2 model never reaches a reader (#82).
+func TestPollsLeaveOutInvalidEvents(t *testing.T) {
+	t.Parallel()
+	f := &fetcher{name: "eonet", fetch: func(context.Context, int64) ([]event.Event, error) {
+		list := events("eonet", 3, nil)
+		list[1].Location = &event.Location{Center: &event.Point{189, 7}}
+		return list, nil
+	}}
+	s := New(Source{Name: "eonet"})
+	run(t, s, Poll{f, time.Hour})
+	eventually(t, "the first poll", s.Ready)
+	c := s.Read(time.Now())[0]
+	if !c.Status.OK || len(c.Events) != 2 {
+		t.Fatalf("status %+v with %d events, want the 2 valid ones", c.Status, len(c.Events))
+	}
+	for _, e := range c.Events {
+		if e.ID == "eonet-1" {
+			t.Error("the event at longitude 189 was stored")
+		}
+	}
+}

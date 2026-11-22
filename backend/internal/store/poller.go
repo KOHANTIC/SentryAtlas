@@ -81,7 +81,7 @@ func poll(ctx context.Context, s *Store, p Poll, cfg Config, turn chan struct{})
 		if err != nil {
 			s.Fail(name, adapters.Reason(err))
 		} else {
-			err = s.Put(name, events, time.Now())
+			err = s.Put(name, valid(name, events), time.Now())
 		}
 		if err != nil {
 			failures++
@@ -112,6 +112,28 @@ func fetchOnce(ctx context.Context, f Fetcher, timeout time.Duration) (events []
 		events = []event.Event{}
 	}
 	return events, err
+}
+
+// valid leaves out the events that break the v2 model, which no reader
+// should get, and logs how many with the first reason.
+func valid(source string, events []event.Event) []event.Event {
+	kept := events[:0:0]
+	dropped := 0
+	var first error
+	for _, e := range events {
+		if err := e.Validate(); err != nil {
+			if dropped == 0 {
+				first = fmt.Errorf("%s: %w", e.ID, err)
+			}
+			dropped++
+			continue
+		}
+		kept = append(kept, e)
+	}
+	if dropped > 0 {
+		slog.Warn("left out events that break the model", "source", source, "dropped", dropped, "kept", len(kept), "first_error", first.Error())
+	}
+	return kept
 }
 
 // backoff is the wait after the nth failure in a row: first, doubled each
