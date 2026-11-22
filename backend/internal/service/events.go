@@ -68,7 +68,7 @@ func (s *EventsService) fetchAdapter(a adapters.Adapter) ([]models.Event, error)
 		defer func() {
 			if r := recover(); r != nil {
 				slog.Error("adapter panicked", "source", key, "panic", fmt.Sprint(r), "stack", string(debug.Stack()))
-				err = fmt.Errorf("%s: %w: %v", key, errInternal, r)
+				err = fmt.Errorf("%s: %w: %v", key, adapters.ErrInternal, r)
 			}
 		}()
 
@@ -114,7 +114,7 @@ func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchPara
 				)
 				statuses = append(statuses, models.SourceStatus{
 					Source: a.Source(),
-					Error:  Reason(err),
+					Error:  adapters.Reason(err),
 				})
 				return
 			}
