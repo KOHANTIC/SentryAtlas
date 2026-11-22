@@ -62,8 +62,9 @@ func TestGDACSFetchEventsParsing(t *testing.T) {
 		if want := time.Date(2026, 8, 9, 4, 30, 0, 0, time.UTC); !e.StartedAt.Equal(want) {
 			t.Errorf("StartedAt = %v, want %v", e.StartedAt, want)
 		}
-		if want := time.Date(2026, 8, 9, 6, 30, 0, 0, time.UTC); !e.UpdatedAt.Equal(want) {
-			t.Errorf("UpdatedAt = %v, want %v", e.UpdatedAt, want)
+		// datemodified, not todate, which is when the event ends (#20).
+		if want := time.Date(2026, 8, 9, 7, 15, 0, 0, time.UTC); !e.UpdatedAt.Equal(want) {
+			t.Errorf("UpdatedAt = %v, want datemodified %v", e.UpdatedAt, want)
 		}
 		if e.URL != "https://www.gdacs.org/report.aspx?eventtype=EQ&eventid=1479624" {
 			t.Errorf("URL = %q, want the report URL from the object form", e.URL)
@@ -104,6 +105,14 @@ func TestGDACSFetchEventsParsing(t *testing.T) {
 		}
 		if got := e.Metadata["severity_value"]; got != 213.0 {
 			t.Errorf("Metadata[severity_value] = %v, want 213", got)
+		}
+		// No datemodified: the start stands in, never todate.
+		if !e.UpdatedAt.Equal(e.StartedAt) {
+			t.Errorf("UpdatedAt = %v, want the start %v", e.UpdatedAt, e.StartedAt)
+		}
+		// No affectedcountries: the country field is used.
+		if got := e.Metadata["country"]; got != "Bahamas" {
+			t.Errorf("Metadata[country] = %v, want Bahamas", got)
 		}
 	})
 
@@ -156,6 +165,10 @@ func TestGDACSQueryIsTheWindow(t *testing.T) {
 	q := capture.Query()
 	if got := q.Get("eventlist"); got != "DR;EQ;FL;TC;VO;WF" {
 		t.Errorf("eventlist = %q, want every code, DR;EQ;FL;TC;VO;WF", got)
+	}
+	// GDACS leaves Green alerts out unless asked.
+	if got := q.Get("alertlevel"); got != "Green;Orange;Red" {
+		t.Errorf("alertlevel = %q, want every level, Green;Orange;Red", got)
 	}
 	from, err := time.Parse("2006-01-02", q.Get("fromdate"))
 	if err != nil {

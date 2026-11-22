@@ -1,6 +1,10 @@
 package event
 
-import "github.com/KOHANTIC/SentryAtlas/backend/internal/models"
+import (
+	"strings"
+
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
+)
 
 // V1 projects a v2 event onto the v1 model, which /api/v1 keeps serving: its
 // point is the center, its magnitude loses the unit, its severity is the
@@ -15,7 +19,7 @@ func (e Event) V1() models.Event {
 		StartedAt:   e.Time.Started,
 		UpdatedAt:   e.Time.Updated,
 		URL:         e.URL,
-		Metadata:    e.Details.v1Metadata(),
+		Metadata:    e.v1Metadata(),
 	}
 	if e.Location != nil && e.Location.Center != nil {
 		v.Geometry = models.Geometry{Type: "Point", Coordinates: []float64{e.Location.Center[0], e.Location.Center[1]}}
@@ -34,7 +38,8 @@ func (e Event) V1() models.Event {
 
 // v1Metadata is the v1 metadata of a source's details: the same keys v1
 // carried before v2, so v1 keeps its shape.
-func (d Details) v1Metadata() map[string]any {
+func (e Event) v1Metadata() map[string]any {
+	d := e.Details
 	switch {
 	case d.USGS != nil:
 		m := map[string]any{"place": d.USGS.Place}
@@ -50,6 +55,19 @@ func (d Details) v1Metadata() map[string]any {
 			"certainty":   d.NOAA.Certainty,
 			"sender_name": d.NOAA.Sender,
 		}
+	case d.GDACS != nil:
+		m := map[string]any{
+			"alert_level":   d.GDACS.AlertLevel,
+			"country":       strings.Join(d.GDACS.Countries, ", "),
+			"severity_unit": "",
+		}
+		// GDACS's severity is a physical quantity; v1 keeps it here, never as
+		// the magnitude, which is a quake's size.
+		if e.Magnitude != nil {
+			m["severity_unit"] = e.Magnitude.Unit
+			m["severity_value"] = e.Magnitude.Value
+		}
+		return m
 	}
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 )
@@ -100,17 +101,32 @@ func TestRecordLive(t *testing.T) {
 	}
 	for _, s := range liveSources {
 		t.Run(s.source, func(t *testing.T) {
-			var body bytes.Buffer
-			client := &http.Client{Timeout: 2 * time.Minute, Transport: recordingTransport{into: &body}}
+			rt := &recordingTransport{}
+			client := &http.Client{Timeout: 2 * time.Minute, Transport: rt}
 			if _, err := s.adapter(client).FetchEvents(context.Background()); err != nil {
 				t.Fatalf("FetchEvents: %v", err)
 			}
 
+			// A paged source sends several responses; their records are joined
+			// under the first one's envelope. An empty body is a 204.
 			var envelope map[string]any
-			if err := json.Unmarshal(body.Bytes(), &envelope); err != nil {
-				t.Fatalf("parse response: %v", err)
+			var records []any
+			received := 0
+			for _, body := range rt.bodies {
+				received += len(body)
+				if len(body) == 0 {
+					continue
+				}
+				var page map[string]any
+				if err := json.Unmarshal(body, &page); err != nil {
+					t.Fatalf("parse response: %v", err)
+				}
+				if envelope == nil {
+					envelope = page
+				}
+				list, _ := page[s.key].([]any)
+				records = append(records, list...)
 			}
-			records, _ := envelope[s.key].([]any)
 			kept := trimRecords(s.source, records)
 			envelope[s.key] = kept
 
@@ -122,15 +138,18 @@ func TestRecordLive(t *testing.T) {
 			if err := os.WriteFile(path, append(out, '\n'), 0o644); err != nil {
 				t.Fatal(err)
 			}
-			t.Logf("%s: kept %d of %d records (%d bytes received)", s.source, len(kept), len(records), body.Len())
+			t.Logf("%s: kept %d of %d records (%d bytes received in %d responses)", s.source, len(kept), len(records), received, len(rt.bodies))
 		})
 	}
 }
 
-// recordingTransport copies every response body it passes on into into.
-type recordingTransport struct{ into *bytes.Buffer }
+// recordingTransport keeps a copy of every response body it passes on.
+type recordingTransport struct {
+	mu     sync.Mutex
+	bodies [][]byte
+}
 
-func (rt recordingTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+func (rt *recordingTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	resp, err := http.DefaultTransport.RoundTrip(r)
 	if err != nil {
 		return nil, err
@@ -140,7 +159,9 @@ func (rt recordingTransport) RoundTrip(r *http.Request) (*http.Response, error) 
 	if err != nil {
 		return nil, err
 	}
-	rt.into.Write(data)
+	rt.mu.Lock()
+	rt.bodies = append(rt.bodies, data)
+	rt.mu.Unlock()
 	resp.Body = io.NopCloser(bytes.NewReader(data))
 	return resp, nil
 }
@@ -183,6 +204,10 @@ func trimRecords(source string, records []any) []any {
 			func(r map[string]any) string { return "type:" + str(dig(r, "properties", "eventtype")) },
 			func(r map[string]any) string { return "alert:" + str(dig(r, "properties", "alertlevel")) },
 			func(r map[string]any) string { return "geometry:" + str(dig(r, "geometry", "type")) },
+			func(r map[string]any) string {
+				return "unit:" + str(dig(r, "properties", "severitydata", "severityunit"))
+			},
+			func(r map[string]any) string { return "current:" + str(dig(r, "properties", "iscurrent")) },
 		}
 	}
 

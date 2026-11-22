@@ -201,7 +201,7 @@ func TestNOAACentroid(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			g := &noaaGeometry{Type: tc.typ, Coordinates: json.RawMessage(tc.coords)}
+			g := &geoJSONGeometry{Type: tc.typ, Coordinates: json.RawMessage(tc.coords)}
 			got := g.centroid()
 			if !slices.Equal(got, tc.want) {
 				t.Errorf("centroid() = %v, want %v", got, tc.want)

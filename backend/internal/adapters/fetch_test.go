@@ -60,7 +60,7 @@ var guardCases = []guardCase{
 	{
 		source: "gdacs", key: "features",
 		good: `{"geometry":{"type":"Point","coordinates":[1,2]},"properties":{"eventtype":"EQ","eventid":1,"name":"n","alertlevel":"Green","fromdate":"2026-08-08T00:00:00"}}`,
-		bad:  `{"geometry":{"type":"Point","coordinates":[1,2]},"properties":{"eventtype":"EQ","eventid":2,"severity":"high"}}`,
+		bad:  `{"geometry":{"type":"Point","coordinates":[1,2]},"properties":{"eventtype":"EQ","eventid":2,"severitydata":{"severity":"high"}}}`,
 		build: func(t *testing.T, srv *httptest.Server, maxBody int64) Adapter {
 			a := newTestGDACS(t, srv)
 			if maxBody > 0 {

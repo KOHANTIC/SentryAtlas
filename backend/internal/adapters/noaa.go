@@ -415,18 +415,20 @@ func classifyNOAAEvent(name string) string {
 // NOAA GeoJSON-LD response types
 
 type noaaFeature struct {
-	Geometry   *noaaGeometry  `json:"geometry"`
-	Properties noaaProperties `json:"properties"`
+	Geometry   *geoJSONGeometry `json:"geometry"`
+	Properties noaaProperties   `json:"properties"`
 }
 
-type noaaGeometry struct {
+// geoJSONGeometry is a source's GeoJSON geometry, kept raw so a shape of any
+// type is read rather than failing its record.
+type geoJSONGeometry struct {
 	Type        string          `json:"type"`
 	Coordinates json.RawMessage `json:"coordinates"`
 }
 
 // polygons reads the geometry as a list of polygons: one for a Polygon,
 // several for a MultiPolygon, none for anything else.
-func (g *noaaGeometry) polygons() [][][][]float64 {
+func (g *geoJSONGeometry) polygons() [][][][]float64 {
 	switch g.Type {
 	case "Polygon":
 		var rings [][][]float64
@@ -444,7 +446,7 @@ func (g *noaaGeometry) polygons() [][][][]float64 {
 
 // centroid is the point that places the geometry: a Point as it is, a
 // Polygon or MultiPolygon at its area-weighted center.
-func (g *noaaGeometry) centroid() []float64 {
+func (g *geoJSONGeometry) centroid() []float64 {
 	if g.Type == "Point" {
 		var pt []float64
 		if err := json.Unmarshal(g.Coordinates, &pt); err == nil && len(pt) >= 2 {
