@@ -20,6 +20,14 @@ func events(source string, n int, expires *time.Time) []event.Event {
 	return out
 }
 
+// mustPut puts a copy the test expects the store to accept.
+func mustPut(t *testing.T, s *Store, source string, list []event.Event, at time.Time) {
+	t.Helper()
+	if err := s.Put(source, list, at); err != nil {
+		t.Fatalf("Put %s: %v", source, err)
+	}
+}
+
 func only(t *testing.T, s *Store, now time.Time) Copy {
 	t.Helper()
 	copies := s.Read(now)
@@ -77,7 +85,7 @@ func TestAnImplausibleCopyIsHeldUntilItRepeats(t *testing.T) {
 func TestASmallSourceMayShrink(t *testing.T) {
 	t.Parallel()
 	s := New(Source{Name: "noaa"})
-	s.Put("noaa", events("noaa", 99, nil), t0)
+	mustPut(t, s, "noaa", events("noaa", 99, nil), t0)
 	if err := s.Put("noaa", events("noaa", 1, nil), t0); err != nil {
 		t.Errorf("99 to 1: %v, want it accepted: a copy under 100 is too small to judge", err)
 	}
@@ -86,7 +94,7 @@ func TestASmallSourceMayShrink(t *testing.T) {
 func TestAFailureKeepsTheLastCopy(t *testing.T) {
 	t.Parallel()
 	s := New(Source{Name: "eonet"})
-	s.Put("eonet", events("eonet", 5, nil), t0)
+	mustPut(t, s, "eonet", events("eonet", 5, nil), t0)
 	s.Fail("eonet", "timed out")
 	c := only(t, s, t0.Add(time.Hour))
 	if c.Status.OK || !c.Status.Stale || c.Status.Error != "timed out" || c.Status.Count != 5 || len(c.Events) != 5 {
@@ -116,7 +124,7 @@ func TestExpiredEventsAreHidden(t *testing.T) {
 	soon, later := t0.Add(time.Hour), t0.Add(3*time.Hour)
 	list := append(events("noaa", 2, &soon), events("noaa", 3, &later)...)
 	list = append(list, events("noaa", 1, nil)...)
-	s.Put("noaa", list, t0)
+	mustPut(t, s, "noaa", list, t0)
 
 	if c := only(t, s, t0.Add(30*time.Minute)); len(c.Events) != 6 {
 		t.Errorf("before any expiry: %d events, want 6", len(c.Events))
@@ -140,8 +148,8 @@ func TestExpiredEventsAreHidden(t *testing.T) {
 func TestACopyPastItsAgeIsWithdrawn(t *testing.T) {
 	t.Parallel()
 	s := New(Source{Name: "noaa", MaxAge: time.Hour}, Source{Name: "usgs"})
-	s.Put("noaa", events("noaa", 3, nil), t0)
-	s.Put("usgs", events("usgs", 3, nil), t0)
+	mustPut(t, s, "noaa", events("noaa", 3, nil), t0)
+	mustPut(t, s, "usgs", events("usgs", 3, nil), t0)
 	s.Fail("noaa", "timed out")
 
 	copies := s.Read(t0.Add(2 * time.Hour))
@@ -173,7 +181,7 @@ func TestReadyOnceEverySourceIsTried(t *testing.T) {
 	if c := s.Read(t0)[0]; c.Status.OK || c.Status.Error != "not polled yet" {
 		t.Errorf("before any poll: status = %+v", c.Status)
 	}
-	s.Put("usgs", events("usgs", 1, nil), t0)
+	mustPut(t, s, "usgs", events("usgs", 1, nil), t0)
 	if s.Ready() {
 		t.Fatal("ready with noaa untried")
 	}

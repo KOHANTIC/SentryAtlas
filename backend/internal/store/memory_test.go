@@ -68,7 +68,9 @@ func fullSizeResponses(tb testing.TB) fullSizeTransport {
 		for i := range list {
 			var r map[string]any
 			b, _ := json.Marshal(seed[i%len(seed)])
-			json.Unmarshal(b, &r)
+			if err := json.Unmarshal(b, &r); err != nil {
+				tb.Fatal(err)
+			}
 			s.setID(r, i)
 			list[i] = r
 		}

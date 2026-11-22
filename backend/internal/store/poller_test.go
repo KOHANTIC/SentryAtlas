@@ -111,7 +111,7 @@ func TestAFailedPollKeepsTheCopyAndRetriesSooner(t *testing.T) {
 		return events("eonet", 7, nil), nil
 	}}
 	s := New(Source{Name: "eonet"})
-	s.Put("eonet", events("eonet", 5, nil), time.Now())
+	mustPut(t, s, "eonet", events("eonet", 5, nil), time.Now())
 	// The interval is an hour, so only the retry wait can bring the third poll.
 	run(t, s, Poll{f, time.Hour})
 
