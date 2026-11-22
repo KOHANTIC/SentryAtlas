@@ -1,6 +1,6 @@
 module github.com/KOHANTIC/SentryAtlas/backend
 
-go 1.25.1
+go 1.27.0
 
 require (
 	github.com/go-chi/chi/v5 v5.2.5
