@@ -184,7 +184,7 @@ A `features` frame is a FeatureCollection for one source, without `sources`. A s
 | `url` | no | The source's page for the event |
 | `metadata` | no | Extra fields that differ by source, such as `depth` and `place` (USGS), `area_desc` and `urgency` (NWS), or `alert_level` and `country` (GDACS) |
 
-`sources` lists every source asked, each as `{"source", "ok"}`, with `"error"` only when `ok` is `false`. A partial result can be told apart from a complete one by it.
+`sources` lists every source asked, each as `{"source", "ok"}`, with `"error"` only when `ok` is `false`. A partial result can be told apart from a complete one by it. `error` is a short reason for people, such as `timed out`, `answered HTTP 503`, `sent a response SentryAtlas could not read` or `could not be reached`.
 
 #### Status codes
 
@@ -211,9 +211,10 @@ Made in #4, each within the rules above:
 - A request without `since` gets each source's whole window, so USGS now gives 30 days where it gave 7. With the default `limit` of 500 the newest 500 are the same, since a week holds far more quakes than that.
 - EONET events in categories SentryAtlas does not map yet (`other`) are fetched for every request, and are returned when `other` is asked for.
 
+Made in #5: `sources[].error` is a short reason, without upstream addresses or Go error text.
+
 Announced changes:
 
-- **#5:** `sources[].error` becomes a short reason, without upstream addresses.
 - **#19:** EONET's `started_at` becomes the event's first observation, not its latest.
 - **#22:** a 502 only happens before the first fetch after a start; after that, a failing source is served from its last good copy and reported in `sources`.
 
@@ -258,6 +259,8 @@ backend/
 ## Architecture
 
 Each source is fetched for its fixed window and kept in memory for `CACHE_TTL_MINUTES`, under the source's name alone, so every request in that time is answered from the same copy and the sources hear from the API once per TTL, not once per visitor. Concurrent requests share one fetch. The sources are fetched concurrently; if one fails, results from the others are still returned.
+
+A source's records are read one at a time: a record that cannot be read is skipped and logged, and the rest of that source is kept. A source counts as failed when it answers anything but 200, sends more than 32 MB, sends nothing readable, or when reading it crashes, which is recovered and logged with its stack rather than ending the process.
 
 ```
 Client → chi Router → Events Handler → Events Service → In-Memory Cache (one entry per source)
