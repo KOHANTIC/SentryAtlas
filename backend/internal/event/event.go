@@ -34,6 +34,9 @@ type Event struct {
 	// GroupID is shared by the reports of one real event from different
 	// sources. It is worked out again on every fetch, so it is never a key.
 	GroupID string `json:"group_id,omitempty"`
+	// Primary marks the one member of a group to draw; the others are the
+	// same event reported by another source.
+	Primary bool   `json:"primary,omitempty"`
 	Source  string `json:"source"`
 	// Type is one of the event types in models.EventTypes.
 	Type  string `json:"type"`
