@@ -1,0 +1,38 @@
+name: Feature request
+description: Something SentryAtlas could do that it does not do now.
+type: Feature
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Planned work is in the [milestones](https://github.com/KOHANTIC/SentryAtlas/milestones); a look there first may show it is already coming. The problem you want solved matters more than the exact change.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where would it go?
+      options:
+        - The map (map.sentryatlas.com)
+        - The website (sentryatlas.com)
+        - The API (/api/v1)
+        - The data (a new source or event type)
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do and what stops you.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: A sketch of how it could work, if you have one.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you tried
+      description: What you do today, or other ways you thought of.
