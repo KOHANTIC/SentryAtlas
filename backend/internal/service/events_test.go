@@ -406,6 +406,32 @@ func TestSelectAdaptersHonorsSupportedTypes(t *testing.T) {
 	}
 }
 
+// A view over Fiji and Tonga returns the quakes on both sides of the date
+// line, however the box is written.
+func TestGetEventsAcrossTheDateLine(t *testing.T) {
+	t.Parallel()
+	a := &fakeAdapter{source: "alpha", types: []string{"earthquake"}, events: []models.Event{
+		evt("fiji", "earthquake", baseTime, 178, -18),
+		evt("tonga", "earthquake", baseTime.Add(-time.Minute), -175, -20),
+		evt("africa", "earthquake", baseTime.Add(-2*time.Minute), 0, -18),
+	}}
+	s := newTestService(t, a)
+
+	for _, edges := range [][2]float64{{170, 190}, {170, -170}, {-190, -170}} {
+		box, err := adapters.NewBBox(edges[0], -30, edges[1], 0)
+		if err != nil {
+			t.Fatalf("NewBBox(%v): %v", edges, err)
+		}
+		events, _, err := s.GetEvents(context.Background(), adapters.FetchParams{BBox: box})
+		if err != nil {
+			t.Fatalf("GetEvents(%v): %v", edges, err)
+		}
+		if got := ids(events); len(got) != 2 || got[0] != "fiji" || got[1] != "tonga" {
+			t.Errorf("box %v..%v: events = %v, want [fiji tonga]", edges[0], edges[1], got)
+		}
+	}
+}
+
 func TestFilterEvents(t *testing.T) {
 	t.Parallel()
 	events := []models.Event{

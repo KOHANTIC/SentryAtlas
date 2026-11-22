@@ -230,12 +230,7 @@ func parseBBox(s string) (*adapters.BBox, error) {
 		vals[i] = v
 	}
 
-	return &adapters.BBox{
-		MinLon: vals[0],
-		MinLat: vals[1],
-		MaxLon: vals[2],
-		MaxLat: vals[3],
-	}, nil
+	return adapters.NewBBox(vals[0], vals[1], vals[2], vals[3])
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {
