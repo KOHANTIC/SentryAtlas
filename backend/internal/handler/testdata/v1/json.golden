@@ -93,7 +93,6 @@
         "event_type": "earthquake",
         "id": "usgs-nc75001234",
         "metadata": {
-          "depth": 0,
           "place": "8 km NW of The Geysers, CA"
         },
         "source": "usgs",

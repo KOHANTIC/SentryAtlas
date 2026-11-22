@@ -113,7 +113,9 @@ type USGS struct {
 	// "ice quake" and others. Only earthquakes have Type "earthquake".
 	Kind string `json:"kind"`
 	// Status is "automatic" or "reviewed".
-	Status  string   `json:"status"`
+	Status string `json:"status"`
+	// Place is USGS's description of where, such as "28 km NNE of Chenega, Alaska".
+	Place   string   `json:"place,omitempty"`
 	DepthKm *float64 `json:"depth_km,omitempty"`
 	Tsunami bool     `json:"tsunami"`
 	// Felt is the number of "Did You Feel It?" reports.

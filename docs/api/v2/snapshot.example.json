@@ -27,6 +27,7 @@
         "usgs": {
           "kind": "earthquake",
           "status": "reviewed",
+          "place": "28 km NNE of Chenega, Alaska",
           "depth_km": 3.6,
           "tsunami": true,
           "felt": 16,

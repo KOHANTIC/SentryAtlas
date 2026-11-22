@@ -141,6 +141,7 @@
       "properties": {
         "kind": { "type": "string", "description": "USGS's event type: earthquake, quarry blast, explosion, ice quake and others. Only earthquakes have the event type earthquake." },
         "status": { "type": "string", "description": "automatic or reviewed." },
+        "place": { "type": "string", "description": "USGS's description of where, such as 28 km NNE of Chenega, Alaska." },
         "depth_km": { "type": "number" },
         "tsunami": { "type": "boolean" },
         "felt": { "type": "integer", "minimum": 0, "description": "Number of Did You Feel It? reports." },
