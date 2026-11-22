@@ -3,219 +3,133 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
-	"log/slog"
-	"runtime/debug"
 	"sort"
-	"sync"
 	"time"
 
-	"golang.org/x/sync/singleflight"
-
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
-	"github.com/KOHANTIC/SentryAtlas/backend/internal/cache"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/store"
 )
 
-// ErrAllSourcesFailed reports that every relevant upstream source failed,
-// so an empty result would be misleading rather than meaningful.
+// ErrAllSourcesFailed reports that no relevant source has answered since the
+// server started, so an empty result would be misleading rather than
+// meaningful. Once one has, its last good copy is served instead.
 var ErrAllSourcesFailed = errors.New("all upstream sources failed")
 
-// StreamBatch is one per-source delivery on the streaming path. Either
-// Events or Err is set, never both.
+// StreamBatch is one source's part of a stream: its status, and its events
+// when it has a copy to serve.
 type StreamBatch struct {
-	Source string
+	Status models.SourceStatus
 	Events []models.Event
-	Err    error
 }
 
+// EventsService answers v1 requests from the store the pollers keep; it
+// never calls a source.
 type EventsService struct {
-	adapters    []adapters.Adapter
-	sourceCache *cache.Cache[[]models.Event]
-	sfGroup     singleflight.Group
-	timeout     time.Duration
+	adapters []adapters.Adapter
+	store    *store.Store
 }
 
-func NewEventsService(
-	adapterList []adapters.Adapter,
-	c *cache.Cache[[]models.Event],
-	timeout time.Duration,
-) *EventsService {
-	return &EventsService{
-		adapters:    adapterList,
-		sourceCache: c,
-		timeout:     timeout,
-	}
+// NewEventsService serves the store's copies; the adapters say which types
+// each source can have, so a request reads only the sources it can match.
+func NewEventsService(adapterList []adapters.Adapter, st *store.Store) *EventsService {
+	return &EventsService{adapters: adapterList, store: st}
 }
 
-// fetchAdapter returns cached events for an adapter or fetches from upstream.
-// Uses singleflight to deduplicate concurrent requests for the same data.
-// The upstream fetch uses a detached context so that cancellation of one
-// request doesn't kill a shared in-flight call that other requests need.
-func (s *EventsService) fetchAdapter(a adapters.Adapter) ([]models.Event, error) {
-	// One entry per source: every adapter fetches the same window whatever
-	// the request, so every request within the TTL shares one fetch.
-	key := a.Source()
+// sourceCopy is one source's copy as v1 sees it.
+type sourceCopy struct {
+	status   models.SourceStatus
+	events   []models.Event
+	answered bool // the source has answered at least once since the start
+}
 
-	if cached, ok := s.sourceCache.Get(key); ok {
-		return cached, nil
+// copies reads the relevant sources' copies from the store, in the
+// adapters' order, projected onto v1.
+func (s *EventsService) copies(relevant []adapters.Adapter) []sourceCopy {
+	byName := map[string]store.Copy{}
+	for _, c := range s.store.Read(time.Now()) {
+		byName[c.Status.Source] = c
 	}
-
-	result, err, _ := s.sfGroup.Do(key, func() (_ any, err error) {
-		// Adapter work runs outside the HTTP recoverer, so a panic here would
-		// end the process. Recovered inside the singleflight call, it becomes
-		// this source's failure for every request waiting on it.
-		defer func() {
-			if r := recover(); r != nil {
-				slog.Error("adapter panicked", "source", key, "panic", fmt.Sprint(r), "stack", string(debug.Stack()))
-				err = fmt.Errorf("%s: %w: %v", key, adapters.ErrInternal, r)
-			}
-		}()
-
-		ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
-		defer cancel()
-		events, err := a.FetchEvents(ctx)
-		if err != nil {
-			return nil, err
+	out := make([]sourceCopy, 0, len(relevant))
+	for _, a := range relevant {
+		c, ok := byName[a.Source()]
+		if !ok {
+			out = append(out, sourceCopy{status: models.SourceStatus{Source: a.Source(), Error: "not polled yet"}})
+			continue
 		}
-		s.sourceCache.Set(key, events)
-		return events, nil
-	})
-	if err != nil {
-		return nil, err
+		// shortcut: every copy is projected on each request (about 18,000
+		// events, a few milliseconds); keep the projection per fetched_at if
+		// request volume ever makes it show.
+		events := make([]models.Event, len(c.Events))
+		for i, e := range c.Events {
+			events[i] = e.V1()
+		}
+		out = append(out, sourceCopy{
+			status: models.SourceStatus{
+				Source:    c.Status.Source,
+				OK:        c.Status.OK,
+				Error:     c.Status.Error,
+				Stale:     c.Status.Stale,
+				FetchedAt: c.Status.FetchedAt,
+			},
+			events:   events,
+			answered: c.Status.FetchedAt != nil,
+		})
 	}
-
-	return result.([]models.Event), nil
+	return out
 }
 
-func (s *EventsService) GetEvents(ctx context.Context, params adapters.FetchParams) ([]models.Event, []models.SourceStatus, error) {
+// GetEvents merges the relevant sources' copies, filtered, newest first and
+// cut to the limit.
+func (s *EventsService) GetEvents(_ context.Context, params adapters.FetchParams) ([]models.Event, []models.SourceStatus, error) {
 	relevant := s.selectAdapters(params.Types)
 	if len(relevant) == 0 {
 		return []models.Event{}, nil, nil
 	}
 
-	var mu sync.Mutex
 	var allEvents []models.Event
 	statuses := make([]models.SourceStatus, 0, len(relevant))
-	var wg sync.WaitGroup
-
-	for _, a := range relevant {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			events, err := s.fetchAdapter(a)
-
-			mu.Lock()
-			defer mu.Unlock()
-			if err != nil {
-				slog.Warn("adapter fetch failed",
-					"source", a.Source(),
-					"error", err,
-				)
-				statuses = append(statuses, models.SourceStatus{
-					Source: a.Source(),
-					Error:  adapters.Reason(err),
-				})
-				return
-			}
-			statuses = append(statuses, models.SourceStatus{
-				Source: a.Source(),
-				OK:     true,
-			})
-			allEvents = append(allEvents, events...)
-		}()
+	answered := false
+	for _, c := range s.copies(relevant) {
+		statuses = append(statuses, c.status)
+		answered = answered || c.answered
+		allEvents = append(allEvents, c.events...)
 	}
-
-	// Wait for the fan-out, but stop blocking the caller if it goes away.
-	// Abandoned goroutines still complete their detached fetches and warm
-	// the cache — only this request's wait is cancelled.
-	waitDone := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(waitDone)
-	}()
-	select {
-	case <-waitDone:
-	case <-ctx.Done():
-		return nil, nil, ctx.Err()
-	}
-
-	failed := 0
-	for _, st := range statuses {
-		if !st.OK {
-			failed++
-		}
-	}
-	if failed == len(relevant) {
+	if !answered {
 		return nil, statuses, ErrAllSourcesFailed
 	}
 
 	allEvents = filterEvents(allEvents, params)
 	sortEventsByDate(allEvents)
-
 	if params.Limit > 0 && len(allEvents) > params.Limit {
 		allEvents = allEvents[:params.Limit]
 	}
-
 	return allEvents, statuses, nil
 }
 
-// StreamEvents delivers one batch per source as each upstream fetch
-// completes, preserving the progressive-loading UX that SSE exists for.
-// Batches are date-sorted internally; a global sort across sources would
-// require waiting for every adapter, defeating the streaming. Limit is
-// enforced across the whole stream: once the cap is reached, later batches
-// are trimmed or dropped.
+// StreamEvents sends one batch per relevant source, in order, each sorted
+// newest first, and stops when ctx ends. Limit is enforced across the whole
+// stream: once the cap is reached, later batches are trimmed or emptied.
 func (s *EventsService) StreamEvents(ctx context.Context, params adapters.FetchParams, ch chan<- StreamBatch) {
-	relevant := s.selectAdapters(params.Types)
-	if len(relevant) == 0 {
-		return
-	}
-
-	var wg sync.WaitGroup
-	var limitMu sync.Mutex
 	remaining := params.Limit // 0 means unlimited
-
-	for _, a := range relevant {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			events, err := s.fetchAdapter(a)
-			if err != nil {
-				slog.Warn("adapter stream failed",
-					"source", a.Source(),
-					"error", err,
-				)
-				select {
-				case ch <- StreamBatch{Source: a.Source(), Err: err}:
-				case <-ctx.Done():
-				}
-				return
+	for _, c := range s.copies(s.selectAdapters(params.Types)) {
+		filtered := filterEvents(c.events, params)
+		sortEventsByDate(filtered)
+		if params.Limit > 0 {
+			if remaining <= 0 {
+				filtered = nil
+			} else if len(filtered) > remaining {
+				filtered = filtered[:remaining]
 			}
-			filtered := filterEvents(events, params)
-			sortEventsByDate(filtered)
-
-			if params.Limit > 0 {
-				limitMu.Lock()
-				if remaining <= 0 {
-					filtered = nil
-				} else if len(filtered) > remaining {
-					filtered = filtered[:remaining]
-				}
-				remaining -= len(filtered)
-				limitMu.Unlock()
-			}
-
-			// Sent even when empty so the consumer can report the source
-			// as reachable.
-			select {
-			case ch <- StreamBatch{Source: a.Source(), Events: filtered}:
-			case <-ctx.Done():
-			}
-		}()
+			remaining -= len(filtered)
+		}
+		// Sent even when empty, so the consumer can report the source.
+		select {
+		case ch <- StreamBatch{Status: c.status, Events: filtered}:
+		case <-ctx.Done():
+			return
+		}
 	}
-
-	wg.Wait()
 }
 
 func (s *EventsService) selectAdapters(types []string) []adapters.Adapter {

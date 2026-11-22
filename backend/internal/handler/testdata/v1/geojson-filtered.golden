@@ -73,18 +73,22 @@
     ],
     "sources": [
       {
+        "fetched_at": "2026-08-10T12:00:00Z",
         "ok": true,
         "source": "eonet"
       },
       {
+        "fetched_at": "2026-08-10T12:00:00Z",
         "ok": true,
         "source": "gdacs"
       },
       {
+        "fetched_at": "2026-08-10T12:00:00Z",
         "ok": true,
         "source": "noaa"
       },
       {
+        "fetched_at": "2026-08-10T12:00:00Z",
         "ok": true,
         "source": "usgs"
       }

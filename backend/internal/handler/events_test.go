@@ -13,9 +13,10 @@ import (
 	"time"
 
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
-	"github.com/KOHANTIC/SentryAtlas/backend/internal/cache"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/event"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/store"
 )
 
 var baseTime = time.Date(2026, 8, 10, 0, 0, 0, 0, time.UTC)
@@ -26,24 +27,16 @@ type fakeAdapter struct {
 	types  []string
 	events []models.Event
 	err    error
-	gate   chan struct{} // if non-nil, FetchEvents blocks until closed (or ctx is done)
 
 	mu    sync.Mutex
 	calls int
 }
 
-func (f *fakeAdapter) FetchEvents(ctx context.Context) ([]models.Event, error) {
+func (f *fakeAdapter) FetchEvents(context.Context) ([]models.Event, error) {
 	f.mu.Lock()
 	f.calls++
 	f.mu.Unlock()
 
-	if f.gate != nil {
-		select {
-		case <-f.gate:
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		}
-	}
 	if f.err != nil {
 		return nil, f.err
 	}
@@ -75,12 +68,51 @@ func parsed(t *testing.T, query string) adapters.FetchParams {
 	return params
 }
 
+// fetchedAt is when every test copy was fetched.
+var fetchedAt = time.Date(2026, 8, 10, 12, 0, 0, 0, time.UTC)
+
+// newTestHandler serves a store filled once from the fakes, as the pollers
+// would: a fake's events become its copy and its error a failed poll. Call
+// counts start again at zero, so a test can see a request never calls one.
 func newTestHandler(t *testing.T, adps ...adapters.Adapter) *EventsHandler {
 	t.Helper()
-	c := cache.New[[]models.Event](time.Minute)
-	t.Cleanup(c.Close)
-	svc := service.NewEventsService(adps, c, 5*time.Second)
-	return NewEventsHandler(svc)
+	var sources []store.Source
+	for _, a := range adps {
+		sources = append(sources, store.Source{Name: a.Source()})
+	}
+	st := store.New(sources...)
+	for _, a := range adps {
+		events, err := a.FetchEvents(context.Background())
+		if err != nil {
+			st.Fail(a.Source(), adapters.Reason(err))
+		} else if err := st.Put(a.Source(), toV2(events), fetchedAt); err != nil {
+			t.Fatal(err)
+		}
+		if f, ok := a.(*fakeAdapter); ok {
+			f.mu.Lock()
+			f.calls = 0
+			f.mu.Unlock()
+		}
+	}
+	return NewEventsHandler(service.NewEventsService(adps, st))
+}
+
+// toV2 carries the fields these tests use onto the v2 model, so V1 gives
+// them back.
+func toV2(events []models.Event) []event.Event {
+	out := make([]event.Event, 0, len(events))
+	for _, e := range events {
+		v := event.Event{ID: e.ID, Source: e.Source, Type: e.EventType, Title: e.Title, URL: e.URL,
+			Time: event.Time{Started: e.StartedAt, Updated: e.UpdatedAt}}
+		if c := e.Geometry.Coordinates; len(c) >= 2 {
+			v.Location = &event.Location{Center: &event.Point{c[0], c[1]}}
+		}
+		if e.Severity != "" {
+			v.Severity = &event.Severity{Level: e.Severity}
+		}
+		out = append(out, v)
+	}
+	return out
 }
 
 func makeEvents(n int, source string) []models.Event {
@@ -415,27 +447,6 @@ func TestWriteErrorSurvivesQuotesInMessage(t *testing.T) {
 	}
 }
 
-func TestGetEventsClientGoneWritesNothing(t *testing.T) {
-	t.Parallel()
-	gate := make(chan struct{})
-	t.Cleanup(func() { close(gate) })
-	f := &fakeAdapter{source: "alpha", gate: gate, events: makeEvents(1, "alpha")}
-	h := newTestHandler(t, f)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/events", nil).WithContext(ctx)
-	rec := httptest.NewRecorder()
-	h.GetEvents(rec, req)
-
-	if rec.Body.Len() != 0 {
-		t.Errorf("body = %q, want nothing written for a gone client", rec.Body.String())
-	}
-	if got := rec.Header().Get("Content-Type"); got != "" {
-		t.Errorf("Content-Type = %q, want unset", got)
-	}
-}
-
 // SSE tests
 
 type sseFrame struct {
@@ -662,5 +673,24 @@ func TestSSEWithoutFlusherFails(t *testing.T) {
 	}
 	if msg := decodeError(t, rec); msg != "streaming not supported" {
 		t.Errorf("error = %q, want %q", msg, "streaming not supported")
+	}
+}
+
+func TestSSEStopsWhenTheClientLeaves(t *testing.T) {
+	t.Parallel()
+	h := newTestHandler(t, &fakeAdapter{source: "alpha", events: makeEvents(3, "alpha")})
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	r := httptest.NewRequest(http.MethodGet, "/api/v1/events?format=sse", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+	finished := make(chan struct{})
+	go func() { h.GetEvents(rec, r); close(finished) }()
+	select {
+	case <-finished:
+	case <-time.After(2 * time.Second):
+		t.Fatal("the stream kept going after the client left")
+	}
+	if strings.Contains(rec.Body.String(), "event: done") {
+		t.Errorf("wrote a done frame to a client that had gone: %q", rec.Body.String())
 	}
 }

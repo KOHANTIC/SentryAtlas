@@ -18,10 +18,8 @@ import (
 	"github.com/go-chi/httprate"
 
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
-	"github.com/KOHANTIC/SentryAtlas/backend/internal/cache"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/handler"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/httpx"
-	"github.com/KOHANTIC/SentryAtlas/backend/internal/models"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/store"
 )
@@ -41,7 +39,6 @@ func main() {
 
 func run(logger *slog.Logger) error {
 	port := envOrDefault("PORT", "8080")
-	cacheTTLMin := envPositiveIntOrDefault("CACHE_TTL_MINUTES", 5)
 	fetchTimeoutSec := envPositiveIntOrDefault("FETCH_TIMEOUT_SECONDS", 30)
 	rateLimitPerMin := envPositiveIntOrDefault("RATE_LIMIT_PER_MINUTE", 60)
 
@@ -90,11 +87,7 @@ func run(logger *slog.Logger) error {
 	}, store.Config{Timeout: fetchTimeout, RetryAfter: 30 * time.Second})
 	defer waitPollers()
 
-	eventsCache := cache.New[[]models.Event](time.Duration(cacheTTLMin) * time.Minute)
-	defer eventsCache.Close()
-
-	eventsSvc := service.NewEventsService(adapterList, eventsCache, fetchTimeout)
-	eventsHandler := handler.NewEventsHandler(eventsSvc)
+	eventsHandler := handler.NewEventsHandler(service.NewEventsService(adapterList, st))
 
 	r := chi.NewRouter()
 

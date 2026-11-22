@@ -143,10 +143,9 @@ func pollFullSize(tb testing.TB, responses fullSizeTransport) (s *Store, kept, p
 	return s, kept, peak
 }
 
-// The instance has 0.5 GB, and until #22 v1's request path holds a second
-// copy. Measured on 2026-11-22: 9 to 12 MB kept and 41 to 48 MB at the
-// peak; the budgets leave room for real records larger than the recorded
-// ones, and fail on a regression several times over.
+// The instance has 0.5 GB. Measured on 2026-11-22: 9 to 12 MB kept and 41
+// to 48 MB at the peak; the budgets leave room for real records larger than
+// the recorded ones, and fail on a regression several times over.
 const (
 	keptBudget = 60 << 20
 	peakBudget = 150 << 20

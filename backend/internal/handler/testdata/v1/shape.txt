@@ -34,6 +34,7 @@ geojson.features[].type: string
 geojson.sources: array
 geojson.sources[]: object
 geojson.sources[].error: string
+geojson.sources[].fetched_at: string
 geojson.sources[].ok: bool
 geojson.sources[].source: string
 geojson.type: string
@@ -68,6 +69,7 @@ json.events[].url: string
 json.sources: array
 json.sources[]: object
 json.sources[].error: string
+json.sources[].fetched_at: string
 json.sources[].ok: bool
 json.sources[].source: string
 json.total: number
@@ -75,6 +77,7 @@ sse.done: object
 sse.done.sources: array
 sse.done.sources[]: object
 sse.done.sources[].error: string
+sse.done.sources[].fetched_at: string
 sse.done.sources[].ok: bool
 sse.done.sources[].source: string
 sse.done.total: number
