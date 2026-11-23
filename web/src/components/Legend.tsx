@@ -1,28 +1,8 @@
 import tokens from "../../../brand/tokens.json";
-import { svgPath, type Shape } from "@/lib/marks";
+import type { Shape } from "@/lib/marks";
+import Mark from "./Mark";
 
 const LEVELS = ["extreme", "severe", "moderate", "minor", "ungraded"] as const;
-
-/** One mark in SVG, in the type's color from the theme's CSS variables. */
-function Mark({ shape, color, fill }: { shape: Shape; color: string; fill: string }) {
-  const d = svgPath(shape);
-  const stroke = { stroke: color, strokeWidth: tokens.mark.stroke, fill: "var(--sheet)" };
-  return (
-    <svg viewBox="-10 -10 20 20" width="20" height="20" aria-hidden="true">
-      {fill === "dotted" && <path d={svgPath(shape, 0.8)} {...stroke} fill="none" strokeDasharray={tokens.mark.dash} />}
-      {fill === "hollow" && <path d={d} {...stroke} />}
-      {fill === "half" && (
-        <>
-          <clipPath id={`half-${shape}`}><rect x="-10" y="-10" width="10" height="20" /></clipPath>
-          <path d={d} {...stroke} />
-          <path d={d} fill={color} clipPath={`url(#half-${shape})`} />
-        </>
-      )}
-      {(fill === "full" || fill === "halo") && <path d={d} {...stroke} fill={color} />}
-      {fill === "halo" && <path d={svgPath(shape, 1.6)} stroke={color} strokeWidth={1} fill="none" />}
-    </svg>
-  );
-}
 
 /** What the map draws: one mark per type, the severity fills, and the quake rings. */
 export default function Legend() {

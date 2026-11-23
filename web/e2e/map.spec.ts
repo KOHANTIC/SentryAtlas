@@ -14,6 +14,7 @@ test.beforeEach(async ({ page }) => {
 
 test("the map page shows the key for all 15 types and the five severity levels", async ({ page }) => {
   await page.goto("/map/");
+  await page.getByRole("tab", { name: "Key" }).click();
   const key = page.getByRole("region", { name: "Key" }).or(page.locator("section.legend"));
   await expect(key.locator(".legend-types li")).toHaveCount(15);
   await expect(key.locator(".legend-levels li")).toHaveText(["Extreme", "Severe", "Moderate", "Minor", "Not graded"]);
@@ -22,13 +23,13 @@ test("the map page shows the key for all 15 types and the five severity levels",
 test("the map page counts the events in the time window, placed or not", async ({ page }) => {
   await page.goto("/map/");
   // The cyclone began on 1 November, outside the last 7 days.
-  await expect(page.getByRole("status").first()).toHaveText("4 events, last 7 days");
+  await expect(page.getByRole("status").first()).toContainText("of 4 events, last 7 days");
 });
 
 test("a link reproduces its filters and time window, and loading does not rewrite it", async ({ page }) => {
   const link = "/map/?at=18.2,-66.5,6&types=weather&time=30d";
   await page.goto(link);
-  await expect(page.getByRole("status").first()).toHaveText("2 events, last 30 days");
+  await expect(page.getByRole("status").first()).toContainText("of 2 events, last 30 days");
   // The map opens on the link's view, not on the whole globe.
   await expect(page.locator(".map-canvas")).toHaveAttribute("data-view", "18.20,-66.50,6.0");
   await page.waitForTimeout(1000);
@@ -53,6 +54,6 @@ test("without WebGL2 the page says so instead of drawing", async ({ page }) => {
     };
   });
   await page.goto("/map/");
-  await expect(page.getByText("This browser cannot draw the map: it needs WebGL2.")).toBeVisible();
-  await expect(page.locator("section.legend")).toBeVisible();
+  await expect(page.getByText("This browser cannot draw the map: it needs WebGL2. The list has every event.")).toBeVisible();
+  await expect(page.getByRole("listbox", { name: "Events in view" })).toBeVisible();
 });
