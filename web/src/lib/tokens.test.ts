@@ -26,7 +26,7 @@ describe("_headers", () => {
       expect(csp).toContain(d);
     }
   });
-  it("keeps search engines off the site until the cutover (#40)", () => {
-    expect(headers).toContain("X-Robots-Tag: noindex");
+  it("lets search engines index the site since the cutover (#40)", () => {
+    expect(headers).not.toContain("noindex");
   });
 });
