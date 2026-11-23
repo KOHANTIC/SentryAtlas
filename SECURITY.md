@@ -41,8 +41,5 @@ Two properties are worth knowing when assessing a report:
 - **Event content is third-party data.** Titles and descriptions come from
   public feeds and are treated as untrusted: the map builds popups as DOM
   nodes with `textContent`, never as HTML.
-- **Two secrets exist, both outside the repository.** All four upstream
-  sources are public and keyless. The service holds the email provider's API
-  key and the secret that signs waiting-list links, as encrypted environment
-  variables. There are no accounts, and the service stores no personal data:
-  confirmed waiting-list contacts are kept by the email provider.
+- **There are no accounts.** All four upstream sources are public and
+  keyless.

@@ -135,19 +135,9 @@ export default function Privacy() {
 
         <Section title="The waiting list">
           <p>
-            If you join the waiting list for location alerts, we keep your email address, the area
-            and the types of event you chose, and whether you asked for product news. We use them
-            to tell you when alerts are ready to try, and, only if you ticked the box for it, to
-            send occasional product news.
-          </p>
-          <p>
-            The list is kept by our email provider,{" "}
-            <Out href="https://resend.com/legal/privacy-policy">Resend</Out>, not on our servers.
-            Resend also receives your address to send the confirmation email; if you never confirm,
-            nothing is added to the list.
-          </p>
-          <p>
-            Every email we send to the list has a link to leave it or to stop product news.
+            If you join the waiting list, we keep your email address and the choices you made, to
+            tell you when alerts are ready and, only if you asked, to send product news. The list is
+            kept by our email provider, Resend. Every email to the list has a link to leave it.
             {PRIVACY_EMAIL && (
               <>
                 {" "}To have your details deleted, write to{" "}
