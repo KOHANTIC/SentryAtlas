@@ -30,6 +30,9 @@ a { color: var(--action); }
   padding: var(--s3); background: var(--sheet); border: 1px solid var(--ink); font-size: var(--size-sm);
 }
 .notice { margin: 0; padding: var(--s2) var(--s3); list-style: none; border-left: 3px solid var(--warn); background: var(--warn-bg); }
+.share { display: flex; align-items: center; gap: var(--s3); }
+.share button { min-height: 32px; padding: var(--s1) var(--s3); background: none; color: var(--action); border: 1px solid var(--action); font: 600 var(--size-sm) var(--nf-text), var(--font-text); cursor: pointer; }
+.share span { color: var(--muted); font-size: var(--size-xs); }
 .legend { display: grid; gap: var(--s2); }
 .legend h2, .legend h3 { margin: 0; }
 .legend ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s1) var(--s3); }
