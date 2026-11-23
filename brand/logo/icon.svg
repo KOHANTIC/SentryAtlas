@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>SentryAtlas</title>
+  <rect width="512" height="512" fill="#fbfcfa"/>
+  <g transform="translate(86 86) scale(13.0769)">
+    <rect x="1" y="1" width="24" height="24" fill="none" stroke="#17242c" stroke-width="2"/>
+    <path d="M4 17c4-5 7-1 10-5s5-4 8-2" fill="none" stroke="#0b5a76" stroke-width="2"/>
+    <circle cx="17" cy="9" r="2.4" fill="#17242c"/>
+  </g>
+</svg>

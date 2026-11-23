@@ -101,6 +101,21 @@ jobs:
       - run: npm run lint
       - run: npm run build
 
+  # The design tokens: contrast in both themes, every event type the API sends, and the
+  # color-vision rule (brand/BRAND.md). Plain Node, no packages.
+  brand:
+    name: Brand tokens
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node --test brand/tokens.test.mjs
+
   # The images the platform deploys, built from the same directory it builds them from, and
   # not pushed anywhere. The landing site is not an image: the job above builds it as the
   # platform does.
@@ -133,7 +148,7 @@ jobs:
   gate:
     name: gate
     if: always()
-    needs: [backend, frontend, landing, docker]
+    needs: [backend, frontend, landing, brand, docker]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
