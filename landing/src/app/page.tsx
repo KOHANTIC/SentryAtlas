@@ -152,6 +152,12 @@ export default function Home() {
             Sentry<span className="text-accent-400">Atlas</span>
           </span>
           <div className="flex items-center gap-4">
+            <Link
+              href="/alerts/"
+              className="text-sm font-medium text-foreground-muted hover:text-foreground transition-colors"
+            >
+              Get alerts
+            </Link>
             <a
               href={GITHUB_URL}
               target="_blank"
@@ -356,6 +362,12 @@ export default function Home() {
             >
               Map
             </a>
+            <Link
+              href="/alerts/"
+              className="hover:text-foreground transition-colors"
+            >
+              Get alerts
+            </Link>
             <Link
               href="/privacy/"
               className="hover:text-foreground transition-colors"

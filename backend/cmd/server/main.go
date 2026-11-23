@@ -120,6 +120,8 @@ func run(logger *slog.Logger) error {
 		ConfirmURL:  envOrDefault("WAITLIST_CONFIRM_URL", "https://sentryatlas.com/waitlist/confirm/"),
 		Logger:      logger,
 	})
+	go list.Report(ctx, time.Hour)
+
 	// Only the project's own pages may post to the waiting list.
 	waitlistOrigins := strings.Split(envOrDefault("WAITLIST_ORIGINS", "https://sentryatlas.com,https://map.sentryatlas.com"), ",")
 	for i := range waitlistOrigins {

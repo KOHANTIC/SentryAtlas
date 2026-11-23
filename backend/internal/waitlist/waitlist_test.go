@@ -267,3 +267,18 @@ func TestProviderDown(t *testing.T) {
 		t.Errorf("save down: %d", rec.Code)
 	}
 }
+
+func TestCountsForTheReport(t *testing.T) {
+	l, sender, _ := newList(t)
+	post(l.Signup, `{"email":"a@example.org","news":true}`)
+	post(l.Signup, `{"email":"b@example.org"}`)
+	post(l.Signup, `{"email":"bad"}`)
+	post(l.Confirm, `{"token":"`+tokenFrom(t, sender.Sent()[0])+`"}`)
+	post(l.Confirm, `{"token":"`+tokenFrom(t, sender.Sent()[1])+`"}`)
+	if sent, confirmed, news := l.takeCounts(); sent != 2 || confirmed != 2 || news != 1 {
+		t.Errorf("counts %d sent, %d confirmed, %d news; want 2, 2, 1", sent, confirmed, news)
+	}
+	if sent, confirmed, news := l.takeCounts(); sent+confirmed+news != 0 {
+		t.Errorf("counts not reset: %d %d %d", sent, confirmed, news)
+	}
+}
