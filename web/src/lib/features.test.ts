@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import tokens from "../../../brand/tokens.json";
 import type { Event, Snapshot } from "./api.gen";
-import { toFeatures } from "./features";
-import { mapStyle } from "./mapStyle";
+import { toAreas, toFeatures, toTracks, zoneOnly } from "./features";
+import { mapStyle, typeColor } from "./mapStyle";
 import { svgPath, type Shape } from "./marks";
 
 const example = JSON.parse(readFileSync(new URL("../../../docs/api/v2/snapshot.example.json", import.meta.url), "utf8")) as Snapshot;
@@ -54,5 +54,30 @@ describe("mapStyle", () => {
     expect(JSON.stringify(s.sources.quakes)).toContain("USGS, NASA EONET, NWS, GDACS");
     const ids = s.layers.map((l) => l.id);
     expect(ids.indexOf("marks")).toBeGreaterThan(ids.indexOf("places"));
+  });
+});
+
+describe("areas and tracks", () => {
+  const [, storm, polygon, zoned] = example.events;
+  const square = [[[[-87, 42], [-86, 42], [-86, 43], [-87, 43], [-87, 42]]]];
+
+  it("draws an alert's own polygon, and a zone-only alert from its zones once they load", () => {
+    expect(zoneOnly(zoned)).toBe(true);
+    expect(zoneOnly(polygon)).toBe(false);
+    expect(toAreas(example.events).features.map((f) => f.properties.id)).toEqual([polygon.id]);
+    const zones = new Map([["LMZ844", square], ["LMZ845", square]]);
+    const areas = toAreas(example.events, zones).features;
+    expect(areas.map((f) => f.properties.id)).toEqual([polygon.id, zoned.id]);
+    // LMZ846 is not in this table, so it is skipped, not an error.
+    expect(areas[1].geometry.coordinates).toHaveLength(2);
+  });
+
+  it("draws a track as a line", () => {
+    expect(toTracks(example.events).features.map((f) => f.properties.id)).toEqual([storm.id]);
+  });
+
+  it("colors areas and tracks by type, for every type", () => {
+    const expr = JSON.stringify(typeColor("light"));
+    for (const [type, e] of Object.entries(tokens.event)) expect(expr).toContain(`"${type}","${e.light}"`);
   });
 });

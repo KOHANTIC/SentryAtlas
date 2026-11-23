@@ -5,7 +5,7 @@ Most NWS alerts name forecast zones or counties and carry no shape. Two files pl
 | File | What it holds | Size |
 |---|---|---|
 | `backend/internal/zones/centers.json` | Each zone's center, `[lon, lat]` to 3 decimals, by zone id. Embedded in the server, which places an alert with no shape at the center of its zones. | 217 KB, 8,048 zones |
-| `frontend/public/data/nws-zones.json` | Each zone's outline, a GeoJSON MultiPolygon with the zone id as the feature `id`, for drawing (#38) | 5.4 MB, 1.1 MB gzipped |
+| `web/public/data/nws-zones.json` | Each zone's outline, a GeoJSON MultiPolygon with the zone id as the feature `id`. The new site loads it the first time it draws a zone-only alert (#38) | 5.4 MB, 1.1 MB gzipped |
 
 A test in `backend/internal/zones` holds the budget: under 300 KB and 6 MB.
 

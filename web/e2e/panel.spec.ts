@@ -62,3 +62,10 @@ test("on a phone the sheet changes height by buttons, with no drag", async ({ pa
   await page.getByRole("button", { name: "More" }).click();
   await expect(panel).toHaveAttribute("data-height", "half");
 });
+
+test("a zone-only alert loads the zone outlines to draw its area", async ({ page }) => {
+  const zoned = example.events[3];
+  const zones = page.waitForRequest((r) => r.url().endsWith("/data/nws-zones.json"));
+  await page.goto(`/map/?time=30d&event=${encodeURIComponent(zoned.id)}`);
+  await zones;
+});

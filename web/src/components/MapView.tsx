@@ -5,7 +5,8 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import type { Map as MapLibre, GeoJSONSource } from "maplibre-gl";
 import tokens from "../../../brand/tokens.json";
 import type { Event } from "@/lib/api.gen";
-import { toFeatures } from "@/lib/features";
+import { toAreas, toFeatures, toTracks, zoneOnly } from "@/lib/features";
+import { getZones, loadZones, subscribeZones, type ZoneShapes } from "@/lib/zones";
 import type { BBox } from "@/lib/filters";
 import { mapStyle } from "@/lib/mapStyle";
 import { markImage, type Fill, type Shape } from "@/lib/marks";
@@ -65,6 +66,8 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
   }, [onMove, onPick, onBounds, camera]);
   const t = useSyncExternalStore(subscribeTheme, theme, () => "light" as Theme);
   const canDraw = useSyncExternalStore(noSubscribe, hasWebGL2, () => true);
+  const zones = useSyncExternalStore(subscribeZones, getZones, () => undefined);
+  const zonesNow = useRef(zones);
 
   // Create the map once, and give it the theme's style when the theme changes.
   useEffect(() => {
@@ -94,6 +97,8 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
       });
       // The view, readable by tests and tools: latitude, longitude, zoom.
       const mark = () => {
+        // Zone outlines are fetched the first time zone-only alerts could be drawn.
+        if (m.getZoom() >= 3 && current.current.some(zoneOnly)) void loadZones();
         const { lng, lat } = m.getCenter();
         container.current?.setAttribute("data-view", `${lat.toFixed(2)},${lng.toFixed(2)},${m.getZoom().toFixed(1)}`);
         const b = m.getBounds();
@@ -119,7 +124,7 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
         m.addImage(id, markImage(e.shape as Shape, fill, e[th], ground, 2), { pixelRatio: 2 });
       });
       m.on("style.load", () => {
-        setData(m, current.current);
+        setData(m, current.current, zonesNow.current);
         setSelected(m, chosen.current);
       });
       const layers = ["marks", "quakes", "quake-clusters"];
@@ -133,10 +138,12 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
           void (m.getSource("quakes") as GeoJSONSource).getClusterExpansionZoom(cluster.properties.cluster_id).then((zoom) => m.easeTo({ center: at, zoom }));
           return;
         }
-        const ids = [...new Set(hits.map((f) => String(f.properties?.id)).filter((id) => id !== "undefined"))];
+        // Marks come first; a click on bare area or track picks what it lies inside or on.
+        const under = hits.length ? hits : m.queryRenderedFeatures([[x - 3, y - 3], [x + 3, y + 3]], { layers: ["area-fill", "tracks"] });
+        const ids = [...new Set(under.map((f) => String(f.properties?.id)).filter((id) => id !== "undefined"))];
         if (ids.length) picked.current?.(ids);
       });
-      for (const l of layers) {
+      for (const l of [...layers, "area-fill", "tracks"]) {
         m.on("mouseenter", l, () => (m.getCanvas().style.cursor = "pointer"));
         m.on("mouseleave", l, () => (m.getCanvas().style.cursor = ""));
       }
@@ -169,13 +176,20 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
     if (!m) return;
     setSelected(m, chosen.current);
     if (m.loaded()) reveal(m, chosen.current?.at);
+    // A selected zone-only alert is drawn whatever the zoom.
+    const e = current.current.find((x) => x.id === selId);
+    if (e && zoneOnly(e)) void loadZones();
   }, [selId, sx, sy]);
 
   useEffect(() => {
     current.current = events;
+    zonesNow.current = zones;
+    // The selection may have come before the events: a zone-only one still needs its zones.
+    const sel = chosen.current && events.find((x) => x.id === chosen.current?.id);
+    if (sel && zoneOnly(sel)) void loadZones();
     // Before the style has its sources this does nothing; style.load then sets the latest events.
-    if (map.current) setData(map.current, events);
-  }, [events]);
+    if (map.current) setData(map.current, events, zones);
+  }, [events, zones]);
 
   if (!canDraw) {
     return (
@@ -205,9 +219,15 @@ function setSelected(m: MapLibre, s: Props["selected"]) {
     ? { type: "FeatureCollection" as const, features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Point" as const, coordinates: s.at } }] }
     : { type: "FeatureCollection" as const, features: [] };
   (m.getSource("selected") as GeoJSONSource | undefined)?.setData(data);
+  if (m.getLayer("selected-area")) {
+    m.setFilter("selected-area", ["==", ["get", "id"], s?.id ?? ""]);
+    m.setFilter("selected-track", ["==", ["get", "id"], s?.id ?? ""]);
+  }
 }
 
-function setData(m: MapLibre, events: readonly Event[]) {
+function setData(m: MapLibre, events: readonly Event[], zones?: ZoneShapes) {
+  (m.getSource("areas") as GeoJSONSource | undefined)?.setData(toAreas(events, zones));
+  (m.getSource("tracks") as GeoJSONSource | undefined)?.setData(toTracks(events));
   const { quakes, marks } = toFeatures(events);
   (m.getSource("quakes") as GeoJSONSource | undefined)?.setData(quakes);
   (m.getSource("marks") as GeoJSONSource | undefined)?.setData(marks);

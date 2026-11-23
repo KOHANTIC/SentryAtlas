@@ -44,3 +44,38 @@ export function toFeatures(events: readonly Event[]): { quakes: MarkCollection; 
   }
   return { quakes: { type: "FeatureCollection", features: quakes }, marks: { type: "FeatureCollection", features: marks } };
 }
+
+type AreaFeature = { type: "Feature"; properties: { id: string; type: Event["type"] }; geometry: { type: "MultiPolygon"; coordinates: number[][][][] } };
+type TrackFeature = { type: "Feature"; properties: { id: string; type: Event["type"] }; geometry: { type: "LineString"; coordinates: number[][] } };
+
+/** Whether an alert can only be drawn from its zones: it names some and has no shape of its own. */
+export const zoneOnly = (e: Event) => !!e.location?.zones?.length && !["Polygon", "MultiPolygon"].includes(e.location.geometry?.type ?? "");
+
+/**
+ * The events' areas: their own polygons, and for zone-only alerts the outlines
+ * of the zones they name once those have loaded. Zones it does not know are skipped.
+ */
+export function toAreas(events: readonly Event[], zones?: Map<string, number[][][][]>) {
+  const features: AreaFeature[] = [];
+  for (const e of events) {
+    const g = e.location?.geometry;
+    const props = { id: e.id, type: e.type };
+    if (g?.type === "Polygon") features.push({ type: "Feature", properties: props, geometry: { type: "MultiPolygon", coordinates: [g.coordinates] } });
+    else if (g?.type === "MultiPolygon") features.push({ type: "Feature", properties: props, geometry: { type: "MultiPolygon", coordinates: g.coordinates } });
+    else if (zones && zoneOnly(e)) {
+      const coordinates = e.location!.zones!.flatMap((z) => zones.get(z) ?? []);
+      if (coordinates.length) features.push({ type: "Feature", properties: props, geometry: { type: "MultiPolygon", coordinates } });
+    }
+  }
+  return { type: "FeatureCollection" as const, features };
+}
+
+/** The events drawn as lines: tracks, such as a storm's path. */
+export function toTracks(events: readonly Event[]) {
+  const features: TrackFeature[] = [];
+  for (const e of events) {
+    const g = e.location?.geometry;
+    if (g?.type === "LineString") features.push({ type: "Feature", properties: { id: e.id, type: e.type }, geometry: { type: "LineString", coordinates: g.coordinates } });
+  }
+  return { type: "FeatureCollection" as const, features };
+}

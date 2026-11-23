@@ -30,7 +30,7 @@ var defaultSources = []string{
 
 func main() {
 	centersPath := flag.String("centers", "internal/zones/centers.json", "where to write the zone centers")
-	shapesPath := flag.String("shapes", "../frontend/public/data/nws-zones.json", "where to write the zone outlines")
+	shapesPath := flag.String("shapes", "../web/public/data/nws-zones.json", "where to write the zone outlines")
 	flag.Parse()
 	sources := flag.Args()
 	if len(sources) == 0 {
