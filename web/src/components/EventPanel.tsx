@@ -38,23 +38,41 @@ export default function EventPanel({ id, choices, brief, group, onSelect, onClos
     heading.current?.focus();
   }, [open, id, choices]);
 
-  if (!open) return null;
-
   const close = () => {
     const back = opener.current;
     opener.current = null;
     onClose();
     if (back instanceof HTMLElement && back.isConnected) back.focus();
   };
+  const closeRef = useRef(close);
+  useEffect(() => {
+    closeRef.current = close;
+  });
+
+  // Escape closes the panel wherever focus is, the map included.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (k: KeyboardEvent) => k.key === "Escape" && closeRef.current();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  if (!open) return null;
 
   const e = detail?.status === "ok" ? detail.event : brief;
+  const ended = detail?.status === "ended" && !brief;
+  // One heading for every state, so focus stays on it while the event loads.
+  const title = choices?.length
+    ? `${choices.length} events here`
+    : ended
+      ? "This event has ended"
+      : e
+        ? e.title
+        : detail?.status === "error"
+          ? "The event could not be loaded"
+          : "Loading the event";
   return (
-    <section
-      className="panel"
-      data-height={height}
-      aria-labelledby="panel-title"
-      onKeyDown={(k) => k.key === "Escape" && close()}
-    >
+    <section className="panel" data-height={height} aria-labelledby="panel-title">
       <div className="panel-bar">
         <span className="sheet-steps">
           <button type="button" onClick={() => setHeight(TALLER[height])} disabled={height === "full"}>More</button>
@@ -64,9 +82,11 @@ export default function EventPanel({ id, choices, brief, group, onSelect, onClos
         <button type="button" className="panel-close" onClick={close} aria-label="Close">Close</button>
       </div>
 
+      {e && !choices?.length && !ended && <span className="label">{typeLabel(e.type)} · {SOURCE_NAMES[e.source]}</span>}
+      <h2 id="panel-title" ref={heading} tabIndex={-1}>{title}</h2>
+
       {choices?.length ? (
         <>
-          <h2 id="panel-title" ref={heading} tabIndex={-1}>{choices.length} events here</h2>
           <ul className="choices">
             {choices.map((c) => (
               <li key={c.id}>
@@ -78,17 +98,10 @@ export default function EventPanel({ id, choices, brief, group, onSelect, onClos
             ))}
           </ul>
         </>
-      ) : detail?.status === "ended" && !brief ? (
+      ) : ended ? (
+        <p>It is no longer in its source&apos;s feed, so its details are gone.</p>
+      ) : !e ? null : (
         <>
-          <h2 id="panel-title" ref={heading} tabIndex={-1}>This event has ended</h2>
-          <p>It is no longer in its source&apos;s feed, so its details are gone.</p>
-        </>
-      ) : !e ? (
-        <h2 id="panel-title" ref={heading} tabIndex={-1}>{detail?.status === "error" ? "The event could not be loaded" : "Loading the event"}</h2>
-      ) : (
-        <>
-          <span className="label">{typeLabel(e.type)} · {SOURCE_NAMES[e.source]}</span>
-          <h2 id="panel-title" ref={heading} tabIndex={-1}>{e.title}</h2>
           <p className="sevword">{formatSeverity(e)}</p>
           <dl className="facts">
             {formatMagnitude(e) && (<><dt>Magnitude</dt><dd>{formatMagnitude(e)}</dd></>)}
