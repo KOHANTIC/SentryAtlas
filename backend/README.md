@@ -36,6 +36,10 @@ Every variable has a default, so none is required. A number that is set but not 
 | `ALLOWED_ORIGINS` | `*` | Comma-separated CORS origins |
 | `NWS_USER_AGENT` | `SentryAtlas/1.0 (github.com/KOHANTIC/SentryAtlas)` | User-Agent sent to api.weather.gov, which asks for one that identifies the caller. Forks should set their own. |
 | `CLIENT_IP_HEADER` | empty | Header the proxy in front of the API writes the client address into, overwriting any value a client sends. The rate limit keys on it. Empty: the TCP peer, for running with no proxy. |
+| `RESEND_API_KEY` | empty | Resend API key, with sending access only. Empty turns email off, and the server runs without it. A secret: set it as an encrypted variable, never in a file. |
+| `MAIL_FROM` | empty | Sender, such as `SentryAtlas <hello@mail.example.org>`, on a domain verified at Resend. Required with a key. |
+| `MAIL_REPLY_TO` | empty | Where replies go: an address a person reads. Required with a key. |
+| `MAIL_SENDER` | empty | `log` prints each message, address and link included, instead of sending it: for local runs, never production. Empty or `resend` sends through Resend when a key is set. |
 
 ## API
 

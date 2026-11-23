@@ -20,6 +20,7 @@ import (
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/adapters"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/handler"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/httpx"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/mail"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/store"
 )
@@ -86,6 +87,14 @@ func run(logger *slog.Logger) error {
 		{Fetcher: gdacs, Interval: 10 * time.Minute},
 	}, store.Config{Timeout: fetchTimeout, RetryAfter: 30 * time.Second})
 	defer waitPollers()
+
+	// Mail is off without a provider key, and a bad mail setting leaves it off
+	// rather than taking the map down with it.
+	mailer, mailSender, err := mail.FromEnv(os.Getenv, &http.Client{Timeout: 10 * time.Second}, logger)
+	if err != nil {
+		slog.Error("mail off: misconfigured", "error", err)
+	}
+	_ = mailer // the waiting list (#13) sends through it
 
 	eventsHandler := handler.NewEventsHandler(service.NewEventsService(adapterList, st))
 	go eventsHandler.ReportCalls(ctx, time.Hour)
@@ -155,7 +164,7 @@ func run(logger *slog.Logger) error {
 	go func() {
 		// Empty client_ip_header behind a proxy would put every visitor in one
 		// rate-limit bucket, so the startup line says which source is in use.
-		slog.Info("server starting", "port", port, "client_ip_header", clientIPHeader)
+		slog.Info("server starting", "port", port, "client_ip_header", clientIPHeader, "mail", mailSender)
 		served <- srv.ListenAndServe()
 	}()
 
