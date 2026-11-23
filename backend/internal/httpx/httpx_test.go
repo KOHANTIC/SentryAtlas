@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
 )
 
@@ -198,5 +199,39 @@ func TestRateLimitIgnoresSpoofedHeadersAndAnswersInTheAPIShape(t *testing.T) {
 
 	if rec := do("198.51.100.8", false); rec.Code != http.StatusOK {
 		t.Errorf("another client: status %d, want 200", rec.Code)
+	}
+}
+
+func TestSplitCORS(t *testing.T) {
+	public := cors.Handler(cors.Options{AllowedOrigins: []string{"*"}, AllowedMethods: []string{"GET", "OPTIONS"}})
+	private := cors.Handler(cors.Options{
+		AllowedOrigins: []string{"https://sentryatlas.com"}, AllowedMethods: []string{"POST", "OPTIONS"},
+		AllowedHeaders: []string{"Content-Type"},
+	})
+	h := SplitCORS("/api/v2/waitlist", private, public)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	preflight := func(path, origin, method string) http.Header {
+		r := httptest.NewRequest(http.MethodOptions, path, nil)
+		r.Header.Set("Origin", origin)
+		r.Header.Set("Access-Control-Request-Method", method)
+		r.Header.Set("Access-Control-Request-Headers", "Content-Type")
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, r)
+		return rec.Header()
+	}
+	tests := []struct {
+		path, origin, method, wantOrigin string
+	}{
+		{"/api/v2/waitlist", "https://sentryatlas.com", "POST", "https://sentryatlas.com"},
+		{"/api/v2/waitlist/confirm", "https://sentryatlas.com", "POST", "https://sentryatlas.com"},
+		{"/api/v2/waitlist", "https://elsewhere.example", "POST", ""},
+		{"/api/v1/events", "https://elsewhere.example", "GET", "*"},
+		{"/api/v1/events", "https://sentryatlas.com", "POST", ""},
+	}
+	for _, tt := range tests {
+		if got := preflight(tt.path, tt.origin, tt.method).Get("Access-Control-Allow-Origin"); got != tt.wantOrigin {
+			t.Errorf("%s %s from %s: allow-origin %q, want %q", tt.method, tt.path, tt.origin, got, tt.wantOrigin)
+		}
 	}
 }

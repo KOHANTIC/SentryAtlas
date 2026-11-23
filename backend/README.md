@@ -39,6 +39,11 @@ Every variable has a default, so none is required. A number that is set but not 
 | `RESEND_API_KEY` | empty | Resend API key, with sending access only. Empty turns email off, and the server runs without it. A secret: set it as an encrypted variable, never in a file. |
 | `MAIL_FROM` | empty | Sender, such as `SentryAtlas <hello@mail.example.org>`, on a domain verified at Resend. Required with a key. |
 | `MAIL_REPLY_TO` | empty | Where replies go: an address a person reads. Required with a key. |
+| `WAITLIST_SECRET` | empty | Signs waiting-list links: at least 32 characters, random (`openssl rand -hex 32`). A secret. Empty turns the waiting list off. |
+| `WAITLIST_SECRET_PREVIOUS` | empty | The secret before the current one, so links it signed keep working for their 48 hours after a change. |
+| `RESEND_TOPIC_ALERTS`, `RESEND_TOPIC_NEWS` | empty | The ids of the two Resend topics, both created with default subscription opt-out: the waiting list itself, and product news. Either empty turns the waiting list off. |
+| `WAITLIST_CONFIRM_URL` | `https://sentryatlas.com/waitlist/confirm/` | The page a confirmation link opens; the token follows its `#`. Forks should set their own. |
+| `WAITLIST_ORIGINS` | `https://sentryatlas.com,https://map.sentryatlas.com` | The only origins allowed to call the waiting-list routes. |
 | `MAIL_SENDER` | empty | `log` prints each message, address and link included, instead of sending it: for local runs, never production. Empty or `resend` sends through Resend when a key is set. |
 
 ## API

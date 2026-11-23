@@ -23,6 +23,7 @@ import (
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/mail"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/service"
 	"github.com/KOHANTIC/SentryAtlas/backend/internal/store"
+	"github.com/KOHANTIC/SentryAtlas/backend/internal/waitlist"
 )
 
 func main() {
@@ -94,7 +95,36 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		slog.Error("mail off: misconfigured", "error", err)
 	}
-	_ = mailer // the waiting list (#13) sends through it
+
+	// The waiting list needs the mailer, a signing secret of at least 32
+	// characters, and the provider's two consent topics; without them it is off.
+	var secrets [][]byte
+	for _, k := range []string{"WAITLIST_SECRET", "WAITLIST_SECRET_PREVIOUS"} {
+		if v := os.Getenv(k); v != "" {
+			if len(v) < 32 {
+				slog.Error("waitlist off: secret shorter than 32 characters", "key", k)
+				secrets = nil
+				break
+			}
+			secrets = append(secrets, []byte(v))
+		}
+	}
+	if os.Getenv("WAITLIST_SECRET") == "" {
+		secrets = nil
+	}
+	list := waitlist.New(waitlist.Config{
+		Mailer:      mailer,
+		Secrets:     secrets,
+		AlertsTopic: os.Getenv("RESEND_TOPIC_ALERTS"),
+		NewsTopic:   os.Getenv("RESEND_TOPIC_NEWS"),
+		ConfirmURL:  envOrDefault("WAITLIST_CONFIRM_URL", "https://sentryatlas.com/waitlist/confirm/"),
+		Logger:      logger,
+	})
+	// Only the project's own pages may post to the waiting list.
+	waitlistOrigins := strings.Split(envOrDefault("WAITLIST_ORIGINS", "https://sentryatlas.com,https://map.sentryatlas.com"), ",")
+	for i := range waitlistOrigins {
+		waitlistOrigins[i] = strings.TrimSpace(waitlistOrigins[i])
+	}
 
 	eventsHandler := handler.NewEventsHandler(service.NewEventsService(adapterList, st))
 	go eventsHandler.ReportCalls(ctx, time.Hour)
@@ -114,13 +144,20 @@ func run(logger *slog.Logger) error {
 	// text/event-stream is deliberately absent — compressing SSE buffers
 	// flushes and breaks progressive delivery.
 	r.Use(middleware.Compress(5, "application/json", "application/geo+json"))
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   allowedOrigins,
-		AllowedMethods:   []string{"GET", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Content-Type"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
+	r.Use(httpx.SplitCORS("/api/v2/waitlist",
+		cors.Handler(cors.Options{
+			AllowedOrigins: waitlistOrigins,
+			AllowedMethods: []string{"POST", "OPTIONS"},
+			AllowedHeaders: []string{"Content-Type"},
+			MaxAge:         300,
+		}),
+		cors.Handler(cors.Options{
+			AllowedOrigins:   allowedOrigins,
+			AllowedMethods:   []string{"GET", "OPTIONS"},
+			AllowedHeaders:   []string{"Accept", "Content-Type"},
+			AllowCredentials: false,
+			MaxAge:           300,
+		})))
 
 	r.Get("/health", handler.Health(st))
 	// What an outside monitor alarms on: a source's copy older than this has
@@ -147,9 +184,14 @@ func run(logger *slog.Logger) error {
 
 	v2 := handler.NewV2Handler(st)
 	r.Route("/api/v2", func(r chi.Router) {
-		r.Use(limit)
-		r.Get("/snapshot", v2.Snapshot)
-		r.Get("/events/{id}", v2.Event)
+		r.With(limit).Get("/snapshot", v2.Snapshot)
+		r.With(limit).Get("/events/{id}", v2.Event)
+		// Each signup sends an email, so a client gets a few an hour; a
+		// confirmation sends none and gets more.
+		r.With(httprate.LimitBy(5, time.Hour, httpx.RateLimitKey,
+			httprate.WithLimitHandler(httpx.TooManyRequests))).Post("/waitlist", list.Signup)
+		r.With(httprate.LimitBy(20, time.Hour, httpx.RateLimitKey,
+			httprate.WithLimitHandler(httpx.TooManyRequests))).Post("/waitlist/confirm", list.Confirm)
 	})
 
 	srv := &http.Server{
@@ -164,7 +206,7 @@ func run(logger *slog.Logger) error {
 	go func() {
 		// Empty client_ip_header behind a proxy would put every visitor in one
 		// rate-limit bucket, so the startup line says which source is in use.
-		slog.Info("server starting", "port", port, "client_ip_header", clientIPHeader, "mail", mailSender)
+		slog.Info("server starting", "port", port, "client_ip_header", clientIPHeader, "mail", mailSender, "waitlist", list.On())
 		served <- srv.ListenAndServe()
 	}()
 
