@@ -9,9 +9,9 @@ name: sentryatlas
 region: sfo
 
 domains:
+  # No zone: that field asks App Platform to manage the domain's DNS, which is at Cloudflare.
   - domain: map.sentryatlas.com
     type: PRIMARY
-    zone: sentryatlas.com
 
 ingress:
   rules:
