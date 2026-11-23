@@ -28,11 +28,26 @@ function hasWebGL2(): boolean {
 }
 const noSubscribe = () => () => {};
 
+export type Camera = { center: [number, number]; zoom: number; bearing: number };
+
+type Props = {
+  events: readonly Event[];
+  /** Where to look, from the link; absent starts on the whole globe. */
+  camera?: Partial<Camera>;
+  /** Called when the person has moved the map. */
+  onMove?: (c: Camera) => void;
+};
+
 /** The globe, with every placed event drawn as its type's mark and its severity's fill. */
-export default function MapView({ events }: { events: readonly Event[] }) {
+export default function MapView({ events, camera, onMove }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre | null>(null);
   const current = useRef(events);
+  const moved = useRef(onMove);
+  const start = useRef(camera);
+  useEffect(() => {
+    moved.current = onMove;
+  }, [onMove]);
   const t = useSyncExternalStore(subscribeTheme, theme, () => "light" as Theme);
   const canDraw = useSyncExternalStore(noSubscribe, hasWebGL2, () => true);
 
@@ -51,8 +66,21 @@ export default function MapView({ events }: { events: readonly Event[] }) {
       setWorkerUrl("/maplibre-gl-worker.mjs");
       // The globe's diameter is about 136 px at zoom 0: start it at 85% of the shorter side.
       const side = Math.min(container.current.clientWidth, container.current.clientHeight) || 600;
-      const zoom = Math.max(0.5, Math.log2((0.85 * side) / 136));
-      const m = new Map({ container: container.current, style: mapStyle(t), center: [10, 20], zoom, attributionControl: { compact: true } });
+      const c = start.current;
+      const m = new Map({
+        container: container.current,
+        style: mapStyle(t),
+        center: c?.center ?? [10, 20],
+        zoom: c?.zoom ?? Math.max(0.5, Math.log2((0.85 * side) / 136)),
+        bearing: c?.bearing ?? 0,
+        attributionControl: { compact: true },
+      });
+      // Only moves the person makes reach the link; jumps from the link carry no originalEvent.
+      m.on("moveend", (e) => {
+        if (!("originalEvent" in e) || !e.originalEvent) return;
+        const { lng, lat } = m.getCenter();
+        moved.current?.({ center: [lng, lat], zoom: m.getZoom(), bearing: m.getBearing() });
+      });
       map.current = m;
       // Marks are drawn when the map first asks for one: `<theme>:<type>:<fill>`.
       m.on("styleimagemissing", ({ id }) => {
@@ -70,6 +98,18 @@ export default function MapView({ events }: { events: readonly Event[] }) {
   }, [canDraw, t]);
 
   useEffect(() => () => map.current?.remove(), []);
+
+  // Back and forward change the link: follow it when it names a view the map is not showing.
+  const [lon, lat] = camera?.center ?? [];
+  const zoom = camera?.zoom;
+  const bearing = camera?.bearing ?? 0;
+  useEffect(() => {
+    const m = map.current;
+    if (!m || lon === undefined || lat === undefined || zoom === undefined) return;
+    const c = m.getCenter();
+    const far = Math.abs(c.lng - lon) > 1e-4 || Math.abs(c.lat - lat) > 1e-4 || Math.abs(m.getZoom() - zoom) > 0.01 || Math.abs(m.getBearing() - bearing) > 0.5;
+    if (far) m.jumpTo({ center: [lon, lat], zoom, bearing });
+  }, [lon, lat, zoom, bearing]);
 
   useEffect(() => {
     current.current = events;
