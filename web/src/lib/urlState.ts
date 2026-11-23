@@ -70,9 +70,12 @@ export function replaceView(v: ViewState) {
 
 /** Adds a history entry: for selecting an event, so back closes it. */
 export function pushView(v: ViewState) {
-  window.history.pushState(window.history.state, "", window.location.pathname + serialize(v));
+  window.history.pushState({ sentryatlas: "selected" }, "", window.location.pathname + serialize(v));
   window.dispatchEvent(new Event(CHANGE));
 }
+
+/** Whether the current history entry is one pushView made, so closing can go back to the entry before it. */
+export const pushedBySelection = () => (window.history.state as { sentryatlas?: string } | null)?.sentryatlas === "selected";
 
 /** Subscribes to every change of the query string, ours and the browser's back and forward. */
 export function subscribeURL(cb: () => void) {

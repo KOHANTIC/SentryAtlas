@@ -47,6 +47,7 @@ export function mapStyle(theme: Theme): StyleSpecification {
         attribution: SOURCES_CREDIT,
       },
       marks: { type: "geojson", data: EMPTY },
+      selected: { type: "geojson", data: EMPTY },
     },
     layers: [
       { id: "land", type: "background", paint: { "background-color": c.land } },
@@ -137,6 +138,13 @@ export function mapStyle(theme: Theme): StyleSpecification {
           // The most severe draws on top.
           "symbol-sort-key": ["get", "rank"],
         },
+      },
+      // The selected event: a ring in ink around its mark.
+      {
+        id: "selected",
+        type: "circle",
+        source: "selected",
+        paint: { "circle-radius": 13, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": c.ink, "circle-stroke-width": 2 },
       },
     ],
   };
