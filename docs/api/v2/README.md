@@ -10,7 +10,7 @@ v2 is served at `/api/v2/snapshot` and `/api/v2/events/{id}`, beside v1, which s
 
 ## Endpoints
 
-Both are read from copies the server polls on its own, never from a source while you wait. They allow any origin, share v1's rate limit, and answer `503` with `Cache-Control: no-store` until every source has been polled once after a start.
+Both are read from copies the server polls on its own, never from a source while you wait. They allow any origin (with `ETag` readable by a page's scripts), share v1's rate limit, and answer `503` with `Cache-Control: no-store` until every source has been polled once after a start.
 
 ### `GET /api/v2/snapshot`
 

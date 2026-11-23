@@ -6,6 +6,8 @@
 /.wrangler/
 *.tsbuildinfo
 next-env.d.ts
-# Written from ../brand/tokens.json before every build and dev run.
+# Written before every build and dev run (npm run gen): from ../brand and from
+# ../docs/api/v2/schema.json.
 /src/app/tokens.css
 /public/icon.svg
+/src/lib/api.gen.ts
