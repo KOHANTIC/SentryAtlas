@@ -24,6 +24,15 @@ describe("URL state", () => {
     expect(parse("?at=95,200,30")).toEqual({ time: "7d", center: [-160, 85], zoom: 22 });
   });
 
+  it("narrows the window by hours inside its preset, and drops hours outside it", () => {
+    expect(parse(serialize({ time: "30d", hours: 36 }))).toEqual({ time: "30d", hours: 36 });
+    expect(serialize({ time: "7d", hours: 36 })).toBe("?hours=36");
+    // The whole preset, or more, is no narrowing; zero or less means nothing.
+    expect(parse("?time=24h&hours=24")).toEqual({ time: "24h" });
+    expect(parse("?hours=0")).toEqual({ time: "7d" });
+    expect(parse("?hours=abc")).toEqual({ time: "7d" });
+  });
+
   it("keeps NWS ids, which hold colons, through a round trip", () => {
     const event = "noaa-urn:oid:2.49.0.1.840.0.d5372f24080570d0330457c696ac9389960c1ab5.001.1";
     expect(parse(serialize({ time: "7d", event })).event).toBe(event);

@@ -9,6 +9,8 @@ export type ViewState = {
   bearing?: number;
   types?: EventType[];
   time: Preset;
+  /** Narrows the time window to its last this many hours. */
+  hours?: number;
   event?: string;
 };
 
@@ -37,6 +39,9 @@ export function parse(search: string): ViewState {
   if (types?.length) v.types = [...new Set(types)];
   const time = q.get("time");
   if (time && time in PRESETS) v.time = time as Preset;
+  const hours = Math.round(Number(q.get("hours")));
+  const most = PRESETS[v.time].ms / 3_600_000;
+  if (q.has("hours") && hours >= 1 && hours < most) v.hours = hours;
   const event = q.get("event");
   if (event && /^(usgs|eonet|noaa|gdacs)-.+/.test(event)) v.event = event;
   return v;
@@ -52,6 +57,7 @@ export function serialize(v: ViewState): string {
   }
   if (v.types?.length) q.set("types", v.types.join(","));
   if (v.time !== DEFAULT_TIME) q.set("time", v.time);
+  if (v.hours) q.set("hours", String(Math.round(v.hours)));
   if (v.event) q.set("event", v.event);
   const s = q.toString().replaceAll("%2C", ",");
   return s ? `?${s}` : "";
