@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # The backend's Go modules. The two old Next.js apps are left out: web/ replaces both.
+  # The backend's Go modules.
   - package-ecosystem: gomod
     directory: /backend
     schedule:
