@@ -1,5 +1,5 @@
-// Package mail sends the API's plain-text email: today, the waiting list's
-// confirmation link (#13). Senders never log or return an address, a message
+// Package mail sends the API's plain-text email and keeps the waiting list's
+// contacts at the provider. Senders never log or return an address, a message
 // body or the provider key, so production logs hold none of them.
 package mail
 
@@ -13,6 +13,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/mail"
+	"net/url"
+	"sort"
 	"sync"
 )
 
@@ -23,9 +25,19 @@ type Message struct {
 	Text    string
 }
 
-// Mailer sends one message.
+// Contact is one confirmed person on the waiting list. Topics maps a topic
+// at the provider to whether the person opted in to it.
+type Contact struct {
+	Email   string
+	Area    string
+	Hazards string
+	Topics  map[string]bool
+}
+
+// Mailer sends messages and saves contacts.
 type Mailer interface {
 	Send(ctx context.Context, m Message) error
+	SaveContact(ctx context.Context, c Contact) error
 }
 
 // FromEnv builds the mailer the environment asks for and names it for the
@@ -66,8 +78,8 @@ func address(name, v string) (string, error) {
 	return v, nil
 }
 
-// ResendEndpoint is Resend's send-email API.
-const ResendEndpoint = "https://api.resend.com/emails"
+// ResendAPI is the root of Resend's API.
+const ResendAPI = "https://api.resend.com"
 
 // Resend sends through Resend's API. Open and click tracking are settings of
 // the sending domain at Resend, and are off there; the messages are plain
@@ -75,8 +87,8 @@ const ResendEndpoint = "https://api.resend.com/emails"
 type Resend struct {
 	Key, From, ReplyTo string
 	Client             *http.Client
-	// Endpoint overrides ResendEndpoint, for tests.
-	Endpoint string
+	// Base overrides ResendAPI, for tests.
+	Base string
 }
 
 type resendRequest struct {
@@ -87,31 +99,78 @@ type resendRequest struct {
 	ReplyTo string   `json:"reply_to"`
 }
 
-// Send posts one message. Its error carries Resend's status and error name,
-// never Resend's message, which can quote the address.
+// Send posts one message.
 func (r *Resend) Send(ctx context.Context, m Message) error {
-	body, err := json.Marshal(resendRequest{From: r.From, To: []string{m.To}, Subject: m.Subject, Text: m.Text, ReplyTo: r.ReplyTo})
+	_, err := r.call(ctx, http.MethodPost, "/emails", resendRequest{From: r.From, To: []string{m.To}, Subject: m.Subject, Text: m.Text, ReplyTo: r.ReplyTo})
+	return err
+}
+
+type resendTopic struct {
+	ID           string `json:"id"`
+	Subscription string `json:"subscription"`
+}
+
+// SaveContact creates the contact, or updates it when creating fails because
+// it may already exist (Resend's docs do not say how a duplicate fails), then
+// sets each topic. Saving the same contact twice leaves it as saved once.
+func (r *Resend) SaveContact(ctx context.Context, c Contact) error {
+	props := map[string]string{"area": c.Area, "hazards": c.Hazards}
+	status, err := r.call(ctx, http.MethodPost, "/contacts", map[string]any{"email": c.Email, "unsubscribed": false, "properties": props})
 	if err != nil {
-		return fmt.Errorf("resend: %w", err)
+		// Only a refusal that could mean "already there" is worth an update.
+		if status != http.StatusBadRequest && status != http.StatusConflict && status != http.StatusUnprocessableEntity {
+			return err
+		}
+		if _, uerr := r.call(ctx, http.MethodPatch, "/contacts/"+url.PathEscape(c.Email), map[string]any{"unsubscribed": false, "properties": props}); uerr != nil {
+			return errors.Join(err, uerr)
+		}
 	}
-	endpoint := r.Endpoint
-	if endpoint == "" {
-		endpoint = ResendEndpoint
+	ids := make([]string, 0, len(c.Topics))
+	for id := range c.Topics {
+		ids = append(ids, id)
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
+	sort.Strings(ids)
+	topics := make([]resendTopic, 0, len(ids))
+	for _, id := range ids {
+		sub := "opt_out"
+		if c.Topics[id] {
+			sub = "opt_in"
+		}
+		topics = append(topics, resendTopic{ID: id, Subscription: sub})
+	}
+	_, err = r.call(ctx, http.MethodPatch, "/contacts/"+url.PathEscape(c.Email)+"/topics", map[string]any{"topics": topics})
+	return err
+}
+
+// call sends one JSON request and returns the status. Its error carries
+// Resend's status and error name, never Resend's message, which can quote the
+// address, and never the path, which can hold it.
+func (r *Resend) call(ctx context.Context, method, path string, payload any) (int, error) {
+	body, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("resend: %w", err)
+		return 0, fmt.Errorf("resend: %w", err)
+	}
+	base := r.Base
+	if base == "" {
+		base = ResendAPI
+	}
+	req, err := http.NewRequestWithContext(ctx, method, base+path, bytes.NewReader(body))
+	if err != nil {
+		return 0, errors.New("resend: bad request")
 	}
 	req.Header.Set("Authorization", "Bearer "+r.Key)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := r.Client.Do(req)
 	if err != nil {
-		// A url.Error names the endpoint, never the body; ctx errors pass through.
-		return fmt.Errorf("resend: %w", err)
+		// A url.Error quotes the URL, whose path can hold the address.
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return 0, fmt.Errorf("resend: %w", ctxErr)
+		}
+		return 0, errors.New("resend: request failed")
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode/100 == 2 {
-		return nil
+		return resp.StatusCode, nil
 	}
 	var problem struct {
 		Name string `json:"name"`
@@ -120,15 +179,16 @@ func (r *Resend) Send(ctx context.Context, m Message) error {
 	if problem.Name == "" {
 		problem.Name = "no error name"
 	}
-	return fmt.Errorf("resend: status %d (%s)", resp.StatusCode, problem.Name)
+	return resp.StatusCode, fmt.Errorf("resend: status %d (%s)", resp.StatusCode, problem.Name)
 }
 
 // Log keeps messages instead of sending them, and prints each one, address and
 // link included: for tests and local runs only (MAIL_SENDER=log), never production.
 type Log struct {
-	Logger *slog.Logger
-	mu     sync.Mutex
-	sent   []Message
+	Logger   *slog.Logger
+	mu       sync.Mutex
+	sent     []Message
+	contacts []Contact
 }
 
 // Send records and prints the message.
@@ -140,6 +200,24 @@ func (l *Log) Send(_ context.Context, m Message) error {
 		l.Logger.Info("mail not sent: log sender", "to", m.To, "subject", m.Subject, "text", m.Text)
 	}
 	return nil
+}
+
+// SaveContact records and prints the contact.
+func (l *Log) SaveContact(_ context.Context, c Contact) error {
+	l.mu.Lock()
+	l.contacts = append(l.contacts, c)
+	l.mu.Unlock()
+	if l.Logger != nil {
+		l.Logger.Info("contact not saved: log sender", "email", c.Email, "area", c.Area, "hazards", c.Hazards, "topics", c.Topics)
+	}
+	return nil
+}
+
+// Contacts returns the contacts saved so far, oldest first.
+func (l *Log) Contacts() []Contact {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return append([]Contact(nil), l.contacts...)
 }
 
 // Sent returns the messages so far, oldest first.

@@ -70,9 +70,11 @@ services:
         value: "*"
       - key: NWS_USER_AGENT
         value: "SentryAtlas/1.0 (+https://github.com/KOHANTIC/SentryAtlas)"
-      # Set in the dashboard, not here: RESEND_API_KEY (encrypted), MAIL_FROM and
-      # MAIL_REPLY_TO, which name this deployment's operator (backend/README.md).
-      # Applying this spec as it stands would remove them.
+      # Set in the dashboard, not here: RESEND_API_KEY and WAITLIST_SECRET
+      # (encrypted), MAIL_FROM, MAIL_REPLY_TO, RESEND_TOPIC_ALERTS and
+      # RESEND_TOPIC_NEWS, which name this deployment's operator and its
+      # provider (backend/README.md). Applying this spec as it stands would
+      # remove them.
 
   - name: frontend
     github:

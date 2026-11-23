@@ -93,7 +93,7 @@ func TestResendSends(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	r := &Resend{Key: key, From: "SentryAtlas <hello@mail.example.org>", ReplyTo: "contact@example.org", Client: srv.Client(), Endpoint: srv.URL}
+	r := &Resend{Key: key, From: "SentryAtlas <hello@mail.example.org>", ReplyTo: "contact@example.org", Client: srv.Client(), Base: srv.URL}
 	if err := r.Send(context.Background(), Message{To: to, Subject: "Confirm", Text: "Open this link"}); err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +120,7 @@ func TestResendErrorKeepsAddressAndKeyOut(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	r := &Resend{Key: key, From: "a@example.org", ReplyTo: "b@example.org", Client: srv.Client(), Endpoint: srv.URL}
+	r := &Resend{Key: key, From: "a@example.org", ReplyTo: "b@example.org", Client: srv.Client(), Base: srv.URL}
 	err := r.Send(context.Background(), Message{To: to, Subject: "s", Text: "t"})
 	if err == nil {
 		t.Fatal("no error for a 422")
@@ -141,7 +141,7 @@ func TestResendStopsWithContext(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
-	r := &Resend{Key: key, From: "a@example.org", ReplyTo: "b@example.org", Client: srv.Client(), Endpoint: srv.URL}
+	r := &Resend{Key: key, From: "a@example.org", ReplyTo: "b@example.org", Client: srv.Client(), Base: srv.URL}
 	if err := r.Send(ctx, Message{To: to}); err == nil || strings.Contains(err.Error(), to) {
 		t.Fatalf("error %v, want a timeout without the address", err)
 	}
@@ -161,5 +161,86 @@ func TestLogKeepsMessages(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), "body two") {
 		t.Errorf("log sender did not print the message: %s", out.String())
+	}
+}
+
+// contactServer answers create with createStatus and records every call.
+func contactServer(t *testing.T, createStatus int) (*httptest.Server, *[]string, *[]map[string]any) {
+	t.Helper()
+	var calls []string
+	var bodies []map[string]any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls = append(calls, r.Method+" "+r.URL.EscapedPath())
+		var b map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+			t.Errorf("%s %s: %v", r.Method, r.URL.Path, err)
+		}
+		bodies = append(bodies, b)
+		if r.Method == http.MethodPost && r.URL.Path == "/contacts" && createStatus != http.StatusCreated {
+			w.WriteHeader(createStatus)
+			_, _ = io.WriteString(w, `{"name":"validation_error","message":"Contact `+to+` already exists"}`)
+			return
+		}
+		_, _ = io.WriteString(w, `{"object":"contact","id":"c1"}`)
+	}))
+	t.Cleanup(srv.Close)
+	return srv, &calls, &bodies
+}
+
+func TestSaveContactCreatesThenSetsTopics(t *testing.T) {
+	srv, calls, bodies := contactServer(t, http.StatusCreated)
+	r := &Resend{Key: key, Client: srv.Client(), Base: srv.URL}
+	c := Contact{Email: to, Area: "Sacramento", Hazards: "flood,wildfire", Topics: map[string]bool{"t-news": false, "t-alerts": true}}
+	if err := r.SaveContact(context.Background(), c); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"POST /contacts", "PATCH /contacts/person@example.org/topics"}
+	if strings.Join(*calls, "|") != strings.Join(want, "|") {
+		t.Fatalf("calls %v, want %v", *calls, want)
+	}
+	created, _ := json.Marshal((*bodies)[0])
+	if string(created) != `{"email":"person@example.org","properties":{"area":"Sacramento","hazards":"flood,wildfire"},"unsubscribed":false}` {
+		t.Errorf("create body %s", created)
+	}
+	topics, _ := json.Marshal((*bodies)[1])
+	if string(topics) != `{"topics":[{"id":"t-alerts","subscription":"opt_in"},{"id":"t-news","subscription":"opt_out"}]}` {
+		t.Errorf("topics body %s", topics)
+	}
+}
+
+func TestSaveContactUpdatesAnExistingOne(t *testing.T) {
+	srv, calls, _ := contactServer(t, http.StatusUnprocessableEntity)
+	r := &Resend{Key: key, Client: srv.Client(), Base: srv.URL}
+	if err := r.SaveContact(context.Background(), Contact{Email: to, Topics: map[string]bool{"t": true}}); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"POST /contacts", "PATCH /contacts/person@example.org", "PATCH /contacts/person@example.org/topics"}
+	if strings.Join(*calls, "|") != strings.Join(want, "|") {
+		t.Fatalf("calls %v, want %v", *calls, want)
+	}
+}
+
+func TestSaveContactStopsOnOtherFailures(t *testing.T) {
+	for _, status := range []int{http.StatusTooManyRequests, http.StatusUnauthorized, http.StatusInternalServerError} {
+		srv, calls, _ := contactServer(t, status)
+		r := &Resend{Key: key, Client: srv.Client(), Base: srv.URL}
+		err := r.SaveContact(context.Background(), Contact{Email: to, Topics: map[string]bool{"t": true}})
+		if err == nil || len(*calls) != 1 {
+			t.Errorf("status %d: error %v after calls %v, want one call and an error", status, err, *calls)
+		}
+		if err != nil && (strings.Contains(err.Error(), to) || strings.Contains(err.Error(), key)) {
+			t.Errorf("status %d: error %q carries the address or the key", status, err)
+		}
+	}
+}
+
+func TestResendUnreachableKeepsAddressOut(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	base := srv.URL
+	srv.Close()
+	r := &Resend{Key: key, Client: http.DefaultClient, Base: base}
+	err := r.SaveContact(context.Background(), Contact{Email: to})
+	if err == nil || strings.Contains(err.Error(), to) {
+		t.Fatalf("error %v, want one without the address", err)
 	}
 }

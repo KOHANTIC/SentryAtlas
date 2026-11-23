@@ -34,6 +34,36 @@ One event in full, with its long text and full geometry, and its source's status
 
 `404` when no event with that id is being served. `Cache-Control: public, max-age=30`.
 
+### The waiting list
+
+A waiting list for location alerts. These two routes are not part of the read API above: they accept requests only from the project's own pages (`WAITLIST_ORIGINS`), have their own limits, and answer `503` while the list is not configured. Every answer carries `Cache-Control: no-store`.
+
+**`POST /api/v2/waitlist`** with
+
+```json
+{ "email": "person@example.org", "area": "Sacramento, CA", "hazards": ["flood", "wildfire"], "news": false }
+```
+
+- **Fields:** `email` is required. `area` is free text up to 100 characters. `hazards` lists event types (below). `news` is a separate consent to product news, never set unless the person ticks it.
+- **Checks:** the address must parse, carry no display name, and belong to a domain that receives mail. An unknown field is refused.
+- **What happens:** an email goes out with a link to `https://sentryatlas.com/waitlist/confirm/#<token>`. The token is signed, expires after 48 hours, and carries the whole request, so the server keeps nothing between the two steps. It sits after `#`, which browsers never send to a server.
+- **Answers:**
+  - `202 {"status":"sent"}`, the same whether or not the address was seen before, including when that address has had its three links for the day;
+  - `400` with an `error`;
+  - `429` past five signups an hour from one client;
+  - `503` once the day's 90 sends are used;
+  - `502` when the email could not be sent.
+
+**`POST /api/v2/waitlist/confirm`** with `{ "token": "<token>" }`, sent by the confirmation page when the person presses its button, so a mail scanner opening the link confirms nothing.
+
+- **What happens:** the contact is saved at the mail provider with each consent as its own topic: the waiting list always, product news only if it was ticked.
+- **Answers:**
+  - `200 {"status":"confirmed"}`, again on a second confirmation;
+  - `400 {"status":"invalid"}`;
+  - `410 {"status":"expired"}`;
+  - `502 {"status":"failed"}`;
+  - `429` past 20 an hour from one client.
+
 ## Events
 
 - **`id`** is `<source>-<upstream id>` and stays the same when the source updates the event:

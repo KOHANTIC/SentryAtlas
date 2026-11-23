@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -69,4 +70,20 @@ func TooManyRequests(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusTooManyRequests)
 	_ = json.NewEncoder(w).Encode(map[string]string{"error": "rate limit exceeded"})
+}
+
+// SplitCORS sends requests whose path starts with prefix through private and
+// all others through public. CORS must answer preflight requests before any
+// route matches, so the two policies cannot sit on route groups.
+func SplitCORS(prefix string, private, public func(http.Handler) http.Handler) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		priv, pub := private(next), public(next)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, prefix) {
+				priv.ServeHTTP(w, r)
+				return
+			}
+			pub.ServeHTTP(w, r)
+		})
+	}
 }
