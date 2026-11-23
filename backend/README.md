@@ -316,7 +316,11 @@ The fixtures only prove the adapters against the day they were recorded. Two che
   ```bash
   LIVE_CONTRACT=1 go test ./internal/adapters -run 'TestLiveContract$' -count=1 -v
   ```
-- **Outside monitor on `/health/stale`:** set up by the maintainer outside this repo. It alarms on any answer but `200`, checked every few minutes with a retry or two, since a new deploy answers `503` for the seconds before its first polls.
+- **Health check on `/health/stale`** (`.github/workflows/health.yml`, every 15 minutes and by hand):
+  - asks the live API up to three times, a minute apart, since a new deploy answers `503` for the seconds before its first polls;
+  - anything but `200` all three times opens an issue labelled `outage`, or comments on the open one, and assigns the maintainer;
+  - the next `200` closes that issue;
+  - GitHub may start a scheduled run late when it is busy, and turns schedules off in a public repo after 60 days without a commit. An outside monitor would add a check that does not depend on GitHub.
 
 ## Project Structure
 
