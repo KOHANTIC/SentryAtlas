@@ -148,7 +148,7 @@ a { color: var(--action); }
 
 .form { display: grid; gap: var(--s4); max-width: 640px; }
 .form label { display: grid; gap: var(--s1); font-weight: 600; }
-.form input[type="email"], .form input[type="text"] { min-height: 44px; padding: var(--s2) var(--s3); background: var(--sheet); color: var(--ink); border: 1px solid var(--ink); font: inherit; }
+.form input[type="email"], .form input[type="text"] { width: 100%; max-width: 480px; min-height: 44px; padding: var(--s2) var(--s3); background: var(--sheet); color: var(--ink); border: 1px solid var(--ink); font: inherit; }
 .types { border: 1px solid var(--rule); padding: var(--s3); display: grid; gap: var(--s2); }
 .types legend { font-weight: 600; padding: 0 var(--s1); }
 .types div { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s2); }
