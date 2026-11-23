@@ -77,11 +77,13 @@ export default function MapView({ events, camera, onMove, selected, onPick }: Pr
       // The globe's diameter is about 136 px at zoom 0: start it at 85% of the shorter side.
       const side = Math.min(container.current.clientWidth, container.current.clientHeight) || 600;
       const c = start.current;
+      // A link to an event with no view of its own opens on the event.
+      const on = c?.center ? undefined : chosen.current?.at;
       const m = new Map({
         container: container.current,
         style: mapStyle(t),
-        center: c?.center ?? [10, 20],
-        zoom: c?.zoom ?? Math.max(0.5, Math.log2((0.85 * side) / 136)),
+        center: c?.center ?? on ?? [10, 20],
+        zoom: c?.zoom ?? (on ? 5 : Math.max(0.5, Math.log2((0.85 * side) / 136))),
         bearing: c?.bearing ?? 0,
         attributionControl: { compact: true },
       });
@@ -91,6 +93,8 @@ export default function MapView({ events, camera, onMove, selected, onPick }: Pr
         container.current?.setAttribute("data-view", `${lat.toFixed(2)},${lng.toFixed(2)},${m.getZoom().toFixed(1)}`);
       };
       m.on("load", mark);
+      // The event may have arrived before the map: bring it into view now.
+      m.once("load", () => reveal(m, chosen.current?.at));
       m.on("moveend", mark);
       // Only moves the person makes reach the link; jumps from the link carry no originalEvent.
       m.on("moveend", (e) => {
@@ -157,11 +161,7 @@ export default function MapView({ events, camera, onMove, selected, onPick }: Pr
     const m = map.current;
     if (!m) return;
     setSelected(m, chosen.current);
-    if (sx !== undefined && sy !== undefined && !m.getBounds().contains([sx, sy])) {
-      const options = { center: [sx, sy] as [number, number], zoom: Math.max(m.getZoom(), 4) };
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) m.jumpTo(options);
-      else m.flyTo(options);
-    }
+    if (m.loaded()) reveal(m, chosen.current?.at);
   }, [selId, sx, sy]);
 
   useEffect(() => {
@@ -183,6 +183,14 @@ export default function MapView({ events, camera, onMove, selected, onPick }: Pr
       <div ref={container} className="map-canvas" aria-label="Map of current events" role="region" />
     </div>
   );
+}
+
+/** Brings a point into view if it is outside, flying unless reduced motion is set. */
+function reveal(m: MapLibre, at: [number, number] | undefined) {
+  if (!at || m.getBounds().contains(at)) return;
+  const options = { center: at, zoom: Math.max(m.getZoom(), 4) };
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) m.jumpTo(options);
+  else m.flyTo(options);
 }
 
 function setSelected(m: MapLibre, s: Props["selected"]) {
