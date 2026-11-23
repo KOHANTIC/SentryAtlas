@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const OPERATOR = process.env.SITE_OPERATOR?.trim();
 const PRIVACY_EMAIL = process.env.SITE_PRIVACY_EMAIL?.trim();
 
-const UPDATED = "22 November 2026";
+const UPDATED = "23 November 2026";
 const SOURCE_HISTORY =
   "https://github.com/KOHANTIC/SentryAtlas/commits/main/landing/src/app/privacy/page.tsx";
 
@@ -130,6 +130,33 @@ export default function Privacy() {
             Nothing else. Our fonts come from our own sites. Event data from USGS, NASA EONET, the
             National Weather Service and GDACS reaches you through our API; your browser contacts
             those agencies only if you follow a link to one.
+          </p>
+        </Section>
+
+        <Section title="The waiting list">
+          <p>
+            If you join the waiting list for location alerts, we keep your email address, the area
+            and the types of event you chose, and whether you asked for product news. We use them
+            to tell you when alerts are ready to try, and, only if you ticked the box for it, to
+            send occasional product news.
+          </p>
+          <p>
+            The list is kept by our email provider,{" "}
+            <Out href="https://resend.com/legal/privacy-policy">Resend</Out>, not on our servers.
+            Resend also receives your address to send the confirmation email; if you never confirm,
+            nothing is added to the list.
+          </p>
+          <p>
+            Every email we send to the list has a link to leave it or to stop product news.
+            {PRIVACY_EMAIL && (
+              <>
+                {" "}To have your details deleted, write to{" "}
+                <a href={`mailto:${PRIVACY_EMAIL}`} className="text-accent-400 underline underline-offset-2 hover:no-underline">
+                  {PRIVACY_EMAIL}
+                </a>
+                .
+              </>
+            )}
           </p>
         </Section>
 
