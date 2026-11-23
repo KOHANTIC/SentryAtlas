@@ -1,0 +1,8 @@
+# Cloudflare Workers static assets applies these to every response (#11).
+# shortcut: script-src allows 'unsafe-inline' because Next's static export inlines its
+# bootstrap scripts; replace with hashes once the pages settle (before #40).
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org; font-src 'self'; connect-src 'self' https://map.sentryatlas.com https://tiles.openfreemap.org https://cloudflareinsights.com; worker-src 'self' blob:; child-src blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Robots-Tag: noindex

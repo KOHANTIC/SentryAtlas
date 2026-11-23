@@ -1,0 +1,11 @@
+/node_modules
+/.next/
+/out/
+/test-results/
+/playwright-report/
+/.wrangler/
+*.tsbuildinfo
+next-env.d.ts
+# Written from ../brand/tokens.json before every build and dev run.
+/src/app/tokens.css
+/public/icon.svg

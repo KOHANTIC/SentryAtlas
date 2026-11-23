@@ -101,6 +101,32 @@ jobs:
       - run: npm run lint
       - run: npm run build
 
+  # The new site (#32), replacing frontend/ and landing/ at the cutover (#40).
+  web:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      # The build writes tokens.css first, which lint and typecheck read.
+      - run: npm run build
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+
   # The design tokens: contrast in both themes, every event type the API sends, and the
   # color-vision rule (brand/BRAND.md). Plain Node, no packages.
   brand:
@@ -148,7 +174,7 @@ jobs:
   gate:
     name: gate
     if: always()
-    needs: [backend, frontend, landing, brand, docker]
+    needs: [backend, frontend, landing, web, brand, docker]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
