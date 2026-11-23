@@ -1,39 +1,24 @@
 "use client";
 
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState } from "react";
 import EventList from "@/components/EventList";
 import EventPanel from "@/components/EventPanel";
 import Legend from "@/components/Legend";
 import MapView, { type Camera } from "@/components/MapView";
 import PlaceSearch from "@/components/PlaceSearch";
-import TimeControl, { spanLabel } from "@/components/TimeControl";
+import TimeControl from "@/components/TimeControl";
 import type { Event } from "@/lib/api.gen";
-import { filterEvents, freshness, position, PRESETS, type BBox } from "@/lib/filters";
+import { filterEvents, position, type BBox } from "@/lib/filters";
+import { sourceNotes, windowLabel } from "@/lib/format";
 import { boxAround, radiusFor } from "@/lib/near";
 import { sortEvents, type SortBy } from "@/lib/sort";
-import { parse, pushedBySelection, pushView, replaceView, subscribeURL } from "@/lib/urlState";
-import { useSnapshot } from "@/lib/useSnapshot";
-
-const NAMES = { usgs: "USGS", eonet: "NASA EONET", noaa: "NWS", gdacs: "GDACS" } as const;
-const LABELS = { "24h": "24 hours", "7d": "7 days", "30d": "30 days" } as const;
+import { parse, pushedBySelection, pushView, replaceView } from "@/lib/urlState";
+import { useLinkedEvents } from "@/lib/useLinkedEvents";
 
 /** The map page: the globe, the key, and what the data's state is. */
 export default function MapPage() {
-  // The link is the state: the view, the filters and the selected event all live in it.
-  const search = useSyncExternalStore(subscribeURL, () => window.location.search, () => "");
-  const view = useMemo(() => parse(search), [search]);
-  const preset = PRESETS[view.time];
-  const state = useSnapshot(preset.window);
-  const { snapshot, checkedAt } = state;
-  const events = useMemo(
-    () =>
-      filterEvents(snapshot?.events ?? [], {
-        types: view.types && new Set(view.types),
-        since: checkedAt === undefined ? undefined : checkedAt - (view.hours ? view.hours * 3_600_000 : preset.ms),
-      }),
-    [snapshot, checkedAt, view.types, view.hours, preset.ms],
-  );
-  const fresh = snapshot && checkedAt ? freshness(snapshot, checkedAt) : undefined;
+  const { view, state, events, fresh } = useLinkedEvents();
+  const { snapshot } = state;
   // The list holds what the map shows; with no map (no WebGL2) it holds everything.
   const [bbox, setBbox] = useState<BBox | undefined>();
   const [sort, setSort] = useState<SortBy>("time");
@@ -107,7 +92,7 @@ export default function MapPage() {
         <p className="label" role="status">
           {state.status === "loading" && "Loading events"}
           {state.status === "error" && "The events could not be loaded; trying again"}
-          {state.status === "ready" && `${inView.length.toLocaleString("en")} in view of ${events.length.toLocaleString("en")} events, last ${view.hours ? spanLabel(view.hours) : LABELS[view.time]}`}
+          {state.status === "ready" && `${inView.length.toLocaleString("en")} in view of ${events.length.toLocaleString("en")} events, last ${windowLabel(view.time, view.hours)}`}
         </p>
         <PlaceSearch onChoose={(center) => replaceView({ ...parse(window.location.search), center, zoom: 8, bearing: 0 })} />
         <TimeControl
@@ -127,16 +112,11 @@ export default function MapPage() {
         </div>
         {fresh?.partial && (
           <ul className="notice">
-            {fresh.sources
-              .filter((s) => !s.ok || s.stale)
-              .map((s) => (
-                <li key={s.source}>
-                  <b>{NAMES[s.source]}</b>{" "}
-                  {s.stale && s.silentMinutes !== undefined
-                    ? `has not answered for ${s.silentMinutes} minutes; showing its last update.`
-                    : "is unavailable."}
-                </li>
-              ))}
+            {sourceNotes(fresh.sources).map((n) => (
+              <li key={n.name}>
+                <b>{n.name}</b> {n.note}
+              </li>
+            ))}
           </ul>
         )}
         <div role="tablist" aria-label="Sheet" className="tabs">

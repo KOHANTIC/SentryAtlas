@@ -1,7 +1,34 @@
 import tokens from "../../../brand/tokens.json";
 import type { Event, Source } from "./api.gen";
+import type { Preset, SourceFreshness } from "./filters";
 
 export const SOURCE_NAMES: Record<Source, string> = { usgs: "USGS", eonet: "NASA EONET", noaa: "NWS", gdacs: "GDACS" };
+
+export const PRESET_LABELS: Record<Preset, string> = { "24h": "24 hours", "7d": "7 days", "30d": "30 days" };
+
+/** "36 hours", "1 hour", "2.5 days": how far back the window reaches. */
+export function spanLabel(hours: number): string {
+  if (hours < 48) return hours === 1 ? "1 hour" : `${hours} hours`;
+  const days = Math.round((hours / 24) * 10) / 10;
+  return `${days} days`;
+}
+
+/** The time window a link shows, as words: its narrowed span, or else its preset. */
+export const windowLabel = (time: Preset, hours?: number) => (hours ? spanLabel(hours) : PRESET_LABELS[time]);
+
+/** What to say about each source that is missing or behind: its name, then what is wrong. */
+export function sourceNotes(sources: readonly SourceFreshness[]): { name: string; note: string }[] {
+  return sources
+    .filter((s) => !s.ok || s.stale)
+    .map((s) => ({
+      name: SOURCE_NAMES[s.source],
+      note: s.stale && s.silentMinutes !== undefined ? `has not answered for ${s.silentMinutes} minutes; showing its last update.` : "is unavailable.",
+    }));
+}
+
+/** A day and time without the year, for a row: "22 Nov, 14:27". */
+export const formatShort = (iso: string) =>
+  new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
 /** A time in the viewer's zone, with UTC beside it unless the viewer is in UTC. */
 export function formatTime(iso: string, timeZone?: string): string {

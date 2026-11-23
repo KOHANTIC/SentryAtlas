@@ -42,6 +42,10 @@ type Props = {
   onBounds?: (b: BBox) => void;
   /** False for a still view, such as the home page's. */
   interactive?: boolean;
+  /** Zoom only with Ctrl or ⌘ and the wheel, and pan with two fingers, so a page around the map keeps scrolling. */
+  cooperative?: boolean;
+  /** What to say instead of the map when the browser cannot draw it. */
+  fallback?: string;
   /** The viewer's position, drawn as a dot. It never leaves the browser. */
   me?: [number, number];
   /** A box to fit the map to; a new key fits it again. */
@@ -53,7 +57,19 @@ type Props = {
 };
 
 /** The globe, with every placed event drawn as its type's mark and its severity's fill. */
-export default function MapView({ events, camera, onMove, selected, onPick, onBounds, interactive = true, me, fit }: Props) {
+export default function MapView({
+  events,
+  camera,
+  onMove,
+  selected,
+  onPick,
+  onBounds,
+  interactive = true,
+  cooperative = false,
+  fallback = "This browser cannot draw the map: it needs WebGL2. The list has every event.",
+  me,
+  fit,
+}: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre | null>(null);
   const current = useRef(events);
@@ -101,6 +117,7 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
         bearing: c?.bearing ?? 0,
         attributionControl: { compact: true },
         interactive,
+        cooperativeGestures: cooperative,
       });
       // The view, readable by tests and tools: latitude, longitude, zoom.
       const mark = () => {
@@ -158,7 +175,7 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
     return () => {
       cancelled = true;
     };
-  }, [canDraw, t, interactive]);
+  }, [canDraw, t, interactive, cooperative]);
 
   useEffect(() => () => map.current?.remove(), []);
 
@@ -219,7 +236,7 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
   if (!canDraw) {
     return (
       <div className="map-fallback" role="status">
-        <p>This browser cannot draw the map: it needs WebGL2. The list has every event.</p>
+        <p>{fallback}</p>
       </div>
     );
   }
