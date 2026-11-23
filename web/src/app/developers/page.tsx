@@ -29,7 +29,7 @@ export default function Developers() {
           <tr><td><code>GET /api/v2/events/&#123;id&#125;</code></td><td>One event in full, with the source&apos;s own text. <code>404</code> once it has left its source&apos;s feed.</td></tr>
         </tbody>
       </table>
-      <pre><code>{`curl ${API_BASE}/api/v2/snapshot?window=7d`}</code></pre>
+      <pre tabIndex={0} aria-label="Example: the 7-day snapshot"><code>{`curl ${API_BASE}/api/v2/snapshot?window=7d`}</code></pre>
       <p>
         The model, with every field and what it means: <a href={`${DOCS}/docs/api/v2/README.md`}>docs/api/v2</a>, and its{" "}
         <a href={`${DOCS}/docs/api/v2/schema.json`}>JSON Schema</a>.
@@ -40,7 +40,7 @@ export default function Developers() {
         <code>GET /api/v1/events</code> filters by type, place and time, and answers GeoJSON, flat JSON, or a stream of
         server-sent events. It stays as it is: <a href={`${DOCS}/backend/README.md`}>its reference</a>.
       </p>
-      <pre><code>{`curl "${API_BASE}/api/v1/events?types=earthquake&since=2026-11-20&format=json"`}</code></pre>
+      <pre tabIndex={0} aria-label="Example: earthquakes since 20 November, version 1"><code>{`curl "${API_BASE}/api/v1/events?types=earthquake&since=2026-11-20&format=json"`}</code></pre>
 
       <h2>Health</h2>
       <p>
