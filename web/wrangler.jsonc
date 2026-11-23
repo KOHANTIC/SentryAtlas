@@ -1,0 +1,9 @@
+// Cloudflare Workers static assets: the export in ./out, no Worker code (#11).
+{
+  "name": "sentryatlas-web",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  }
+}

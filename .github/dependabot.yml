@@ -1,12 +1,23 @@
 version: 2
 updates:
-  # The backend's Go modules. The two Next.js apps are left out: both are being replaced.
+  # The backend's Go modules. The two old Next.js apps are left out: web/ replaces both.
   - package-ecosystem: gomod
     directory: /backend
     schedule:
       interval: weekly
     commit-message:
       prefix: chore
+
+  # The new site (#32).
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+    groups:
+      web:
+        patterns: ["*"]
 
   # The actions in .github/workflows are pinned to a commit; this keeps the pin and the
   # version comment next to it current.

@@ -1,0 +1,18 @@
+/* Every value comes from tokens.css, written from brand/tokens.json. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 var(--size-md)/1.55 var(--nf-text), var(--font-text);
+}
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 65ch; }
+a { color: var(--action); }
+:focus-visible { outline: var(--focus-width) solid var(--action); outline-offset: var(--focus-offset); }
+.label { font: 700 var(--size-sm)/1 var(--nf-label), var(--font-label); letter-spacing: var(--label-tracking); text-transform: uppercase; color: var(--muted); }
+.skip { position: absolute; left: var(--s2); top: -100px; padding: var(--s2) var(--s3); background: var(--sheet); color: var(--ink); }
+.skip:focus { top: var(--s2); }
+.page { max-width: 1180px; margin: 0 auto; padding-block: var(--s6); padding-inline: max(var(--s4), env(safe-area-inset-left, 0px)); display: grid; gap: var(--s4); }
+.page h1 { font: 800 var(--size-3xl)/0.95 var(--nf-label), var(--font-label); letter-spacing: 0.02em; text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

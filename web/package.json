@@ -1,0 +1,33 @@
+{
+  "name": "sentryatlas-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "tokens": "node ../brand/css.mjs > src/app/tokens.css && cp ../brand/logo/mark.svg public/icon.svg",
+    "predev": "npm run tokens",
+    "dev": "next dev",
+    "prebuild": "npm run tokens",
+    "build": "next build",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "next": "^16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^22.20.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9",
+    "eslint-config-next": "^16.4.6",
+    "typescript": "^5",
+    "vitest": "^5.1.1",
+    "wrangler": "^4.166.0"
+  }
+}
