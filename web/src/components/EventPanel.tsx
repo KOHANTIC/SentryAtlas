@@ -42,7 +42,10 @@ export default function EventPanel({ id, choices, brief, group, onSelect, onClos
     const back = opener.current;
     opener.current = null;
     onClose();
-    if (back instanceof HTMLElement && back.isConnected) back.focus();
+    // After the close renders: on phones the list it came from is hidden while the panel is open.
+    requestAnimationFrame(() => {
+      if (back instanceof HTMLElement && back.isConnected) back.focus();
+    });
   };
   const closeRef = useRef(close);
   useEffect(() => {
