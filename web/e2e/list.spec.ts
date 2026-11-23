@@ -55,3 +55,21 @@ test("a selection from a link marks its row", async ({ page, isMobile }) => {
   await page.goto(`/map/?time=30d&event=${encodeURIComponent(quake.id)}`);
   await expect(page.getByRole("option", { selected: true })).toContainText(quake.title);
 });
+
+test("a preset and the slider narrow the window, by keyboard, and the link keeps both", async ({ page }) => {
+  await page.goto("/map/?time=30d");
+  await expect(rows(page)).toHaveCount(5);
+  await page.getByRole("button", { name: "24 hours" }).click();
+  // Only the two NWS alerts of 22 November began in the last 24 hours.
+  await expect(rows(page)).toHaveCount(2);
+  expect(new URL(page.url()).searchParams.get("time")).toBe("24h");
+
+  await page.getByRole("button", { name: "7 days" }).click();
+  const slider = page.getByRole("slider");
+  await slider.focus();
+  await page.keyboard.press("Home");
+  await expect(slider).toHaveAttribute("aria-valuetext", "Last 1 hour");
+  await expect(rows(page)).toHaveCount(2);
+  expect(new URL(page.url()).searchParams.get("hours")).toBe("1");
+  await expect(page.getByText("NWS shows only alerts in force now.")).toBeVisible();
+});

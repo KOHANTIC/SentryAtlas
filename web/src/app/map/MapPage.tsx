@@ -5,6 +5,7 @@ import EventList from "@/components/EventList";
 import EventPanel from "@/components/EventPanel";
 import Legend from "@/components/Legend";
 import MapView, { type Camera } from "@/components/MapView";
+import TimeControl, { spanLabel } from "@/components/TimeControl";
 import type { Event } from "@/lib/api.gen";
 import { filterEvents, freshness, position, PRESETS, type BBox } from "@/lib/filters";
 import { sortEvents, type SortBy } from "@/lib/sort";
@@ -26,9 +27,9 @@ export default function MapPage() {
     () =>
       filterEvents(snapshot?.events ?? [], {
         types: view.types && new Set(view.types),
-        since: checkedAt === undefined ? undefined : checkedAt - preset.ms,
+        since: checkedAt === undefined ? undefined : checkedAt - (view.hours ? view.hours * 3_600_000 : preset.ms),
       }),
-    [snapshot, checkedAt, view.types, preset.ms],
+    [snapshot, checkedAt, view.types, view.hours, preset.ms],
   );
   const fresh = snapshot && checkedAt ? freshness(snapshot, checkedAt) : undefined;
   // The list holds what the map shows; with no map (no WebGL2) it holds everything.
@@ -85,8 +86,13 @@ export default function MapPage() {
         <p className="label" role="status">
           {state.status === "loading" && "Loading events"}
           {state.status === "error" && "The events could not be loaded; trying again"}
-          {state.status === "ready" && `${inView.length.toLocaleString("en")} in view of ${events.length.toLocaleString("en")} events, last ${LABELS[view.time]}`}
+          {state.status === "ready" && `${inView.length.toLocaleString("en")} in view of ${events.length.toLocaleString("en")} events, last ${view.hours ? spanLabel(view.hours) : LABELS[view.time]}`}
         </p>
+        <TimeControl
+          time={view.time}
+          hours={view.hours}
+          onChange={(time, hours) => replaceView({ ...parse(window.location.search), time, hours })}
+        />
         <div className="share">
           <button type="button" onClick={copyLink}>Copy link</button>
           <span role="status">

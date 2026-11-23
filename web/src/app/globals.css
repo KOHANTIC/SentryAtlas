@@ -156,3 +156,13 @@ a { color: var(--action); }
 .form input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--action); }
 .error { color: var(--warn); font-weight: 600; }
 .sent { border-left: 3px solid var(--action); background: var(--sheet); padding: var(--s3) var(--s4); display: grid; gap: var(--s1); }
+
+/* The time window: presets, then the slider that narrows them. */
+.time { display: grid; gap: var(--s2); }
+.time-presets { display: flex; border: 1px solid var(--ink); }
+.time-presets button { flex: 1; min-height: 32px; background: none; border: 0; border-right: 1px solid var(--ink); color: var(--ink); cursor: pointer; font: 700 var(--size-xs)/1 var(--nf-label), var(--font-label); letter-spacing: var(--label-tracking); text-transform: uppercase; }
+.time-presets button:last-child { border-right: 0; }
+.time-presets button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+.time-slider { display: grid; gap: var(--s1); font-size: var(--size-sm); }
+.time-slider input { width: 100%; accent-color: var(--action); min-height: 24px; }
+.time-note { font-size: var(--size-xs); }
