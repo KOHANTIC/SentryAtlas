@@ -37,4 +37,4 @@ a { color: var(--action); }
 .legend-note { color: var(--muted); font-size: var(--size-xs); }
 .maplibregl-ctrl-attrib { font-size: var(--size-xs); }
 /* Links inside the credit line need more than color to stand out (WCAG 1.4.1). */
-.maplibregl-ctrl-attrib a { text-decoration: underline; }
+.map .maplibregl-ctrl-attrib a { text-decoration: underline; } /* beats MapLibre's own rule, which loads later */
