@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" width="26" height="26">
+  <title>SentryAtlas</title>
+  <style>
+    .frame { stroke: #17242c; } .point { fill: #17242c; } .coast { stroke: #0b5a76; }
+    @media (prefers-color-scheme: dark) { .frame { stroke: #e3eae6; } .point { fill: #e3eae6; } .coast { stroke: #7cc3dc; } }
+  </style>
+  <rect class="frame" x="1" y="1" width="24" height="24" fill="none" stroke-width="2"/>
+  <path class="coast" d="M4 17c4-5 7-1 10-5s5-4 8-2" fill="none" stroke-width="2"/>
+  <circle class="point" cx="17" cy="9" r="2.4"/>
+</svg>
