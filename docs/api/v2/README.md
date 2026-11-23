@@ -52,7 +52,7 @@ A waiting list for location alerts. These two routes are not part of the read AP
   - `400` with an `error`;
   - `429` past five signups an hour from one client;
   - `503` once the day's 90 sends are used;
-  - `502` when the email could not be sent.
+  - `503` with an `error` when the email could not be sent.
 
 **`POST /api/v2/waitlist/confirm`** with `{ "token": "<token>" }`, sent by the confirmation page when the person presses its button, so a mail scanner opening the link confirms nothing.
 
@@ -61,7 +61,7 @@ A waiting list for location alerts. These two routes are not part of the read AP
   - `200 {"status":"confirmed"}`, again on a second confirmation;
   - `400 {"status":"invalid"}`;
   - `410 {"status":"expired"}`;
-  - `502 {"status":"failed"}`;
+  - `503 {"status":"failed"}` when the provider could not save it;
   - `429` past 20 an hour from one client.
 
 ## Events

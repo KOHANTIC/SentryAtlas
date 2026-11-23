@@ -126,7 +126,8 @@ func (l *List) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := l.cfg.Mailer.Send(r.Context(), confirmation(s, l.cfg.ConfirmURL+"#"+token)); err != nil {
 		l.cfg.Logger.Error("waitlist: confirmation not sent", "error", err)
-		reply(w, http.StatusBadGateway, "error", "the email could not be sent; try again in a few minutes")
+		// 503, not 502: the platform's edge replaces a 502 with its own page.
+		reply(w, http.StatusServiceUnavailable, "error", "the email could not be sent; try again in a few minutes")
 		return
 	}
 	reply(w, http.StatusAccepted, "status", "sent")
@@ -164,7 +165,7 @@ func (l *List) Confirm(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := l.cfg.Mailer.SaveContact(r.Context(), c); err != nil {
 		l.cfg.Logger.Error("waitlist: contact not saved", "error", err)
-		reply(w, http.StatusBadGateway, "status", "failed")
+		reply(w, http.StatusServiceUnavailable, "status", "failed")
 		return
 	}
 	reply(w, http.StatusOK, "status", "confirmed")

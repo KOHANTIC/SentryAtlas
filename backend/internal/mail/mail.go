@@ -112,17 +112,18 @@ type resendTopic struct {
 
 // SaveContact creates the contact, or updates it when creating fails because
 // it may already exist (Resend's docs do not say how a duplicate fails), then
-// sets each topic. Saving the same contact twice leaves it as saved once.
+// sets each topic. Saving the same contact twice leaves it as saved once. Its
+// error names the step that failed.
 func (r *Resend) SaveContact(ctx context.Context, c Contact) error {
 	props := map[string]string{"area": c.Area, "hazards": c.Hazards}
 	status, err := r.call(ctx, http.MethodPost, "/contacts", map[string]any{"email": c.Email, "unsubscribed": false, "properties": props})
 	if err != nil {
 		// Only a refusal that could mean "already there" is worth an update.
 		if status != http.StatusBadRequest && status != http.StatusConflict && status != http.StatusUnprocessableEntity {
-			return err
+			return fmt.Errorf("create contact: %w", err)
 		}
 		if _, uerr := r.call(ctx, http.MethodPatch, "/contacts/"+url.PathEscape(c.Email), map[string]any{"unsubscribed": false, "properties": props}); uerr != nil {
-			return errors.Join(err, uerr)
+			return fmt.Errorf("create contact: %w; update contact: %w", err, uerr)
 		}
 	}
 	ids := make([]string, 0, len(c.Topics))
@@ -138,8 +139,11 @@ func (r *Resend) SaveContact(ctx context.Context, c Contact) error {
 		}
 		topics = append(topics, resendTopic{ID: id, Subscription: sub})
 	}
-	_, err = r.call(ctx, http.MethodPatch, "/contacts/"+url.PathEscape(c.Email)+"/topics", map[string]any{"topics": topics})
-	return err
+	// The raw API takes the bare list; Resend's SDKs wrap it as "topics".
+	if _, err := r.call(ctx, http.MethodPatch, "/contacts/"+url.PathEscape(c.Email)+"/topics", topics); err != nil {
+		return fmt.Errorf("set topics: %w", err)
+	}
+	return nil
 }
 
 // call sends one JSON request and returns the status. Its error carries
