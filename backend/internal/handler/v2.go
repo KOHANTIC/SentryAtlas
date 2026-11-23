@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -101,7 +102,13 @@ func (h *V2Handler) Event(w http.ResponseWriter, r *http.Request) {
 	if !h.ready(w) {
 		return
 	}
-	id := chi.URLParam(r, "id")
+	// chi routes on the escaped path when there is one, so an NWS id a browser
+	// sent with its colons as %3A arrives escaped.
+	id, err := url.PathUnescape(chi.URLParam(r, "id"))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "the event id is not a valid path segment")
+		return
+	}
 	for _, c := range h.store.Read(time.Now()) {
 		for _, e := range c.Events {
 			if e.ID != id {
