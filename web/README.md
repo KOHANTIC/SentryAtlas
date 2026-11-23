@@ -1,6 +1,6 @@
 # SentryAtlas web
 
-The new site: one static Next.js export, replacing `frontend/` and `landing/` at the cutover (#40). Every design value comes from [`../brand/tokens.json`](../brand/BRAND.md), written to `src/app/tokens.css` before each build.
+The new site: one static Next.js export, replacing `frontend/` and `landing/` at the cutover (#40). Every design value comes from [`../brand/tokens.json`](../brand/BRAND.md), written to `src/app/tokens.css` before each build, and the API's types from [`../docs/api/v2/schema.json`](../docs/api/v2/README.md), written to `src/lib/api.gen.ts` (`npm run gen`).
 
 ```bash
 npm ci

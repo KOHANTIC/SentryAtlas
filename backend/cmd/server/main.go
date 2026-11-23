@@ -154,9 +154,11 @@ func run(logger *slog.Logger) error {
 			MaxAge:         300,
 		}),
 		cors.Handler(cors.Options{
-			AllowedOrigins:   allowedOrigins,
-			AllowedMethods:   []string{"GET", "OPTIONS"},
-			AllowedHeaders:   []string{"Accept", "Content-Type"},
+			AllowedOrigins: allowedOrigins,
+			AllowedMethods: []string{"GET", "OPTIONS"},
+			AllowedHeaders: []string{"Accept", "Content-Type"},
+			// The site compares the snapshot's ETag to skip parsing an unchanged one.
+			ExposedHeaders:   []string{"ETag"},
 			AllowCredentials: false,
 			MaxAge:           300,
 		})))

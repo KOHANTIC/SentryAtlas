@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "tokens": "node ../brand/css.mjs > src/app/tokens.css && cp ../brand/logo/mark.svg public/icon.svg",
-    "predev": "npm run tokens",
+    "gen": "node ../brand/css.mjs > src/app/tokens.css && cp ../brand/logo/mark.svg public/icon.svg && node scripts/types.mjs",
+    "predev": "npm run gen",
     "dev": "next dev",
-    "prebuild": "npm run tokens",
+    "prebuild": "npm run gen",
     "build": "next build",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
