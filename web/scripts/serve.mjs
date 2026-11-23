@@ -6,7 +6,7 @@ import path from "node:path";
 
 const root = path.resolve("out");
 const port = Number(process.env.PORT ?? 4173);
-const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".txt": "text/plain", ".woff2": "font/woff2", ".ico": "image/x-icon", ".png": "image/png" };
+const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".txt": "text/plain", ".woff2": "font/woff2", ".ico": "image/x-icon", ".png": "image/png" };
 
 async function file(urlPath) {
   const p = path.join(root, decodeURIComponent(urlPath));

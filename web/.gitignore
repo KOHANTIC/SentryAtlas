@@ -10,4 +10,5 @@ next-env.d.ts
 # ../docs/api/v2/schema.json.
 /src/app/tokens.css
 /public/icon.svg
+/public/maplibre-gl-worker.mjs
 /src/lib/api.gen.ts

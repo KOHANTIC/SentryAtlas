@@ -44,8 +44,11 @@ export default function MapView({ events }: { events: readonly Event[] }) {
       map.current.setStyle(mapStyle(t));
       return;
     }
-    void import("maplibre-gl").then(({ Map }) => {
+    void import("maplibre-gl").then(({ Map, setWorkerUrl }) => {
       if (cancelled || !container.current) return;
+      // MapLibre builds its worker's address at run time, which the bundler cannot
+      // rewrite, so the build copies the worker to the site's root (npm run gen).
+      setWorkerUrl("/maplibre-gl-worker.mjs");
       const m = new Map({ container: container.current, style: mapStyle(t), center: [0, 20], zoom: 1.4, attributionControl: { compact: true } });
       map.current = m;
       // Marks are drawn when the map first asks for one: `<theme>:<type>:<fill>`.
@@ -77,7 +80,12 @@ export default function MapView({ events }: { events: readonly Event[] }) {
       </div>
     );
   }
-  return <div ref={container} className="map" aria-label="Map of current events" role="region" />;
+  // MapLibre's stylesheet positions its own container, so the layout sits on a wrapper.
+  return (
+    <div className="map">
+      <div ref={container} className="map-canvas" aria-label="Map of current events" role="region" />
+    </div>
+  );
 }
 
 function setData(m: MapLibre, events: readonly Event[]) {
