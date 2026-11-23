@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Event } from "@/lib/api.gen";
 import { useDetail } from "@/lib/detail";
-import { formatMagnitude, formatSeverity, formatTime, SOURCE_NAMES, typeLabel } from "@/lib/format";
+import { formatMagnitude, formatSeverity, formatTime, paragraphs, SOURCE_NAMES, typeLabel } from "@/lib/format";
 
 type Props = {
   /** The selected event's id, from the link. */
@@ -115,10 +115,10 @@ export default function EventPanel({ id, choices, brief, group, onSelect, onClos
           {e.details.noaa?.instruction && (
             <div className="do">
               <b>What to do</b>
-              <p className="text">{e.details.noaa.instruction}</p>
+              {paragraphs(e.details.noaa.instruction).map((p, i) => <p key={i} className="text">{p}</p>)}
             </div>
           )}
-          {e.description && <p className="text">{e.description}</p>}
+          {e.description && paragraphs(e.description).map((p, i) => <p key={i} className="text">{p}</p>)}
           {detail?.status === "loading" && <p className="muted">Loading the source&apos;s text</p>}
           {detail?.status === "error" && <p className="muted">The source&apos;s text could not be loaded.</p>}
           {detail?.status === "ended" && <p className="muted">This event has left its source&apos;s feed; its full text is gone.</p>}

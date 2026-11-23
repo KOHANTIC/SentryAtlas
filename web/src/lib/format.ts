@@ -33,3 +33,14 @@ export function formatSeverity(e: Pick<Event, "severity" | "source">): string {
 
 /** The type's name from the tokens. */
 export const typeLabel = (type: Event["type"]) => tokens.event[type]?.label ?? type;
+
+/**
+ * A source's text as paragraphs, every word kept: blank lines part paragraphs,
+ * and the single line breaks NWS wraps its text with become spaces.
+ */
+export function paragraphs(text: string): string[] {
+  return text
+    .split(/\n\s*\n/)
+    .map((p) => p.split("\n").map((l) => l.trim()).filter(Boolean).join(" "))
+    .filter(Boolean);
+}

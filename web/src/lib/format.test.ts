@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMagnitude, formatSeverity, formatTime } from "./format";
+import { formatMagnitude, formatSeverity, formatTime, paragraphs } from "./format";
 
 describe("formatTime", () => {
   it("gives the viewer's zone with UTC beside it", () => {
@@ -24,5 +24,17 @@ describe("formatSeverity", () => {
     expect(formatSeverity({ source: "noaa", severity: { level: "severe", source_level: "Severe" } })).toBe("Severe (NWS: Severe)");
     expect(formatSeverity({ source: "gdacs", severity: { level: "moderate", source_level: "Orange" } })).toBe("Moderate (GDACS: Orange)");
     expect(formatSeverity({ source: "eonet" })).toBe("Not graded");
+  });
+});
+
+describe("paragraphs", () => {
+  it("keeps every word, joins NWS's wrapped lines, and parts paragraphs at blank lines", () => {
+    const nws = "If driving, slow down, use your headlights, and leave plenty of\ndistance ahead of you.\n\n* WHAT...Visibility one-quarter mile\nor less.\n";
+    expect(paragraphs(nws)).toEqual([
+      "If driving, slow down, use your headlights, and leave plenty of distance ahead of you.",
+      "* WHAT...Visibility one-quarter mile or less.",
+    ]);
+    const words = (s: string) => s.split(/\s+/).filter(Boolean);
+    expect(words(paragraphs(nws).join(" "))).toEqual(words(nws));
   });
 });
