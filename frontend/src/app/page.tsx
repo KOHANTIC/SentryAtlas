@@ -214,6 +214,13 @@ export default function Home() {
           >
             Source
           </a>
+          {" · "}
+          <a
+            href="https://sentryatlas.com/privacy/"
+            className="hover:text-foreground hover:underline"
+          >
+            Privacy
+          </a>
         </span>
       </div>
     </main>
