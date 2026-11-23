@@ -78,15 +78,19 @@ a { color: var(--action); }
 }
 
 /* The sheet's tabs and the event list. */
-.map-sheet { top: var(--s3); }
+.map-sheet { top: var(--s3); display: flex; flex-direction: column; overflow: hidden; }
+.map-sheet > * { flex: none; }
+.map-sheet > [role="tabpanel"] { flex: 1; min-height: 0; overflow: auto; }
+.map-sheet > #tabpanel-list { display: flex; flex-direction: column; overflow: hidden; }
+.map-sheet > #tabpanel-list[hidden] { display: none; }
 .tabs { display: flex; border: 1px solid var(--ink); }
 .tabs button { flex: 1; padding: var(--s2); background: none; border: 0; color: var(--muted); cursor: pointer; font: 700 var(--size-sm)/1 var(--nf-label), var(--font-label); letter-spacing: var(--label-tracking); text-transform: uppercase; }
 .tabs button[aria-selected="true"] { background: var(--ink); color: var(--sheet); }
-.list { display: grid; gap: var(--s2); }
+.list { display: flex; flex-direction: column; gap: var(--s2); flex: 1; min-height: 0; }
 .list-sort { display: flex; gap: var(--s2); }
 .list-sort button { min-height: 28px; padding: 2px var(--s2); background: none; border: 1px solid var(--rule); color: var(--muted); cursor: pointer; font: 600 var(--size-xs) var(--nf-text), var(--font-text); }
 .list-sort button[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); }
-.list-box { height: min(56vh, 520px); overflow: auto; border-top: 1px solid var(--rule); }
+.list-box { flex: 1; min-height: 168px; overflow: auto; border-top: 1px solid var(--rule); }
 .list-box:focus-visible { outline: var(--focus-width) solid var(--action); outline-offset: calc(-1 * var(--focus-width)); }
 .row { position: absolute; left: 0; right: 0; display: grid; grid-template-columns: 22px minmax(0, 1fr); grid-template-rows: auto auto; gap: 0 var(--s2); align-content: center; padding: 0 var(--s2); border-bottom: 1px solid var(--rule); cursor: pointer; }
 .row .mark { grid-row: span 2; align-self: center; }
@@ -96,5 +100,5 @@ a { color: var(--action); }
 .list-box:focus-visible .row[data-active] { outline: 2px solid var(--action); outline-offset: -2px; }
 @media (max-width: 640px) {
   .map-sheet { top: auto; max-height: 45%; }
-  .list-box { height: 30vh; }
+  .list-box { min-height: 0; height: 30vh; flex: none; }
 }
