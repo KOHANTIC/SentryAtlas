@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Event } from "@/lib/api.gen";
 import { position } from "@/lib/filters";
-import { formatMagnitude, SOURCE_NAMES, typeLabel } from "@/lib/format";
+import { formatMagnitude, formatShort, SOURCE_NAMES, typeLabel } from "@/lib/format";
 import { distanceKm, formatKm } from "@/lib/near";
 import type { SortBy } from "@/lib/sort";
 import tokens from "../../../brand/tokens.json";
@@ -21,8 +21,6 @@ type Props = {
   /** The viewer's position, when they used Near me: rows then say how far. */
   from?: [number, number];
 };
-
-const short = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
 /**
  * The events in view as a list, tied to the map both ways. It is a listbox:
@@ -124,7 +122,7 @@ export default function EventList({ events, selected, onSelect, sort, onSort, fr
                     {away}
                     {(e.severity ? tokens.severity[e.severity.level].word : tokens.severity.ungraded.word) + " · "}
                     {(formatMagnitude(e) ?? typeLabel(e.type)) + " · "}
-                    {SOURCE_NAMES[e.source]} · {short(e.time.updated)}
+                    {SOURCE_NAMES[e.source]} · {formatShort(e.time.updated)}
                   </span>
                 </div>
               );

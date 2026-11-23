@@ -20,11 +20,27 @@ describe("tokens", () => {
 
 describe("_headers", () => {
   const headers = readFileSync(new URL("../../public/_headers", import.meta.url), "utf8");
+  // Each rule's path, and the header lines indented under it.
+  const rules = new Map<string, string[]>();
+  let path = "";
+  for (const line of headers.split("\n")) {
+    if (!line.trim() || line.startsWith("#")) continue;
+    if (!line.startsWith(" ")) rules.set((path = line.trim()), []);
+    else rules.get(path)?.push(line.trim());
+  }
+  const csp = (rule: string) => rules.get(rule)?.find((l) => l.startsWith("Content-Security-Policy:")) ?? "";
+
   it("sends a Content-Security-Policy that lets the map run its workers", () => {
-    const csp = headers.split("\n").find((l) => l.trim().startsWith("Content-Security-Policy:")) ?? "";
     for (const d of ["default-src 'self'", "worker-src 'self' blob:", "frame-ancestors 'none'", "object-src 'none'", "https://map.sentryatlas.com"]) {
-      expect(csp).toContain(d);
+      expect(csp("/*")).toContain(d);
     }
+  });
+  it("lets other sites frame the embed (#50), with the same policy otherwise", () => {
+    const embed = rules.get("/embed/") ?? [];
+    // Rules that match together join their values, so the embed must drop the policy that refuses frames.
+    expect(embed[0]).toBe("! Content-Security-Policy");
+    expect(csp("/embed/")).toBe(csp("/*").replace("frame-ancestors 'none'", "frame-ancestors *"));
+    expect(csp("/embed/")).toContain("frame-ancestors *;");
   });
   it("lets search engines index the site since the cutover (#40)", () => {
     expect(headers).not.toContain("noindex");

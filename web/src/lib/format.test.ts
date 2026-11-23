@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMagnitude, formatSeverity, formatTime, paragraphs } from "./format";
+import { formatMagnitude, formatSeverity, formatTime, paragraphs, sourceNotes, spanLabel, windowLabel } from "./format";
 
 describe("formatTime", () => {
   it("gives the viewer's zone with UTC beside it", () => {
@@ -36,5 +36,28 @@ describe("paragraphs", () => {
     ]);
     const words = (s: string) => s.split(/\s+/).filter(Boolean);
     expect(words(paragraphs(nws).join(" "))).toEqual(words(nws));
+  });
+});
+
+describe("windowLabel", () => {
+  it("names the preset, or the narrower span when the link has one", () => {
+    expect(windowLabel("7d")).toBe("7 days");
+    expect(windowLabel("30d", 36)).toBe("36 hours");
+    expect(windowLabel("30d", 60)).toBe("2.5 days");
+    expect(spanLabel(1)).toBe("1 hour");
+  });
+});
+
+describe("sourceNotes", () => {
+  it("names each source that is missing or behind, and says which", () => {
+    const notes = sourceNotes([
+      { source: "usgs", ok: true, stale: false, silentMinutes: 1, count: 3 },
+      { source: "noaa", ok: true, stale: true, silentMinutes: 20, count: 9 },
+      { source: "gdacs", ok: false, stale: false, count: 0 },
+    ]);
+    expect(notes).toEqual([
+      { name: "NWS", note: "has not answered for 20 minutes; showing its last update." },
+      { name: "GDACS", note: "is unavailable." },
+    ]);
   });
 });

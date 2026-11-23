@@ -2,15 +2,7 @@
 
 import { useId } from "react";
 import { PRESETS, type Preset } from "@/lib/filters";
-
-const PRESET_LABELS: Record<Preset, string> = { "24h": "24 hours", "7d": "7 days", "30d": "30 days" };
-
-/** "36 hours", "1 hour", "2.5 days": how far back the window reaches. */
-export function spanLabel(hours: number): string {
-  if (hours < 48) return hours === 1 ? "1 hour" : `${hours} hours`;
-  const days = Math.round((hours / 24) * 10) / 10;
-  return `${days} days`;
-}
+import { PRESET_LABELS, spanLabel } from "@/lib/format";
 
 type Props = {
   time: Preset;

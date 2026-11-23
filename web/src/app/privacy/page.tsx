@@ -35,7 +35,8 @@ export default function Privacy() {
       <p>
         We count visits with <a href="https://www.cloudflare.com/web-analytics/">Cloudflare Web Analytics</a>. For each
         page view it records the page, the site that linked to it, your country, browser, operating system and type of
-        device, and how fast the page loaded. It does not record the part of the address after a question mark.
+        device, and how fast the page loaded. It does not record the part of the address after a question mark. A map
+        that another site embeds is counted the same way, with that site as the one that linked to it.
       </p>
       <p>
         It sets no cookies and stores nothing in your browser. Cloudflare says it does not fingerprint visitors or follow

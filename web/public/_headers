@@ -6,6 +6,13 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
 
+# Other sites may frame the embed (#50): it has no actions anyone could be tricked into.
+# Every other page still refuses. Matching rules join their values, so this one drops the
+# policy above first; keep the two policies equal apart from frame-ancestors (tokens.test.ts).
+/embed/
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org; font-src 'self'; connect-src 'self' https://map.sentryatlas.com https://tiles.openfreemap.org https://cloudflareinsights.com; worker-src 'self' blob:; child-src blob:; frame-ancestors *; base-uri 'self'; form-action 'self'; object-src 'none'
+
 # The share card is built without an extension (app/opengraph-image.tsx).
 /opengraph-image
   Content-Type: image/png
