@@ -8,6 +8,7 @@ import MapView, { type Camera } from "@/components/MapView";
 import TimeControl, { spanLabel } from "@/components/TimeControl";
 import type { Event } from "@/lib/api.gen";
 import { filterEvents, freshness, position, PRESETS, type BBox } from "@/lib/filters";
+import { boxAround, radiusFor } from "@/lib/near";
 import { sortEvents, type SortBy } from "@/lib/sort";
 import { parse, pushedBySelection, pushView, replaceView, subscribeURL } from "@/lib/urlState";
 import { useSnapshot } from "@/lib/useSnapshot";
@@ -36,7 +37,26 @@ export default function MapPage() {
   const [bbox, setBbox] = useState<BBox | undefined>();
   const [sort, setSort] = useState<SortBy>("time");
   const [tab, setTab] = useState<"list" | "key">("list");
-  const inView = useMemo(() => sortEvents(bbox ? filterEvents(events, { bbox }) : events, sort), [events, bbox, sort]);
+  // Near me: the position stays in this component's state, never in the link or a request.
+  const [me, setMe] = useState<[number, number] | undefined>();
+  const [near, setNear] = useState<"" | "locating" | "denied" | "failed">("");
+  const [fit, setFit] = useState<{ box: BBox; key: number } | undefined>();
+  const inView = useMemo(() => sortEvents(bbox ? filterEvents(events, { bbox }) : events, sort, me), [events, bbox, sort, me]);
+  function nearMe() {
+    if (!("geolocation" in navigator)) return setNear("failed");
+    setNear("locating");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const at: [number, number] = [coords.longitude, coords.latitude];
+        setMe(at);
+        setNear("");
+        setSort("distance");
+        setFit({ box: boxAround(at, radiusFor(at, events)), key: Date.now() });
+      },
+      (err) => setNear(err.code === err.PERMISSION_DENIED ? "denied" : "failed"),
+      { enableHighAccuracy: false, timeout: 15_000, maximumAge: 10 * 60_000 },
+    );
+  }
   const onMove = useCallback((c: Camera) => replaceView({ ...parse(window.location.search), ...c }), []);
   const [copied, setCopied] = useState<"" | "copied" | "failed">("");
 
@@ -73,7 +93,7 @@ export default function MapPage() {
   return (
     <main id="main" className="map-page" data-panel={view.event || choices ? "open" : undefined}>
       <h1 className="sr-only">Map</h1>
-      <MapView events={events} camera={view} onMove={onMove} selected={view.event ? { id: view.event, at } : undefined} onPick={onPick} onBounds={setBbox} />
+      <MapView events={events} camera={view} onMove={onMove} selected={view.event ? { id: view.event, at } : undefined} onPick={onPick} onBounds={setBbox} me={me} fit={fit} />
       <EventPanel
         id={choices ? undefined : view.event}
         choices={choices?.map((id) => byId.get(id)).filter((e): e is Event => !!e)}
@@ -95,9 +115,12 @@ export default function MapPage() {
         />
         <div className="share">
           <button type="button" onClick={copyLink}>Copy link</button>
+          <button type="button" onClick={nearMe} disabled={near === "locating"}>{near === "locating" ? "Finding you…" : "Near me"}</button>
           <span role="status">
             {copied === "copied" && "Link copied"}
             {copied === "failed" && "Could not copy: the address bar holds the link"}
+            {near === "denied" && "Location is off for this site. Allow it in your browser's settings to use Near me."}
+            {near === "failed" && "Your position could not be found."}
           </span>
         </div>
         {fresh?.partial && (
@@ -119,7 +142,7 @@ export default function MapPage() {
           <button type="button" role="tab" id="tab-key" aria-controls="tabpanel-key" aria-selected={tab === "key"} onClick={() => setTab("key")}>Key</button>
         </div>
         <div role="tabpanel" id="tabpanel-list" aria-labelledby="tab-list" hidden={tab !== "list"}>
-          <EventList events={inView} selected={view.event} onSelect={select} sort={sort} onSort={setSort} />
+          <EventList events={inView} selected={view.event} onSelect={select} sort={sort} onSort={setSort} from={me} />
         </div>
         <div role="tabpanel" id="tabpanel-key" aria-labelledby="tab-key" hidden={tab !== "key"}>
           <Legend />

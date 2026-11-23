@@ -73,3 +73,28 @@ test("a preset and the slider narrow the window, by keyboard, and the link keeps
   expect(new URL(page.url()).searchParams.get("hours")).toBe("1");
   await expect(page.getByText("NWS shows only alerts in force now.")).toBeVisible();
 });
+
+test("Near me sorts the list by distance from the viewer, who is asked only on pressing it", async ({ page, context }) => {
+  await context.grantPermissions(["geolocation"]);
+  // Puerto Rico: the NWS alert there is the nearest event.
+  await context.setGeolocation({ longitude: -66.1, latitude: 18.4 });
+  await page.goto("/map/?time=30d");
+  await expect(page.getByRole("button", { name: "Nearest" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Near me" }).click();
+  await expect(page.getByRole("button", { name: "Nearest" })).toHaveAttribute("aria-pressed", "true");
+  await expect(rows(page).first()).toContainText("km · ");
+  await expect(rows(page).first()).toContainText("NWS");
+  // The position stays out of the link.
+  expect(page.url()).not.toContain("18.4");
+});
+
+test("a refused location says how to allow it", async ({ page, context }) => {
+  await context.clearPermissions();
+  await page.addInitScript(() => {
+    navigator.geolocation.getCurrentPosition = (_ok, fail) =>
+      fail?.({ code: 1, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3, message: "denied" } as GeolocationPositionError);
+  });
+  await page.goto("/map/?time=30d");
+  await page.getByRole("button", { name: "Near me" }).click();
+  await expect(page.getByText("Location is off for this site.")).toBeVisible();
+});

@@ -18,3 +18,11 @@ describe("sortEvents", () => {
     expect(list.map((e) => e.id)).toEqual(["a", "b", "c", "d"]);
   });
 });
+
+describe("sortEvents by distance", () => {
+  const at = (id: string, lon: number, lat: number) => ({ ...ev(id, "2026-11-22T00:00:00Z"), location: { center: [lon, lat] } }) as Event;
+  it("puts the nearest first and the unplaced last", () => {
+    const list = [at("far", 40, 0), ev("nowhere", "2026-11-22T00:00:00Z"), at("near", 1, 0), at("mid", 10, 0)];
+    expect(sortEvents(list, "distance", [0, 0]).map((e) => e.id)).toEqual(["near", "mid", "far", "nowhere"]);
+  });
+});
