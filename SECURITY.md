@@ -19,8 +19,8 @@ rather stay anonymous.
 In scope:
 
 - the Go API (`backend/`), including how it handles upstream responses
-- the map application (`frontend/`) and the landing site (`landing/`)
-- the deployment specs in `.do/` and the container images
+- the site (`web/`), sentryatlas.com
+- the deployment spec in `.do/`, the container image, and `web/public/_headers`
 
 Out of scope:
 
