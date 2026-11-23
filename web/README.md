@@ -12,4 +12,4 @@ npm run e2e        # every page in Chromium, desktop and phone, with axe (Playwr
 
 ## Deploy
 
-Cloudflare Workers static assets serves `out/` (`wrangler.jsonc`), with the headers in `public/_headers`. Workers Builds builds every push: `main` goes to the Worker's own address, and each pull request gets a preview link. The site stays off search engines (`X-Robots-Tag: noindex`) until it takes over sentryatlas.com in #40.
+Cloudflare Workers static assets serves `out/` (`wrangler.jsonc`), with the headers in `public/_headers`. Workers Builds builds every push: `main` goes to the Worker's own address, and each pull request gets a preview link. It serves sentryatlas.com since the cutover (#40, `docs/deploy/cutover.md`).
