@@ -6,7 +6,7 @@ import type { Theme } from "./tokens";
 export const TILES_URL = process.env.NEXT_PUBLIC_TILES_URL ?? "https://tiles.openfreemap.org/planet";
 export const GLYPHS_URL = process.env.NEXT_PUBLIC_GLYPHS_URL ?? "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";
 
-const SOURCES_CREDIT = "Events: USGS, NASA EONET, NWS, GDACS";
+const SOURCES_CREDIT = 'Events: USGS, NASA EONET, NWS, GDACS | Places: <a href="https://www.geonames.org/">GeoNames</a>';
 const EMPTY = { type: "FeatureCollection" as const, features: [] };
 
 /** Lines every 30 degrees, drawn faint like a survey sheet's grid. */

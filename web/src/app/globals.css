@@ -99,7 +99,9 @@ a { color: var(--action); }
 .row[aria-selected="true"] { background: var(--paper); box-shadow: inset 3px 0 0 var(--ink); }
 .list-box:focus-visible .row[data-active] { outline: 2px solid var(--action); outline-offset: -2px; }
 @media (max-width: 640px) {
-  .map-sheet { top: auto; max-height: 45%; }
+  /* The sheet scrolls as a whole on phones, so nothing in it is ever clipped out of reach. */
+  .map-sheet { top: auto; max-height: 45%; overflow-y: auto; }
+  .map-sheet > [role="tabpanel"], .map-sheet > #tabpanel-list { flex: none; overflow: visible; }
   .list-box { min-height: 0; height: 30vh; flex: none; }
 }
 
@@ -166,3 +168,11 @@ a { color: var(--action); }
 .time-slider { display: grid; gap: var(--s1); font-size: var(--size-sm); }
 .time-slider input { width: 100%; accent-color: var(--action); min-height: 24px; }
 .time-note { font-size: var(--size-xs); }
+
+/* Going to a place. */
+.place-search { position: relative; display: grid; gap: var(--s1); }
+.place-search input { min-height: 36px; padding: var(--s1) var(--s2); background: var(--sheet); color: var(--ink); border: 1px solid var(--ink); font: inherit; }
+.place-search ul { position: absolute; top: 100%; left: 0; right: 0; z-index: 3; margin: 0; padding: 0; list-style: none; background: var(--sheet); border: 1px solid var(--ink); }
+.place-search li { padding: var(--s2) var(--s3); cursor: pointer; min-height: 24px; }
+.place-search li[aria-selected="true"] { background: var(--ink); color: var(--sheet); }
+.place-search li[aria-selected="true"] .muted { color: var(--sheet); }

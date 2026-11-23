@@ -5,6 +5,7 @@ import EventList from "@/components/EventList";
 import EventPanel from "@/components/EventPanel";
 import Legend from "@/components/Legend";
 import MapView, { type Camera } from "@/components/MapView";
+import PlaceSearch from "@/components/PlaceSearch";
 import TimeControl, { spanLabel } from "@/components/TimeControl";
 import type { Event } from "@/lib/api.gen";
 import { filterEvents, freshness, position, PRESETS, type BBox } from "@/lib/filters";
@@ -108,6 +109,7 @@ export default function MapPage() {
           {state.status === "error" && "The events could not be loaded; trying again"}
           {state.status === "ready" && `${inView.length.toLocaleString("en")} in view of ${events.length.toLocaleString("en")} events, last ${view.hours ? spanLabel(view.hours) : LABELS[view.time]}`}
         </p>
+        <PlaceSearch onChoose={(center) => replaceView({ ...parse(window.location.search), center, zoom: 8, bearing: 0 })} />
         <TimeControl
           time={view.time}
           hours={view.hours}
