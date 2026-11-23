@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
-const example = readFileSync(new URL("../../docs/api/v2/snapshot.example.json", import.meta.url), "utf8");
+// Playwright runs from web/.
+const example = readFileSync("../docs/api/v2/snapshot.example.json", "utf8");
 
 test.beforeEach(async ({ page }) => {
   // The example snapshot instead of the live API, and no basemap tiles: the checks are about the page.

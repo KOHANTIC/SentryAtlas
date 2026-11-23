@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "gen": "node ../brand/css.mjs > src/app/tokens.css && cp ../brand/logo/mark.svg public/icon.svg && node scripts/types.mjs",
+    "gen": "node ../brand/css.mjs > src/app/tokens.css && cp ../brand/logo/mark.svg public/icon.svg && cp node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs public/ && node scripts/types.mjs",
     "predev": "npm run gen",
     "dev": "next dev",
     "prebuild": "npm run gen",
