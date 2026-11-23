@@ -8,6 +8,7 @@ import MapView, { type Camera } from "@/components/MapView";
 import PlaceSearch from "@/components/PlaceSearch";
 import TimeControl from "@/components/TimeControl";
 import type { Event } from "@/lib/api.gen";
+import { embedCode } from "@/lib/embed";
 import { filterEvents, position, type BBox } from "@/lib/filters";
 import { sourceNotes, windowLabel } from "@/lib/format";
 import { boxAround, radiusFor } from "@/lib/near";
@@ -44,7 +45,8 @@ export default function MapPage() {
     );
   }
   const onMove = useCallback((c: Camera) => replaceView({ ...parse(window.location.search), ...c }), []);
-  const [copied, setCopied] = useState<"" | "copied" | "failed">("");
+  const [copied, setCopied] = useState<"" | "link" | "code" | "link-failed" | "code-failed">("");
+  const [embedding, setEmbedding] = useState(false);
 
   // Selection: the link's event, and the events under a click that hit several.
   const byId = useMemo(() => new Map<string, Event>((snapshot?.events ?? []).map((e) => [e.id, e])), [snapshot]);
@@ -67,12 +69,12 @@ export default function MapPage() {
     else replaceView({ ...parse(window.location.search), event: undefined });
   }, [choices]);
 
-  async function copyLink() {
+  async function copy(text: string, what: "link" | "code") {
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied("copied");
+      await navigator.clipboard.writeText(text);
+      setCopied(what);
     } catch {
-      setCopied("failed");
+      setCopied(`${what}-failed`);
     }
   }
 
@@ -101,15 +103,19 @@ export default function MapPage() {
           onChange={(time, hours) => replaceView({ ...parse(window.location.search), time, hours })}
         />
         <div className="share">
-          <button type="button" onClick={copyLink}>Copy link</button>
+          <button type="button" onClick={() => copy(window.location.href, "link")}>Copy link</button>
           <button type="button" onClick={nearMe} disabled={near === "locating"}>{near === "locating" ? "Finding you…" : "Near me"}</button>
+          <button type="button" aria-expanded={embedding} onClick={() => setEmbedding(!embedding)}>Embed</button>
           <span role="status">
-            {copied === "copied" && "Link copied"}
-            {copied === "failed" && "Could not copy: the address bar holds the link"}
+            {copied === "link" && "Link copied"}
+            {copied === "link-failed" && "Could not copy: the address bar holds the link"}
+            {copied === "code" && "Code copied"}
+            {copied === "code-failed" && "Could not copy: select the code and copy it"}
             {near === "denied" && "Location is off for this site. Allow it in your browser's settings to use Near me."}
             {near === "failed" && "Your position could not be found."}
           </span>
         </div>
+        {embedding && <EmbedCode code={embedCode(window.location.origin, view)} onCopy={(code) => copy(code, "code")} />}
         {fresh?.partial && (
           <ul className="notice">
             {sourceNotes(fresh.sources).map((n) => (
@@ -131,5 +137,17 @@ export default function MapPage() {
         </div>
       </aside>
     </main>
+  );
+}
+
+/** The code that puts this view on another site, to read or copy. */
+function EmbedCode({ code, onCopy }: { code: string; onCopy: (code: string) => void }) {
+  return (
+    <div className="embed-code">
+      <label htmlFor="embed-code-text" className="label">Embed code</label>
+      <textarea id="embed-code-text" readOnly rows={4} value={code} onFocus={(e) => e.currentTarget.select()} />
+      <p className="muted">Paste it into your page to show this view, these types and this time window, with a link back here.</p>
+      <button type="button" onClick={() => onCopy(code)}>Copy code</button>
+    </div>
   );
 }

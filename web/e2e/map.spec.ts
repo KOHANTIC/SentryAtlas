@@ -45,6 +45,24 @@ test("Copy link puts the page's address on the clipboard", async ({ page, contex
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(page.url());
 });
 
+test("Embed gives the code for the map's view, types and window, and copies it", async ({ page, context, browserName }) => {
+  test.skip(browserName !== "chromium", "clipboard permissions are Chromium's");
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/map/?at=18.2,-66.5,6&types=weather&time=30d");
+  const embed = page.getByRole("button", { name: "Embed" });
+  await expect(embed).toHaveAttribute("aria-expanded", "false");
+  await embed.click();
+  await expect(embed).toHaveAttribute("aria-expanded", "true");
+  const origin = new URL(page.url()).origin;
+  const code = page.getByRole("textbox", { name: "Embed code" });
+  await expect(code).toHaveValue(
+    `<iframe src="${origin}/embed/?at=18.2,-66.5,6&amp;types=weather&amp;time=30d" title="SentryAtlas map of current events" width="100%" height="450" style="border:0" loading="lazy"></iframe>`,
+  );
+  await page.getByRole("button", { name: "Copy code" }).click();
+  await expect(page.getByText("Code copied")).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await code.inputValue());
+});
+
 test("without WebGL2 the page says so instead of drawing", async ({ page }) => {
   await page.addInitScript(() => {
     const get = HTMLCanvasElement.prototype.getContext;

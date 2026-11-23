@@ -42,6 +42,9 @@ export default function Terms() {
         show its data, credit the agencies it comes from.
       </p>
 
+      <h2>Embedding the map</h2>
+      <p>You may show the map on your own site with the code from Embed on the map. Keep its credit bar visible.</p>
+
       <h2>The code</h2>
       <p>
         SentryAtlas is open source under the{" "}
