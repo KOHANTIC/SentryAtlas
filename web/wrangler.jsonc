@@ -5,5 +5,7 @@
   "assets": {
     "directory": "./out",
     "not_found_handling": "404-page"
-  }
+  },
+  // Pull-request builds run `wrangler preview`, which needs this block; empty takes the settings above.
+  "previews": {}
 }
