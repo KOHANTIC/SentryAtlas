@@ -36,3 +36,5 @@ a { color: var(--action); }
 .legend li { display: flex; align-items: center; gap: var(--s2); }
 .legend-note { color: var(--muted); font-size: var(--size-xs); }
 .maplibregl-ctrl-attrib { font-size: var(--size-xs); }
+/* Links inside the credit line need more than color to stand out (WCAG 1.4.1). */
+.maplibregl-ctrl-attrib a { text-decoration: underline; }
