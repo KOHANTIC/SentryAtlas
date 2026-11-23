@@ -34,7 +34,7 @@ test("the list holds the window's events, newest first or most severe first", as
   await expect(rows(page)).toHaveCount(5);
 });
 
-test("the keyboard walks the list and Enter opens the event", async ({ page }) => {
+test("the keyboard walks the list and Enter opens the event", async ({ page, isMobile }) => {
   await page.goto("/map/?time=30d");
   const list = page.getByRole("listbox", { name: "Events in view" });
   await list.focus();
@@ -43,10 +43,14 @@ test("the keyboard walks the list and Enter opens the event", async ({ page }) =
   const title = (await rows(page).nth(1).locator(".row-title").textContent()) ?? "";
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { level: 2, name: title })).toBeVisible();
-  await expect(rows(page).nth(1)).toHaveAttribute("aria-selected", "true");
+  // On phones the list steps aside while the panel is open; Close brings focus back to it.
+  if (!isMobile) await expect(rows(page).nth(1)).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("button", { name: "Close" }).click();
+  await expect(list).toBeFocused();
 });
 
-test("a selection from a link marks its row", async ({ page }) => {
+test("a selection from a link marks its row", async ({ page, isMobile }) => {
+  test.skip(isMobile, "on phones the list steps aside while the panel is open");
   const quake = example.events[0];
   await page.goto(`/map/?time=30d&event=${encodeURIComponent(quake.id)}`);
   await expect(page.getByRole("option", { selected: true })).toContainText(quake.title);
