@@ -6,6 +6,7 @@ import type { Map as MapLibre, GeoJSONSource } from "maplibre-gl";
 import tokens from "../../../brand/tokens.json";
 import type { Event } from "@/lib/api.gen";
 import { toFeatures } from "@/lib/features";
+import type { BBox } from "@/lib/filters";
 import { mapStyle } from "@/lib/mapStyle";
 import { markImage, type Fill, type Shape } from "@/lib/marks";
 import type { Theme } from "@/lib/tokens";
@@ -36,6 +37,8 @@ type Props = {
   selected?: { id: string; at?: [number, number] };
   /** Called with the events under a click: one to open, or several to choose from. */
   onPick?: (ids: string[]) => void;
+  /** Called with the map's view as a box whenever it settles, for the list. */
+  onBounds?: (b: BBox) => void;
   /** Where to look, from the link; absent starts on the whole globe. */
   camera?: Partial<Camera>;
   /** Called when the person has moved the map. */
@@ -43,12 +46,13 @@ type Props = {
 };
 
 /** The globe, with every placed event drawn as its type's mark and its severity's fill. */
-export default function MapView({ events, camera, onMove, selected, onPick }: Props) {
+export default function MapView({ events, camera, onMove, selected, onPick, onBounds }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre | null>(null);
   const current = useRef(events);
   const moved = useRef(onMove);
   const picked = useRef(onPick);
+  const bounded = useRef(onBounds);
   const chosen = useRef(selected);
   // The latest camera, read when the map is created: the first render, while hydrating,
   // sees no link yet, and the map library arrives after the link has been read.
@@ -56,8 +60,9 @@ export default function MapView({ events, camera, onMove, selected, onPick }: Pr
   useEffect(() => {
     moved.current = onMove;
     picked.current = onPick;
+    bounded.current = onBounds;
     start.current = camera;
-  }, [onMove, onPick, camera]);
+  }, [onMove, onPick, onBounds, camera]);
   const t = useSyncExternalStore(subscribeTheme, theme, () => "light" as Theme);
   const canDraw = useSyncExternalStore(noSubscribe, hasWebGL2, () => true);
 
@@ -91,6 +96,8 @@ export default function MapView({ events, camera, onMove, selected, onPick }: Pr
       const mark = () => {
         const { lng, lat } = m.getCenter();
         container.current?.setAttribute("data-view", `${lat.toFixed(2)},${lng.toFixed(2)},${m.getZoom().toFixed(1)}`);
+        const b = m.getBounds();
+        bounded.current?.([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
       };
       m.on("load", mark);
       // The event may have arrived before the map: bring it into view now.
@@ -173,7 +180,7 @@ export default function MapView({ events, camera, onMove, selected, onPick }: Pr
   if (!canDraw) {
     return (
       <div className="map-fallback" role="status">
-        <p>This browser cannot draw the map: it needs WebGL2.</p>
+        <p>This browser cannot draw the map: it needs WebGL2. The list has every event.</p>
       </div>
     );
   }

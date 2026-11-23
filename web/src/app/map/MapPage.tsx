@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import EventList from "@/components/EventList";
 import EventPanel from "@/components/EventPanel";
 import Legend from "@/components/Legend";
 import MapView, { type Camera } from "@/components/MapView";
 import type { Event } from "@/lib/api.gen";
-import { filterEvents, freshness, position, PRESETS } from "@/lib/filters";
+import { filterEvents, freshness, position, PRESETS, type BBox } from "@/lib/filters";
+import { sortEvents, type SortBy } from "@/lib/sort";
 import { parse, pushedBySelection, pushView, replaceView, subscribeURL } from "@/lib/urlState";
 import { useSnapshot } from "@/lib/useSnapshot";
 
@@ -29,6 +31,11 @@ export default function MapPage() {
     [snapshot, checkedAt, view.types, preset.ms],
   );
   const fresh = snapshot && checkedAt ? freshness(snapshot, checkedAt) : undefined;
+  // The list holds what the map shows; with no map (no WebGL2) it holds everything.
+  const [bbox, setBbox] = useState<BBox | undefined>();
+  const [sort, setSort] = useState<SortBy>("time");
+  const [tab, setTab] = useState<"list" | "key">("list");
+  const inView = useMemo(() => sortEvents(bbox ? filterEvents(events, { bbox }) : events, sort), [events, bbox, sort]);
   const onMove = useCallback((c: Camera) => replaceView({ ...parse(window.location.search), ...c }), []);
   const [copied, setCopied] = useState<"" | "copied" | "failed">("");
 
@@ -65,7 +72,7 @@ export default function MapPage() {
   return (
     <main id="main" className="map-page" data-panel={view.event || choices ? "open" : undefined}>
       <h1 className="sr-only">Map</h1>
-      <MapView events={events} camera={view} onMove={onMove} selected={view.event ? { id: view.event, at } : undefined} onPick={onPick} />
+      <MapView events={events} camera={view} onMove={onMove} selected={view.event ? { id: view.event, at } : undefined} onPick={onPick} onBounds={setBbox} />
       <EventPanel
         id={choices ? undefined : view.event}
         choices={choices?.map((id) => byId.get(id)).filter((e): e is Event => !!e)}
@@ -78,7 +85,7 @@ export default function MapPage() {
         <p className="label" role="status">
           {state.status === "loading" && "Loading events"}
           {state.status === "error" && "The events could not be loaded; trying again"}
-          {state.status === "ready" && `${events.length.toLocaleString("en")} events, last ${LABELS[view.time]}`}
+          {state.status === "ready" && `${inView.length.toLocaleString("en")} in view of ${events.length.toLocaleString("en")} events, last ${LABELS[view.time]}`}
         </p>
         <div className="share">
           <button type="button" onClick={copyLink}>Copy link</button>
@@ -101,7 +108,16 @@ export default function MapPage() {
               ))}
           </ul>
         )}
-        <Legend />
+        <div role="tablist" aria-label="Sheet" className="tabs">
+          <button type="button" role="tab" id="tab-list" aria-controls="tabpanel-list" aria-selected={tab === "list"} onClick={() => setTab("list")}>List</button>
+          <button type="button" role="tab" id="tab-key" aria-controls="tabpanel-key" aria-selected={tab === "key"} onClick={() => setTab("key")}>Key</button>
+        </div>
+        <div role="tabpanel" id="tabpanel-list" aria-labelledby="tab-list" hidden={tab !== "list"}>
+          <EventList events={inView} selected={view.event} onSelect={select} sort={sort} onSort={setSort} />
+        </div>
+        <div role="tabpanel" id="tabpanel-key" aria-labelledby="tab-key" hidden={tab !== "key"}>
+          <Legend />
+        </div>
       </aside>
     </main>
   );
