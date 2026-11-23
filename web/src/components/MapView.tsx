@@ -44,10 +44,13 @@ export default function MapView({ events, camera, onMove }: Props) {
   const map = useRef<MapLibre | null>(null);
   const current = useRef(events);
   const moved = useRef(onMove);
+  // The latest camera, read when the map is created: the first render, while hydrating,
+  // sees no link yet, and the map library arrives after the link has been read.
   const start = useRef(camera);
   useEffect(() => {
     moved.current = onMove;
-  }, [onMove]);
+    start.current = camera;
+  }, [onMove, camera]);
   const t = useSyncExternalStore(subscribeTheme, theme, () => "light" as Theme);
   const canDraw = useSyncExternalStore(noSubscribe, hasWebGL2, () => true);
 
@@ -75,6 +78,13 @@ export default function MapView({ events, camera, onMove }: Props) {
         bearing: c?.bearing ?? 0,
         attributionControl: { compact: true },
       });
+      // The view, readable by tests and tools: latitude, longitude, zoom.
+      const mark = () => {
+        const { lng, lat } = m.getCenter();
+        container.current?.setAttribute("data-view", `${lat.toFixed(2)},${lng.toFixed(2)},${m.getZoom().toFixed(1)}`);
+      };
+      m.on("load", mark);
+      m.on("moveend", mark);
       // Only moves the person makes reach the link; jumps from the link carry no originalEvent.
       m.on("moveend", (e) => {
         if (!("originalEvent" in e) || !e.originalEvent) return;
