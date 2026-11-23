@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { TextPage } from "@/components/Site";
+import { embedCode } from "@/lib/embed";
 import { API_BASE } from "@/lib/snapshot";
+import { parse } from "@/lib/urlState";
 
 export const metadata: Metadata = {
   title: "Developers",
@@ -47,6 +50,14 @@ export default function Developers() {
         <code>GET /health</code> says how fresh each source is. <code>GET /health/stale</code> answers <code>503</code> while
         any source is past its limit, for a monitor.
       </p>
+
+      <h2>Embed the map</h2>
+      <p>
+        Set the <Link href="/map/">map</Link> up the way you want it, press Embed, and paste the code into your page. The embed
+        keeps the view, the types and the time window, links back to the full map, and needs no key. Keep its credit bar
+        visible.
+      </p>
+      <pre tabIndex={0} aria-label="Example: earthquakes and alerts around Puerto Rico, last 30 days"><code>{embedCode("https://sentryatlas.com", parse("?at=18.2,-66.5,6&time=30d"))}</code></pre>
 
       <h2>Using the data</h2>
       <p>

@@ -31,7 +31,7 @@ One site and one API:
 ```
 
 - **API** (`backend/`): a Go server that polls the four sources on its own schedule, keeps each one's last good copy in memory, and serves it as v1 (`/api/v1/events`: GeoJSON, flat JSON or a stream) and v2 (`/api/v2/snapshot`, cached at the edge). It also runs the waiting list for location alerts.
-- **Site** (`web/`): the home page, the map (MapLibre GL on a globe), and the pages around them, built as plain files. Every design value comes from [`brand/`](brand/BRAND.md).
+- **Site** (`web/`): the home page, the map (MapLibre GL on a globe), a copy of it other sites can embed (`/embed/`), and the pages around them, built as plain files. Every design value comes from [`brand/`](brand/BRAND.md).
 - **map.sentryatlas.com** keeps the API's address. Its other paths redirect to sentryatlas.com.
 
 ## Quick Start
