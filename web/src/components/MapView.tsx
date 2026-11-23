@@ -70,7 +70,8 @@ export default function MapView({ events }: { events: readonly Event[] }) {
 
   useEffect(() => {
     current.current = events;
-    if (map.current?.isStyleLoaded()) setData(map.current, events);
+    // Before the style has its sources this does nothing; style.load then sets the latest events.
+    if (map.current) setData(map.current, events);
   }, [events]);
 
   if (!canDraw) {
