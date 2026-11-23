@@ -41,3 +41,38 @@ a { color: var(--action); }
 .maplibregl-ctrl-attrib { font-size: var(--size-xs); }
 /* Links inside the credit line need more than color to stand out (WCAG 1.4.1). */
 .map .maplibregl-ctrl-attrib a { text-decoration: underline; } /* beats MapLibre's own rule, which loads later */
+
+/* The event panel: a column on the right; on phones a bottom sheet with three heights. */
+.panel {
+  position: absolute; top: var(--s3); right: var(--s3); bottom: var(--s3); width: min(400px, calc(100% - 2 * var(--s3)));
+  overflow: auto; display: flex; flex-direction: column; gap: var(--s3); padding: var(--s4);
+  background: var(--sheet); border: 1px solid var(--ink); z-index: 2;
+}
+.panel h2 { font: 700 var(--size-xl)/1.2 var(--nf-text), var(--font-text); }
+.panel h2:focus { outline: none; }
+.panel h2:focus-visible { outline: var(--focus-width) solid var(--action); outline-offset: var(--focus-offset); }
+.panel-bar { display: flex; justify-content: space-between; gap: var(--s2); }
+.panel-bar button, .choices button, .group button {
+  min-height: 32px; padding: var(--s1) var(--s3); background: none; color: var(--ink); border: 1px solid var(--rule);
+  font: 600 var(--size-sm) var(--nf-text), var(--font-text); cursor: pointer; text-align: left;
+}
+.panel-bar button:disabled { opacity: 0.4; cursor: default; }
+.sheet-steps { display: none; gap: var(--s2); }
+.sevword { font: 800 var(--size-sm)/1 var(--nf-label), var(--font-label); letter-spacing: var(--label-tracking); text-transform: uppercase; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--s1) var(--s3); margin: 0; font-size: var(--size-sm); }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+.text { white-space: pre-wrap; font-size: var(--size-sm); }
+.do { border: 2px solid var(--ink); padding: var(--s3); display: grid; gap: var(--s1); }
+.do b { font: 800 var(--size-sm)/1 var(--nf-label), var(--font-label); letter-spacing: var(--label-tracking); text-transform: uppercase; }
+.muted { color: var(--muted); font-size: var(--size-sm); }
+.choices, .group ul { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--s2); }
+.choices button { width: 100%; display: grid; gap: 2px; }
+.choices span { color: var(--muted); font-weight: 400; font-size: var(--size-xs); }
+@media (max-width: 640px) {
+  .panel { top: auto; left: 0; right: 0; bottom: 0; width: 100%; border-width: 2px 0 0; height: 50%; }
+  .panel[data-height="peek"] { height: 140px; }
+  .panel[data-height="full"] { height: 88%; }
+  .sheet-steps { display: flex; }
+  .map-page[data-panel="open"] .map-sheet { display: none; }
+}

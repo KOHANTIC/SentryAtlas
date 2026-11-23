@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import EventPanel from "@/components/EventPanel";
 import Legend from "@/components/Legend";
 import MapView, { type Camera } from "@/components/MapView";
-import { filterEvents, freshness, PRESETS } from "@/lib/filters";
-import { parse, replaceView, subscribeURL } from "@/lib/urlState";
+import type { Event } from "@/lib/api.gen";
+import { filterEvents, freshness, position, PRESETS } from "@/lib/filters";
+import { parse, pushedBySelection, pushView, replaceView, subscribeURL } from "@/lib/urlState";
 import { useSnapshot } from "@/lib/useSnapshot";
 
 const NAMES = { usgs: "USGS", eonet: "NASA EONET", noaa: "NWS", gdacs: "GDACS" } as const;
@@ -30,6 +32,27 @@ export default function MapPage() {
   const onMove = useCallback((c: Camera) => replaceView({ ...parse(window.location.search), ...c }), []);
   const [copied, setCopied] = useState<"" | "copied" | "failed">("");
 
+  // Selection: the link's event, and the events under a click that hit several.
+  const byId = useMemo(() => new Map<string, Event>((snapshot?.events ?? []).map((e) => [e.id, e])), [snapshot]);
+  const [choices, setChoices] = useState<string[] | null>(null);
+  const brief = view.event ? byId.get(view.event) : undefined;
+  const at = brief ? position(brief) : undefined;
+  const group = useMemo(
+    () => (brief?.group_id ? (snapshot?.events ?? []).filter((e) => e.group_id === brief.group_id && e.id !== brief.id) : []),
+    [brief, snapshot],
+  );
+  const select = useCallback((id: string) => {
+    setChoices(null);
+    // A history entry, so the back button closes the event.
+    pushView({ ...parse(window.location.search), event: id });
+  }, []);
+  const onPick = useCallback((ids: string[]) => (ids.length === 1 ? select(ids[0]) : setChoices(ids)), [select]);
+  const close = useCallback(() => {
+    if (choices) return setChoices(null);
+    if (pushedBySelection()) window.history.back();
+    else replaceView({ ...parse(window.location.search), event: undefined });
+  }, [choices]);
+
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -40,9 +63,17 @@ export default function MapPage() {
   }
 
   return (
-    <main id="main" className="map-page">
+    <main id="main" className="map-page" data-panel={view.event || choices ? "open" : undefined}>
       <h1 className="sr-only">Map</h1>
-      <MapView events={events} camera={view} onMove={onMove} />
+      <MapView events={events} camera={view} onMove={onMove} selected={view.event ? { id: view.event, at } : undefined} onPick={onPick} />
+      <EventPanel
+        id={choices ? undefined : view.event}
+        choices={choices?.map((id) => byId.get(id)).filter((e): e is Event => !!e)}
+        brief={brief}
+        group={group}
+        onSelect={select}
+        onClose={close}
+      />
       <aside className="map-sheet">
         <p className="label" role="status">
           {state.status === "loading" && "Loading events"}

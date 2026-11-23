@@ -32,6 +32,10 @@ export type Camera = { center: [number, number]; zoom: number; bearing: number }
 
 type Props = {
   events: readonly Event[];
+  /** The selected event and where it is drawn. */
+  selected?: { id: string; at?: [number, number] };
+  /** Called with the events under a click: one to open, or several to choose from. */
+  onPick?: (ids: string[]) => void;
   /** Where to look, from the link; absent starts on the whole globe. */
   camera?: Partial<Camera>;
   /** Called when the person has moved the map. */
@@ -39,18 +43,21 @@ type Props = {
 };
 
 /** The globe, with every placed event drawn as its type's mark and its severity's fill. */
-export default function MapView({ events, camera, onMove }: Props) {
+export default function MapView({ events, camera, onMove, selected, onPick }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre | null>(null);
   const current = useRef(events);
   const moved = useRef(onMove);
+  const picked = useRef(onPick);
+  const chosen = useRef(selected);
   // The latest camera, read when the map is created: the first render, while hydrating,
   // sees no link yet, and the map library arrives after the link has been read.
   const start = useRef(camera);
   useEffect(() => {
     moved.current = onMove;
+    picked.current = onPick;
     start.current = camera;
-  }, [onMove, camera]);
+  }, [onMove, onPick, camera]);
   const t = useSyncExternalStore(subscribeTheme, theme, () => "light" as Theme);
   const canDraw = useSyncExternalStore(noSubscribe, hasWebGL2, () => true);
 
@@ -100,7 +107,28 @@ export default function MapView({ events, camera, onMove }: Props) {
         const ground = tokens.color[th]?.sheet ?? tokens.color.light.sheet;
         m.addImage(id, markImage(e.shape as Shape, fill, e[th], ground, 2), { pixelRatio: 2 });
       });
-      m.on("style.load", () => setData(m, current.current));
+      m.on("style.load", () => {
+        setData(m, current.current);
+        setSelected(m, chosen.current);
+      });
+      const layers = ["marks", "quakes", "quake-clusters"];
+      // A click takes every event within a few pixels, so stacked marks can each be reached.
+      m.on("click", (e) => {
+        const { x, y } = e.point;
+        const hits = m.queryRenderedFeatures([[x - 6, y - 6], [x + 6, y + 6]], { layers });
+        const cluster = hits.find((f) => f.properties?.cluster);
+        if (cluster && cluster.geometry.type === "Point") {
+          const at = cluster.geometry.coordinates as [number, number];
+          void (m.getSource("quakes") as GeoJSONSource).getClusterExpansionZoom(cluster.properties.cluster_id).then((zoom) => m.easeTo({ center: at, zoom }));
+          return;
+        }
+        const ids = [...new Set(hits.map((f) => String(f.properties?.id)).filter((id) => id !== "undefined"))];
+        if (ids.length) picked.current?.(ids);
+      });
+      for (const l of layers) {
+        m.on("mouseenter", l, () => (m.getCanvas().style.cursor = "pointer"));
+        m.on("mouseleave", l, () => (m.getCanvas().style.cursor = ""));
+      }
     });
     return () => {
       cancelled = true;
@@ -121,6 +149,21 @@ export default function MapView({ events, camera, onMove }: Props) {
     if (far) m.jumpTo({ center: [lon, lat], zoom, bearing });
   }, [lon, lat, zoom, bearing]);
 
+  // Ring the selected event, and bring it into view if it is outside.
+  const selId = selected?.id;
+  const [sx, sy] = selected?.at ?? [];
+  useEffect(() => {
+    chosen.current = selId ? { id: selId, at: sx === undefined || sy === undefined ? undefined : [sx, sy] } : undefined;
+    const m = map.current;
+    if (!m) return;
+    setSelected(m, chosen.current);
+    if (sx !== undefined && sy !== undefined && !m.getBounds().contains([sx, sy])) {
+      const options = { center: [sx, sy] as [number, number], zoom: Math.max(m.getZoom(), 4) };
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) m.jumpTo(options);
+      else m.flyTo(options);
+    }
+  }, [selId, sx, sy]);
+
   useEffect(() => {
     current.current = events;
     // Before the style has its sources this does nothing; style.load then sets the latest events.
@@ -140,6 +183,13 @@ export default function MapView({ events, camera, onMove }: Props) {
       <div ref={container} className="map-canvas" aria-label="Map of current events" role="region" />
     </div>
   );
+}
+
+function setSelected(m: MapLibre, s: Props["selected"]) {
+  const data = s?.at
+    ? { type: "FeatureCollection" as const, features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Point" as const, coordinates: s.at } }] }
+    : { type: "FeatureCollection" as const, features: [] };
+  (m.getSource("selected") as GeoJSONSource | undefined)?.setData(data);
 }
 
 function setData(m: MapLibre, events: readonly Event[]) {
