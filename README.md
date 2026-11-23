@@ -119,7 +119,7 @@ curl "https://map.sentryatlas.com/api/v1/events?types=earthquake&format=json&lim
 | NOAA / NWS | Floods, tornadoes, hurricanes, winter storms | [weather.gov](https://www.weather.gov) |
 | GDACS | Cyclones, droughts, floods, volcanoes, earthquakes | [gdacs.org](https://www.gdacs.org) |
 
-All four are public and keyless — SentryAtlas holds no API keys and stores no user data.
+All four are public and keyless. The one key SentryAtlas holds is its email provider's, for the waiting list, and it stores no personal data itself: the list is kept by the provider ([privacy](https://sentryatlas.com/privacy/)).
 
 ## Deployment
 
