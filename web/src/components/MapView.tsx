@@ -49,7 +49,10 @@ export default function MapView({ events }: { events: readonly Event[] }) {
       // MapLibre builds its worker's address at run time, which the bundler cannot
       // rewrite, so the build copies the worker to the site's root (npm run gen).
       setWorkerUrl("/maplibre-gl-worker.mjs");
-      const m = new Map({ container: container.current, style: mapStyle(t), center: [0, 20], zoom: 1.4, attributionControl: { compact: true } });
+      // The globe's diameter is about 136 px at zoom 0: start it at 85% of the shorter side.
+      const side = Math.min(container.current.clientWidth, container.current.clientHeight) || 600;
+      const zoom = Math.max(0.5, Math.log2((0.85 * side) / 136));
+      const m = new Map({ container: container.current, style: mapStyle(t), center: [10, 20], zoom, attributionControl: { compact: true } });
       map.current = m;
       // Marks are drawn when the map first asks for one: `<theme>:<type>:<fill>`.
       m.on("styleimagemissing", ({ id }) => {
