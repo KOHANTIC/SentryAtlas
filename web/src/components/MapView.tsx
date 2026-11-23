@@ -40,6 +40,8 @@ type Props = {
   onPick?: (ids: string[]) => void;
   /** Called with the map's view as a box whenever it settles, for the list. */
   onBounds?: (b: BBox) => void;
+  /** False for a still view, such as the home page's. */
+  interactive?: boolean;
   /** Where to look, from the link; absent starts on the whole globe. */
   camera?: Partial<Camera>;
   /** Called when the person has moved the map. */
@@ -47,7 +49,7 @@ type Props = {
 };
 
 /** The globe, with every placed event drawn as its type's mark and its severity's fill. */
-export default function MapView({ events, camera, onMove, selected, onPick, onBounds }: Props) {
+export default function MapView({ events, camera, onMove, selected, onPick, onBounds, interactive = true }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre | null>(null);
   const current = useRef(events);
@@ -94,6 +96,7 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
         zoom: c?.zoom ?? (on ? 5 : Math.max(0.5, Math.log2((0.85 * side) / 136))),
         bearing: c?.bearing ?? 0,
         attributionControl: { compact: true },
+        interactive,
       });
       // The view, readable by tests and tools: latitude, longitude, zoom.
       const mark = () => {
@@ -151,7 +154,7 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
     return () => {
       cancelled = true;
     };
-  }, [canDraw, t]);
+  }, [canDraw, t, interactive]);
 
   useEffect(() => () => map.current?.remove(), []);
 
