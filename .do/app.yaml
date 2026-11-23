@@ -1,7 +1,7 @@
-# DigitalOcean App Platform spec for the map application
-# (backend API + map frontend), served at map.sentryatlas.com.
+# DigitalOcean App Platform spec for the API, served at map.sentryatlas.com.
 #
-# The landing site is a separate app — see .do/landing.yaml.
+# The site, sentryatlas.com, is web/ on Cloudflare Workers (docs/deploy/cutover.md).
+# The map host's other paths redirect there by a Cloudflare rule, before this app.
 #
 # Apply with:
 #   doctl apps update <app-id> --spec .do/app.yaml
@@ -30,11 +30,6 @@ ingress:
       component:
         name: backend
         preserve_path_prefix: true
-    - match:
-        path:
-          prefix: /
-      component:
-        name: frontend
 
 services:
   - name: backend
@@ -75,24 +70,3 @@ services:
       # RESEND_TOPIC_NEWS, which name this deployment's operator and its
       # provider (backend/README.md). Applying this spec as it stands would
       # remove them.
-
-  - name: frontend
-    github:
-      repo: KOHANTIC/SentryAtlas
-      branch: main
-      deploy_on_push: true
-    dockerfile_path: frontend/Dockerfile
-    source_dir: /frontend
-    http_port: 3000
-    # Smallest basic-tier size. The image is built on DO's build
-    # infrastructure, so this only has to run the standalone Next server
-    # (~100 MB RSS) serving one route.
-    instance_size_slug: apps-s-1vcpu-0.5gb
-    instance_count: 1
-    envs:
-      # Same-origin: the ingress rules above route /api to the backend, so
-      # the browser calls map.sentryatlas.com/api/v1/events directly.
-      # NEXT_PUBLIC_* is inlined at build time, hence BUILD_TIME scope.
-      - key: NEXT_PUBLIC_API_URL
-        value: "${APP_URL}"
-        scope: BUILD_TIME
