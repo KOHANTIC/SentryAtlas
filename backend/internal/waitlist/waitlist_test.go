@@ -260,10 +260,10 @@ func TestProviderDown(t *testing.T) {
 	post(l.Signup, `{"email":"a@example.org"}`)
 	token := tokenFrom(t, sender.Sent()[0])
 	l.cfg.Mailer = &failing{}
-	if rec := post(l.Signup, `{"email":"b@example.org"}`); rec.Code != http.StatusBadGateway {
+	if rec := post(l.Signup, `{"email":"b@example.org"}`); rec.Code != http.StatusServiceUnavailable {
 		t.Errorf("send down: %d", rec.Code)
 	}
-	if rec := post(l.Confirm, `{"token":"`+token+`"}`); rec.Code != http.StatusBadGateway {
+	if rec := post(l.Confirm, `{"token":"`+token+`"}`); rec.Code != http.StatusServiceUnavailable {
 		t.Errorf("save down: %d", rec.Code)
 	}
 }

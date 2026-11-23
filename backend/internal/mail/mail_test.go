@@ -165,13 +165,13 @@ func TestLogKeepsMessages(t *testing.T) {
 }
 
 // contactServer answers create with createStatus and records every call.
-func contactServer(t *testing.T, createStatus int) (*httptest.Server, *[]string, *[]map[string]any) {
+func contactServer(t *testing.T, createStatus int) (*httptest.Server, *[]string, *[]any) {
 	t.Helper()
 	var calls []string
-	var bodies []map[string]any
+	var bodies []any
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls = append(calls, r.Method+" "+r.URL.EscapedPath())
-		var b map[string]any
+		var b any
 		if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
 			t.Errorf("%s %s: %v", r.Method, r.URL.Path, err)
 		}
@@ -203,7 +203,7 @@ func TestSaveContactCreatesThenSetsTopics(t *testing.T) {
 		t.Errorf("create body %s", created)
 	}
 	topics, _ := json.Marshal((*bodies)[1])
-	if string(topics) != `{"topics":[{"id":"t-alerts","subscription":"opt_in"},{"id":"t-news","subscription":"opt_out"}]}` {
+	if string(topics) != `[{"id":"t-alerts","subscription":"opt_in"},{"id":"t-news","subscription":"opt_out"}]` {
 		t.Errorf("topics body %s", topics)
 	}
 }
