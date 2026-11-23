@@ -29,6 +29,8 @@ test("a link reproduces its filters and time window, and loading does not rewrit
   const link = "/map/?at=18.2,-66.5,6&types=weather&time=30d";
   await page.goto(link);
   await expect(page.getByRole("status").first()).toHaveText("2 events, last 30 days");
+  // The map opens on the link's view, not on the whole globe.
+  await expect(page.locator(".map-canvas")).toHaveAttribute("data-view", "18.20,-66.50,6.0");
   await page.waitForTimeout(1000);
   expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(link);
 });
