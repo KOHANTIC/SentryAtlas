@@ -120,6 +120,10 @@ func TestSnapshotWindowsAndBriefEvents(t *testing.T) {
 	if !strings.Contains(rec.Body.String(), "Move to higher ground.") || !strings.Contains(rec.Body.String(), "Long NWS text") {
 		t.Errorf("detail lost the long text after a snapshot: %s", rec.Body)
 	}
+	// A browser's encodeURIComponent sends the colons as %3A.
+	if enc := get(t, r, "/api/v2/events/noaa-urn%3Aoid%3A2.49.0.1.840.0.abc.001.1"); enc.Code != http.StatusOK {
+		t.Errorf("an escaped NWS id: %d %s", enc.Code, enc.Body)
+	}
 }
 
 func TestSnapshotIsBuiltOncePerPoll(t *testing.T) {
