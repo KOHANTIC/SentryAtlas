@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const MAP_URL = "https://map.sentryatlas.com";
 const GITHUB_URL = "https://github.com/KOHANTIC/SentryAtlas";
 
@@ -322,8 +324,8 @@ export default function Home() {
           </h2>
           <p className="text-foreground-muted max-w-xl mx-auto text-lg mb-4 leading-relaxed">
             SentryAtlas is built in the open with a Go backend, a Next.js
-            frontend, and MapLibre GL for map rendering. No API keys required,
-            no paywalls, no tracking.
+            frontend, and MapLibre GL for map rendering. No API keys or
+            paywalls. No ads, no tracking cookies, no account needed.
           </p>
           <p className="text-foreground-faint text-sm mb-10">
             Contributions, issues, and ideas are welcome.
@@ -354,6 +356,12 @@ export default function Home() {
             >
               Map
             </a>
+            <Link
+              href="/privacy/"
+              className="hover:text-foreground transition-colors"
+            >
+              Privacy
+            </Link>
             <a
               href={GITHUB_URL}
               target="_blank"
