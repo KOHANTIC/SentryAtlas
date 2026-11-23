@@ -6,4 +6,5 @@ export const PAGES = [
   { path: "/developers/", title: "Developers" },
   { path: "/privacy/", title: "Privacy" },
   { path: "/terms/", title: "Terms" },
+  { path: "/alerts/", title: "Get alerts for your area" },
 ] as const;
