@@ -42,7 +42,7 @@ func TestTheBuiltFilesFitTheBudget(t *testing.T) {
 	if n := len(centersJSON); n > 300<<10 || len(centers()) < 8000 {
 		t.Errorf("centers.json: %d bytes, %d zones; want under 300 KB and the 8,000-odd zones", n, len(centers()))
 	}
-	info, err := os.Stat("../../../frontend/public/data/nws-zones.json")
+	info, err := os.Stat("../../../web/public/data/nws-zones.json")
 	if err != nil {
 		t.Fatal(err)
 	}

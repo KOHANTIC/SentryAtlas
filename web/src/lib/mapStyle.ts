@@ -21,6 +21,12 @@ function graticule() {
   return { type: "FeatureCollection" as const, features };
 }
 
+/** Each feature's type color for a theme, as a style expression. */
+export function typeColor(theme: Theme): ExpressionSpecification {
+  const pairs = Object.entries(tokens.event).flatMap(([type, e]) => [type, e[theme]]);
+  return ["match", ["get", "type"], ...pairs, tokens.event.other[theme]] as unknown as ExpressionSpecification;
+}
+
 /** The image name a mark layer asks for; MapView draws it when the map first needs it. */
 export const markImageName = (theme: Theme): ExpressionSpecification => ["concat", `${theme}:`, ["get", "type"], ":", ["get", "fill"]];
 
@@ -48,6 +54,8 @@ export function mapStyle(theme: Theme): StyleSpecification {
       },
       marks: { type: "geojson", data: EMPTY },
       selected: { type: "geojson", data: EMPTY },
+      areas: { type: "geojson", data: EMPTY },
+      tracks: { type: "geojson", data: EMPTY },
     },
     layers: [
       { id: "land", type: "background", paint: { "background-color": c.land } },
@@ -76,6 +84,14 @@ export function mapStyle(theme: Theme): StyleSpecification {
         filter: ["all", ["==", ["get", "admin_level"], 2], ["!=", ["get", "maritime"], 1]],
         paint: { "line-color": c.coast, "line-width": ["interpolate", ["linear"], ["zoom"], 1, 0.3, 6, 0.9], "line-dasharray": [3, 2] },
       },
+      // Areas and tracks from zoom 3, under the names so the names stay readable. The fill is
+      // faint enough that overlapping areas still show each other's edges.
+      { id: "area-fill", type: "fill", source: "areas", minzoom: 3, paint: { "fill-color": typeColor(theme), "fill-opacity": 0.12 } },
+      { id: "area-line", type: "line", source: "areas", minzoom: 3, paint: { "line-color": typeColor(theme), "line-width": 1 } },
+      { id: "tracks", type: "line", source: "tracks", minzoom: 2, layout: { "line-cap": "round" }, paint: { "line-color": typeColor(theme), "line-width": 2, "line-dasharray": [2, 1.5] } },
+      // The selected event's area or track, at any zoom.
+      { id: "selected-area", type: "line", source: "areas", filter: ["==", ["get", "id"], ""], paint: { "line-color": c.ink, "line-width": 2.5 } },
+      { id: "selected-track", type: "line", source: "tracks", filter: ["==", ["get", "id"], ""], paint: { "line-color": c.ink, "line-width": 3 } },
       {
         id: "places",
         type: "symbol",
