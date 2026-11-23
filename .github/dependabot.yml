@@ -18,6 +18,15 @@ updates:
     groups:
       web:
         patterns: ["*"]
+    # Held at the majors the toolchain supports: typescript-eslint has no TypeScript 7
+    # yet, Next's lint plugins no ESLint 10, and CI and the builds run Node 22.
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   # The actions in .github/workflows are pinned to a commit; this keeps the pin and the
   # version comment next to it current.
