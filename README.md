@@ -9,31 +9,30 @@
 
 SentryAtlas aggregates live disaster data from four trusted public sources and plots it on a single interactive map. Earthquakes, wildfires, floods, storms — see it all at a glance.
 
-**[sentryatlas.com](https://sentryatlas.com)** · **[Open the map](https://map.sentryatlas.com)**
+**[sentryatlas.com](https://sentryatlas.com)** · **[Open the map](https://sentryatlas.com/map/)**
 
 ![The SentryAtlas map, showing seven days of global events](docs/screenshot.png)
 
 ## Architecture
 
-Three components, deployed as two DigitalOcean apps:
+One site and one API:
 
 ```
-   sentryatlas.com                     map.sentryatlas.com
-        │                                      │
-   ┌────┴─────┐                    ┌───────────┴───────────┐
-   │ Landing  │                    │ Frontend  │  /api ──▶ │ Backend
-   │ (static) │                    │ (Next.js) │           │  (Go)
-   └──────────┘                    └───────────┴───────────┘
-                                                     │
-                        ┌───────────┬───────────┬────┴──────┐
-                        │   USGS    │   EONET   │   NOAA    │  GDACS
-                        │           │           │   /NWS    │
-                        └───────────┴───────────┴───────────┘
+        sentryatlas.com                          map.sentryatlas.com
+               │                                 /api and /health
+   ┌───────────┴────────────┐            ┌──────────────┴───────────────┐
+   │ Site: web/             │──fetch───▶ │ API: backend/ (Go)           │
+   │ Next.js static export  │            │ DigitalOcean App Platform    │
+   │ Cloudflare Workers     │            └──────────────┬───────────────┘
+   └────────────────────────┘                           │ polls
+                              ┌──────────┬──────────────┼─────────┐
+                              │   USGS   │  NASA EONET  │   NWS   │  GDACS
+                              └──────────┴──────────────┴─────────┘
 ```
 
-- **Backend** — Go API that polls 4 upstream sources on its own schedule, keeps each one's last good copy in memory, and serves a unified `/api/v1/events` endpoint as GeoJSON, flat JSON, or a Server-Sent Events stream
-- **Frontend** — Next.js app with MapLibre GL for interactive map rendering, filtering by event type, time range, and viewport
-- **Landing** — Static marketing site built with Next.js (`output: "export"`)
+- **API** (`backend/`): a Go server that polls the four sources on its own schedule, keeps each one's last good copy in memory, and serves it as v1 (`/api/v1/events`: GeoJSON, flat JSON or a stream) and v2 (`/api/v2/snapshot`, cached at the edge). It also runs the waiting list for location alerts.
+- **Site** (`web/`): the home page, the map (MapLibre GL on a globe), and the pages around them, built as plain files. Every design value comes from [`brand/`](brand/BRAND.md).
+- **map.sentryatlas.com** keeps the API's address. Its other paths redirect to sentryatlas.com.
 
 ## Quick Start
 
@@ -42,73 +41,63 @@ Three components, deployed as two DigitalOcean apps:
 - Go 1.27+
 - Node.js 22+
 
-### 1. Backend
+### 1. The API
 
 ```bash
 cd backend
 go run ./cmd/server/
-# Server starts on http://localhost:8080
-# Settings come from the environment; backend/.env.example lists them
+# Starts on http://localhost:8080; backend/.env.example lists its settings
 ```
 
-### 2. Frontend
+### 2. The site
 
 ```bash
-cd frontend
-cp .env.example .env.local
-npm install
-npm run dev
-# App starts on http://localhost:3000
+cd web
+npm ci
+NEXT_PUBLIC_API_BASE=http://localhost:8080 npm run dev
+# Starts on http://localhost:3000, reading the local API
 ```
 
-### 3. Landing
-
-```bash
-cd landing
-npm install
-npm run dev -- --port 3002
-# Landing page starts on http://localhost:3002
-# (both Next.js apps default to port 3000 — give one of them another port)
-```
+Without `NEXT_PUBLIC_API_BASE` the site reads the live API. The waiting-list form needs the API's `WAITLIST_ORIGINS` to include the site's origin.
 
 ## Project Structure
 
 ```
 sentryatlas/
-├── backend/                 # Go API server
+├── backend/                 # The Go API
 │   ├── cmd/server/          # Entry point
-│   ├── internal/
-│   │   ├── adapters/        # USGS, EONET, NOAA, GDACS integrations
-│   │   ├── event/           # The v2 event model and its v1 projection
-│   │   ├── handler/         # HTTP handlers and query parsing
-│   │   ├── models/          # The v1 event model, event-type registry
-│   │   ├── service/         # v1 answers from the store
-│   │   └── store/           # Each source's last good copy, and its poller
-│   └── Dockerfile
-├── frontend/                # Next.js map application
-│   ├── src/
-│   │   ├── app/             # App router pages
-│   │   ├── components/      # MapView, FilterPanel, Legend
-│   │   ├── hooks/           # Data fetching hooks
-│   │   └── lib/             # API client, types, map styles
-│   └── Dockerfile
-├── landing/                 # Static landing page
-│   └── src/app/             # Single-page marketing site
-├── .do/                     # DigitalOcean App Platform specs
-│   ├── app.yaml             # Backend + frontend (map.sentryatlas.com)
-│   └── landing.yaml         # Landing site (sentryatlas.com)
-└── .github/                 # CI workflow, issue & PR templates
+│   ├── cmd/zones/           # Builds the NWS zone tables
+│   └── internal/
+│       ├── adapters/        # USGS, EONET, NWS, GDACS
+│       ├── event/           # The v2 event model and its v1 projection
+│       ├── group/           # One event reported by several sources
+│       ├── handler/         # HTTP handlers
+│       ├── mail/, waitlist/ # The waiting list and its email
+│       ├── store/           # Each source's last good copy, and its poller
+│       └── zones/           # NWS zone centers
+├── web/                     # The site, sentryatlas.com
+│   ├── src/app/             # Pages
+│   ├── src/components/      # The map, panel, list and the rest
+│   ├── src/lib/             # Data, filters, link state, tokens
+│   └── e2e/                 # Playwright checks
+├── brand/                   # BRAND.md, tokens.json, logo, their checks
+├── docs/                    # API v2, data notes, design rounds, the cutover runbook
+├── .do/app.yaml             # The API's App Platform spec
+└── .github/                 # CI, the source and health checks, templates
 ```
 
 ## API
 
-One public endpoint, `GET /api/v1/events`, returns the events from all four sources merged, newest first, as GeoJSON, flat JSON, or a Server-Sent Events stream that sends each source's events as soon as it answers. Every response says which sources answered, so a partial result can be told apart from a complete one. No key is needed.
+Free and without a key, from any site, 60 requests a minute from one address.
 
 ```bash
+curl "https://map.sentryatlas.com/api/v2/snapshot?window=7d"
 curl "https://map.sentryatlas.com/api/v1/events?types=earthquake&format=json&limit=10"
 ```
 
-[`backend/README.md`](backend/README.md) is the reference: parameters, response shapes, status codes, the rate limit, and what v1 promises to keep.
+- **v2:** every current event in one snapshot (`?window=7d` or `30d`), and one event in full at `/api/v2/events/{id}`. [`docs/api/v2/README.md`](docs/api/v2/README.md) is the reference.
+- **v1:** filtering by type, place and time, and a stream. [`backend/README.md`](backend/README.md) is the reference, with what v1 promises to keep.
+- [sentryatlas.com/developers](https://sentryatlas.com/developers/) has the short version.
 
 ## Data Sources
 
@@ -123,32 +112,24 @@ All four are public and keyless.
 
 ## Deployment
 
-### Docker
+### The API
 
 ```bash
-# Backend
 docker build -t sentryatlas-backend ./backend
 docker run -p 8080:8080 sentryatlas-backend
-
-# Frontend
-docker build --build-arg NEXT_PUBLIC_API_URL=http://localhost:8080 -t sentryatlas-frontend ./frontend
-docker run -p 3000:3000 sentryatlas-frontend
 ```
 
-### DigitalOcean App Platform
+In production it runs on DigitalOcean App Platform from [`.do/app.yaml`](.do/app.yaml), which deploys on every merge to `main`. A push does not apply the spec itself: a change to it, such as a new environment variable, is made in the DigitalOcean dashboard before the change that needs it is merged.
 
-Two apps, one spec each:
+### The site
 
-```bash
-doctl apps create --spec .do/app.yaml       # backend + frontend
-doctl apps create --spec .do/landing.yaml   # landing site
-```
+Cloudflare Workers static assets serves `web/`'s export ([`web/wrangler.jsonc`](web/wrangler.jsonc), headers in `web/public/_headers`). Workers Builds builds every push: `main` goes to sentryatlas.com, and each pull request gets a preview link. The operator's name and contact are build variables, `SITE_OPERATOR` and `SITE_PRIVACY_EMAIL`, set for production and previews.
 
-Both specs set `deploy_on_push` on `main`, so a merge deploys the code. A push does not apply the specs themselves: a change to a spec, such as a new environment variable, is applied with `doctl apps update <app-id> --spec ...` or in the DigitalOcean dashboard, before the change that needs it is merged.
+[`docs/deploy/cutover.md`](docs/deploy/cutover.md) records how sentryatlas.com moved to it, the redirect rules for the old map host, and the way back.
 
 ### Cloudflare in front
 
-Both hosts are proxied by Cloudflare. App Platform does not cache responses from the API, and Cloudflare does not cache JSON on its own, so one Cache Rule makes it cache the v2 snapshot (`/api/v2/snapshot`), which says how long it may be kept:
+Both hosts are on Cloudflare. App Platform does not cache responses from the API, and Cloudflare does not cache JSON on its own, so one Cache Rule makes it cache the v2 snapshot (`/api/v2/snapshot`), which says how long it may be kept:
 
 - **Match:** `(http.request.uri.path eq "/api/v2/snapshot")`. The default cache key keeps the query string, so `window=7d` and `window=30d` are cached apart.
 - **Cache eligibility:** Eligible for cache.
