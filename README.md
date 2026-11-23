@@ -146,6 +146,25 @@ doctl apps create --spec .do/landing.yaml   # landing site
 
 Both specs set `deploy_on_push` on `main`, so a merge deploys the code. A push does not apply the specs themselves: a change to a spec, such as a new environment variable, is applied with `doctl apps update <app-id> --spec ...` or in the DigitalOcean dashboard, before the change that needs it is merged.
 
+### Cloudflare in front
+
+Both hosts are proxied by Cloudflare. App Platform does not cache responses from the API, and Cloudflare does not cache JSON on its own, so one Cache Rule makes it cache the v2 snapshot (`/api/v2/snapshot`), which says how long it may be kept:
+
+- **Match:** `(http.request.uri.path eq "/api/v2/snapshot")`. The default cache key keeps the query string, so `window=7d` and `window=30d` are cached apart.
+- **Cache eligibility:** Eligible for cache.
+- **Edge TTL:** use the `Cache-Control` header if present, bypass the cache if not. The snapshot sends `public, max-age=30` with an ETag, so the edge keeps it 30 seconds, then revalidates with the API.
+- **Browser TTL:** respect the origin's TTL. Otherwise the zone's default (4 hours) replaces `max-age=30` and browsers keep an old map.
+
+Before its first polls the API answers the snapshot with `503` and `Cache-Control: no-store`, which this rule never caches. The SSE stream on `/api/v1/events` is outside the rule and passes through uncached.
+
+To check it (the first request after 30 seconds reads `MISS` or `REVALIDATED`, the next `HIT`; a repeat with `If-None-Match` set to the ETag gets `304` from the edge):
+
+```bash
+curl -s -o /dev/null -D - "https://map.sentryatlas.com/api/v2/snapshot?window=7d" | grep -i -E "cf-cache-status|cache-control|age|etag"
+```
+
+To undo it, turn the rule off in the zone's Cache Rules; every request then reaches the API again (`cf-cache-status: DYNAMIC`).
+
 ## Contributing
 
 Contributions are welcome! See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines, and [`SECURITY.md`](SECURITY.md) for reporting vulnerabilities.
