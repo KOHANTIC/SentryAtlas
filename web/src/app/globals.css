@@ -62,7 +62,7 @@ a { color: var(--action); }
 .facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--s1) var(--s3); margin: 0; font-size: var(--size-sm); }
 .facts dt { color: var(--muted); }
 .facts dd { margin: 0; font-variant-numeric: tabular-nums; }
-.text { white-space: pre-wrap; font-size: var(--size-sm); }
+.text { font-size: var(--size-sm); }
 .do { border: 2px solid var(--ink); padding: var(--s3); display: grid; gap: var(--s1); }
 .do b { font: 800 var(--size-sm)/1 var(--nf-label), var(--font-label); letter-spacing: var(--label-tracking); text-transform: uppercase; }
 .muted { color: var(--muted); font-size: var(--size-sm); }
