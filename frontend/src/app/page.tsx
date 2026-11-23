@@ -216,6 +216,13 @@ export default function Home() {
           </a>
           {" · "}
           <a
+            href="https://sentryatlas.com/alerts/"
+            className="font-semibold text-accent-400 hover:underline"
+          >
+            Get alerts
+          </a>
+          {" · "}
+          <a
             href="https://sentryatlas.com/privacy/"
             className="hover:text-foreground hover:underline"
           >

@@ -57,6 +57,8 @@ type List struct {
 	day       string
 	sentToday int
 	byAddress map[[32]byte][]time.Time
+	// Counts for the hourly report, the waiting list's analytics: no addresses.
+	sent, confirmed, newsOptIns int
 }
 
 // New returns the list, which is off unless the mailer, a secret, both topics
@@ -130,7 +132,34 @@ func (l *List) Signup(w http.ResponseWriter, r *http.Request) {
 		reply(w, http.StatusServiceUnavailable, "error", "the email could not be sent; try again in a few minutes")
 		return
 	}
+	l.mu.Lock()
+	l.sent++
+	l.mu.Unlock()
 	reply(w, http.StatusAccepted, "status", "sent")
+}
+
+// Report logs, every period, how many confirmation emails went out and how
+// many people confirmed, then starts again from zero. It stops with ctx.
+func (l *List) Report(ctx context.Context, every time.Duration) {
+	t := time.NewTicker(every)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+		}
+		sent, confirmed, news := l.takeCounts()
+		l.cfg.Logger.Info("waitlist", "period", every.String(), "links_sent", sent, "confirmed", confirmed, "news_opt_ins", news)
+	}
+}
+
+func (l *List) takeCounts() (sent, confirmed, news int) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	sent, confirmed, news = l.sent, l.confirmed, l.newsOptIns
+	l.sent, l.confirmed, l.newsOptIns = 0, 0, 0
+	return sent, confirmed, news
 }
 
 type confirmRequest struct {
@@ -168,6 +197,12 @@ func (l *List) Confirm(w http.ResponseWriter, r *http.Request) {
 		reply(w, http.StatusServiceUnavailable, "status", "failed")
 		return
 	}
+	l.mu.Lock()
+	l.confirmed++
+	if s.News {
+		l.newsOptIns++
+	}
+	l.mu.Unlock()
 	reply(w, http.StatusOK, "status", "confirmed")
 }
 
