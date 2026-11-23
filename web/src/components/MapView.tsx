@@ -42,6 +42,10 @@ type Props = {
   onBounds?: (b: BBox) => void;
   /** False for a still view, such as the home page's. */
   interactive?: boolean;
+  /** The viewer's position, drawn as a dot. It never leaves the browser. */
+  me?: [number, number];
+  /** A box to fit the map to; a new key fits it again. */
+  fit?: { box: BBox; key: number };
   /** Where to look, from the link; absent starts on the whole globe. */
   camera?: Partial<Camera>;
   /** Called when the person has moved the map. */
@@ -49,7 +53,7 @@ type Props = {
 };
 
 /** The globe, with every placed event drawn as its type's mark and its severity's fill. */
-export default function MapView({ events, camera, onMove, selected, onPick, onBounds, interactive = true }: Props) {
+export default function MapView({ events, camera, onMove, selected, onPick, onBounds, interactive = true, me, fit }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre | null>(null);
   const current = useRef(events);
@@ -157,6 +161,24 @@ export default function MapView({ events, camera, onMove, selected, onPick, onBo
   }, [canDraw, t, interactive]);
 
   useEffect(() => () => map.current?.remove(), []);
+
+  // The viewer's dot, and fitting the view around it.
+  const [mx, my] = me ?? [];
+  useEffect(() => {
+    const data = mx === undefined || my === undefined
+      ? { type: "FeatureCollection" as const, features: [] }
+      : { type: "FeatureCollection" as const, features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Point" as const, coordinates: [mx, my] } }] };
+    (map.current?.getSource("me") as GeoJSONSource | undefined)?.setData(data);
+  }, [mx, my]);
+  const fitKey = fit?.key;
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !fit) return;
+    const [w, s, e, n] = fit.box;
+    m.fitBounds([[w, s], [e, n]], { padding: 40, animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches });
+    // Only a new key fits again; the box is read with it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fitKey]);
 
   // Back and forward change the link: follow it when it names a view the map is not showing.
   const [lon, lat] = camera?.center ?? [];

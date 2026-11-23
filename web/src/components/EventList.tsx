@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Event } from "@/lib/api.gen";
+import { position } from "@/lib/filters";
 import { formatMagnitude, SOURCE_NAMES, typeLabel } from "@/lib/format";
+import { distanceKm, formatKm } from "@/lib/near";
 import type { SortBy } from "@/lib/sort";
 import tokens from "../../../brand/tokens.json";
 import Mark, { eventMark } from "./Mark";
@@ -16,6 +18,8 @@ type Props = {
   onSelect: (id: string) => void;
   sort: SortBy;
   onSort: (s: SortBy) => void;
+  /** The viewer's position, when they used Near me: rows then say how far. */
+  from?: [number, number];
 };
 
 const short = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
@@ -25,7 +29,7 @@ const short = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric"
  * arrow keys, Page Up and Down, Home and End move, Enter opens. Only the rows
  * in sight are drawn, so thousands stay smooth.
  */
-export default function EventList({ events, selected, onSelect, sort, onSort }: Props) {
+export default function EventList({ events, selected, onSelect, sort, onSort, from }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const [scroll, setScroll] = useState(0);
   const [height, setHeight] = useState(ROW * 8);
@@ -77,6 +81,7 @@ export default function EventList({ events, selected, onSelect, sort, onSort }: 
       <div className="list-sort" role="group" aria-label="Sort">
         <button type="button" aria-pressed={sort === "time"} onClick={() => onSort("time")}>Newest</button>
         <button type="button" aria-pressed={sort === "severity"} onClick={() => onSort("severity")}>Most severe</button>
+        {from && <button type="button" aria-pressed={sort === "distance"} onClick={() => onSort("distance")}>Nearest</button>}
       </div>
       {events.length === 0 ? (
         <p className="muted">No events here. Zoom out, or widen the time window.</p>
@@ -95,6 +100,8 @@ export default function EventList({ events, selected, onSelect, sort, onSort }: 
             {events.slice(first, last).map((e, n) => {
               const i = first + n;
               const m = eventMark(e.type, e.severity?.level);
+              const p = from && position(e);
+              const away = from && p ? `${formatKm(distanceKm(from, p))} · ` : "";
               return (
                 <div
                   key={e.id}
@@ -114,6 +121,7 @@ export default function EventList({ events, selected, onSelect, sort, onSort }: 
                   <Mark {...m} />
                   <span className="row-title">{e.title}</span>
                   <span className="row-meta">
+                    {away}
                     {(e.severity ? tokens.severity[e.severity.level].word : tokens.severity.ungraded.word) + " · "}
                     {(formatMagnitude(e) ?? typeLabel(e.type)) + " · "}
                     {SOURCE_NAMES[e.source]} · {short(e.time.updated)}

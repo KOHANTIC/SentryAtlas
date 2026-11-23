@@ -69,6 +69,12 @@ export default function Privacy() {
         and GDACS reaches you through our API; your browser contacts those agencies only if you follow a link to one.
       </p>
 
+      <h2>Near me</h2>
+      <p>
+        If you press Near me, your browser asks whether to share your position with the page. The page uses it there, to
+        frame the map and sort the list, and forgets it when you leave. It is never sent to us or to anyone else.
+      </p>
+
       <h2>The waiting list</h2>
       <p>
         If you join the waiting list, we keep your email address and the choices you made, to tell you when alerts are

@@ -54,6 +54,7 @@ export function mapStyle(theme: Theme): StyleSpecification {
       },
       marks: { type: "geojson", data: EMPTY },
       selected: { type: "geojson", data: EMPTY },
+      me: { type: "geojson", data: EMPTY },
       areas: { type: "geojson", data: EMPTY },
       tracks: { type: "geojson", data: EMPTY },
     },
@@ -155,6 +156,8 @@ export function mapStyle(theme: Theme): StyleSpecification {
           "symbol-sort-key": ["get", "rank"],
         },
       },
+      // Where the viewer is, when they asked: a dot in the action color.
+      { id: "me", type: "circle", source: "me", paint: { "circle-radius": 6, "circle-color": c.action, "circle-stroke-color": c.sheet, "circle-stroke-width": 2 } },
       // The selected event: a ring in ink around its mark.
       {
         id: "selected",
