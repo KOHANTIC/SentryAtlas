@@ -58,6 +58,16 @@ export function formatSeverity(e: Pick<Event, "severity" | "source">): string {
   return `${word} (${SOURCE_NAMES[e.source]}: ${e.severity.source_level})`;
 }
 
+/** What a GDACS area drawn on the map is, for the panel; undefined for an event drawn as a point. */
+export function areaNote(e: Pick<Event, "source" | "type" | "location">): string | undefined {
+  const g = e.location?.geometry?.type;
+  if (e.source !== "gdacs" || (g !== "Polygon" && g !== "MultiPolygon")) return undefined;
+  if (e.type === "cyclone") return "The shaded area is where GDACS estimates winds of 60 km/h or more, along the track and its forecast.";
+  if (e.type === "flood") return "The shaded area is the area GDACS estimates the flood affects.";
+  if (e.type === "drought") return "The shaded area is the area GDACS estimates is in drought.";
+  return undefined;
+}
+
 /** The type's name from the tokens. */
 export const typeLabel = (type: Event["type"]) => tokens.event[type]?.label ?? type;
 

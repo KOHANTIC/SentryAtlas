@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Event } from "@/lib/api.gen";
 import { useDetail } from "@/lib/detail";
-import { formatMagnitude, formatSeverity, formatTime, paragraphs, SOURCE_NAMES, typeLabel } from "@/lib/format";
+import { areaNote, formatMagnitude, formatSeverity, formatTime, paragraphs, SOURCE_NAMES, typeLabel } from "@/lib/format";
 
 type Props = {
   /** The selected event's id, from the link. */
@@ -116,6 +116,7 @@ export default function EventPanel({ id, choices, brief, group, onSelect, onClos
             {e.time.ends && (<><dt>Ends</dt><dd>{formatTime(e.time.ends)}</dd></>)}
             {e.time.expires && (<><dt>Expires</dt><dd>{formatTime(e.time.expires)}</dd></>)}
           </dl>
+          {areaNote(e) && <p className="muted">{areaNote(e)}</p>}
           {instruction(e) && (
             <div className="do">
               <b>What to do</b>

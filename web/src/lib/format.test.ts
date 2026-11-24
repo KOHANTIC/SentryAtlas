@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { formatMagnitude, formatSeverity, formatTime, paragraphs, sourceNotes, spanLabel, windowLabel } from "./format";
+import type { Geometry } from "./api.gen";
+import { areaNote, formatMagnitude, formatSeverity, formatTime, paragraphs, sourceNotes, spanLabel, windowLabel } from "./format";
 
 describe("formatTime", () => {
   it("gives the viewer's zone with UTC beside it", () => {
@@ -61,5 +62,20 @@ describe("sourceNotes", () => {
       { name: "GDACS", note: "is unavailable." },
       { name: "NWS tsunami", note: "has not answered for 31 minutes; showing its last update." },
     ]);
+  });
+});
+
+describe("areaNote", () => {
+  const area: Geometry = { type: "Polygon", coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] };
+  const point: Geometry = { type: "Point", coordinates: [0, 0] };
+  it("says what a GDACS cyclone's, flood's or drought's shaded area is", () => {
+    expect(areaNote({ source: "gdacs", type: "cyclone", location: { center: [0, 0], geometry: area } })).toContain("60 km/h");
+    expect(areaNote({ source: "gdacs", type: "flood", location: { center: [0, 0], geometry: area } })).toContain("flood affects");
+    expect(areaNote({ source: "gdacs", type: "drought", location: { center: [0, 0], geometry: area } })).toContain("in drought");
+  });
+  it("says nothing for a point, another type or another source", () => {
+    expect(areaNote({ source: "gdacs", type: "cyclone", location: { center: [0, 0], geometry: point } })).toBeUndefined();
+    expect(areaNote({ source: "gdacs", type: "wildfire", location: { center: [0, 0], geometry: area } })).toBeUndefined();
+    expect(areaNote({ source: "noaa", type: "flood", location: { center: [0, 0], geometry: area } })).toBeUndefined();
   });
 });

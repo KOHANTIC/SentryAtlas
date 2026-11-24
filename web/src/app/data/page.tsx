@@ -33,7 +33,7 @@ const SOURCES = [
     name: "GDACS",
     full: "Global Disaster Alert and Coordination System",
     url: "https://www.gdacs.org",
-    what: "Earthquakes, wildfires, floods, droughts, tropical cyclones and volcanoes worldwide, the past 30 days.",
+    what: "Earthquakes, wildfires, floods, droughts, tropical cyclones and volcanoes worldwide, the past 30 days. Cyclones, floods and droughts are drawn with the area GDACS estimates they cover.",
     every: "10 minutes",
   },
   {
