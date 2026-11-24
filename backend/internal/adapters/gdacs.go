@@ -41,13 +41,15 @@ const (
 )
 
 type GDACSAdapter struct {
-	client  *http.Client
-	baseURL string
-	maxBody int64
+	client     *http.Client
+	baseURL    string
+	maxBody    int64
+	footprints footprintCache
+	now        func() time.Time
 }
 
 func NewGDACSAdapter(client *http.Client) *GDACSAdapter {
-	return &GDACSAdapter{client: client, baseURL: gdacsBaseURL, maxBody: maxResponseBytes}
+	return &GDACSAdapter{client: client, baseURL: gdacsBaseURL, maxBody: maxResponseBytes, now: time.Now}
 }
 
 func (a *GDACSAdapter) Source() string {
@@ -130,12 +132,16 @@ func (a *GDACSAdapter) FetchV2(ctx context.Context) ([]event.Event, error) {
 			// An empty page is past the end (GDACS answers 204); a page with
 			// nothing new means the page number was not honored.
 			if fresh == 0 {
-				return gdacsEvents(order, latest), nil
+				events := gdacsEvents(order, latest)
+				a.addFootprints(ctx, events)
+				return events, nil
 			}
 		}
 	}
 	slog.Warn("gdacs: the window is longer than the page limit; later pages not read", "pages", gdacsMaxPages)
-	return gdacsEvents(order, latest), nil
+	events := gdacsEvents(order, latest)
+	a.addFootprints(ctx, events)
+	return events, nil
 }
 
 func (a *GDACSAdapter) fetchPage(ctx context.Context, q url.Values, page int) ([]gdacsFeature, error) {

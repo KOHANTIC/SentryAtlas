@@ -101,3 +101,13 @@ test("a tsunami warning shows the center's instructions and the earthquake it is
   await expect(page.locator(".panel .facts")).toContainText("M 6.5 (Mwp), 614 km deep");
   await expect(page.getByRole("link", { name: "Read the bulletin on tsunami.gov" })).toHaveAttribute("href", warning.url);
 });
+
+test("a GDACS cyclone drawn with its area says what the area is", async ({ page }) => {
+  const cyclone = example.events.find((e: { source: string; type: string }) => e.source === "gdacs" && e.type === "cyclone");
+  const swath = { type: "Polygon", coordinates: [[[79.3, 11.1], [87.1, 11.1], [87.1, 16.9], [79.3, 16.9], [79.3, 11.1]]] };
+  const drawn = { ...cyclone, location: { ...cyclone.location, geometry: swath } };
+  await page.route("**/api/v2/snapshot*", (r) => r.fulfill({ contentType: "application/json", body: JSON.stringify({ ...example, events: example.events.map((e: { id: string }) => (e.id === cyclone.id ? drawn : e)) }) }));
+  await page.route(`**/api/v2/events/${cyclone.id}`, (r) => r.fulfill({ contentType: "application/json", body: JSON.stringify({ event: drawn, source: example.sources[0] }) }));
+  await page.goto(`/map/?time=30d&event=${encodeURIComponent(cyclone.id)}`);
+  await expect(page.getByText("The shaded area is where GDACS estimates winds of 60 km/h or more, along the track and its forecast.")).toBeVisible();
+});
