@@ -17,6 +17,10 @@ describe("embedCode", () => {
     expect(src(embedCode(ORIGIN, view))).toBe("https://sentryatlas.com/embed/?at=18.2,-66.5,6&amp;types=weather,flood&amp;time=30d&amp;hours=36");
   });
 
+  it("keeps the layers that are on, so an embed can show radar", () => {
+    expect(src(embedCode(ORIGIN, parse("?types=storm&layers=radar")))).toBe("https://sentryatlas.com/embed/?types=storm&amp;layers=radar");
+  });
+
   it("writes every & as &amp;, so no part of the address reads as a character reference", () => {
     const code = embedCode(ORIGIN, parse("?types=flood&time=24h"));
     expect(code).not.toMatch(/&(?!amp;)/);

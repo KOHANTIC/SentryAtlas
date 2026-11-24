@@ -31,6 +31,7 @@ export default function EmbedPage() {
           onPick={onPick}
           selected={one ? { id: one.id, at: position(one) } : undefined}
           cooperative
+          layers={view.layers}
           fallback="This browser cannot draw the map: it needs WebGL2."
         />
         {picked?.length ? <PickCard events={picked} link={full} onClose={() => setPicked(null)} /> : null}

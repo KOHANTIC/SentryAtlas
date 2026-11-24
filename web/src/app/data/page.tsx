@@ -58,12 +58,20 @@ export default function Data() {
           </div>
         ))}
       </dl>
+      <h2>Map layers</h2>
+      <p>
+        Radar: NOAA nowCOAST&apos;s base reflectivity mosaics for the US states and territories, updated every few minutes.
+        Satellite: NASA&apos;s VIIRS true-colour imagery from NOAA-20 for the latest full day.
+      </p>
       <h2>Credit</h2>
       <p>
         Event data: USGS, NASA EONET, the National Weather Service and GDACS. NWS zone outlines: the National Weather
         Service. Basemap: <a href="https://openfreemap.org">OpenFreeMap</a>, © <a href="https://openmaptiles.org">OpenMapTiles</a>,
         data from <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>. Place names:{" "}
         <a href="https://www.geonames.org/">GeoNames</a>, under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+        Radar: <a href="https://nowcoast.noaa.gov/">NOAA nowCOAST</a>. Satellite imagery: NASA&apos;s{" "}
+        <a href="https://earthdata.nasa.gov/gibs">Global Imagery Browse Services (GIBS)</a>, part of NASA&apos;s Earth
+        Science Data and Information System (ESDIS).
       </p>
       <h2>When a source is late</h2>
       <p>

@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import EventList from "@/components/EventList";
 import EventPanel from "@/components/EventPanel";
+import LayerControl from "@/components/LayerControl";
 import Legend from "@/components/Legend";
 import MapView, { type Camera } from "@/components/MapView";
 import PlaceSearch from "@/components/PlaceSearch";
@@ -81,7 +82,7 @@ export default function MapPage() {
   return (
     <main id="main" className="map-page" data-panel={view.event || choices ? "open" : undefined}>
       <h1 className="sr-only">Map</h1>
-      <MapView events={events} camera={view} onMove={onMove} selected={view.event ? { id: view.event, at } : undefined} onPick={onPick} onBounds={setBbox} me={me} fit={fit} />
+      <MapView events={events} camera={view} onMove={onMove} selected={view.event ? { id: view.event, at } : undefined} onPick={onPick} onBounds={setBbox} me={me} fit={fit} layers={view.layers} />
       <EventPanel
         id={choices ? undefined : view.event}
         choices={choices?.map((id) => byId.get(id)).filter((e): e is Event => !!e)}
@@ -102,6 +103,7 @@ export default function MapPage() {
           hours={view.hours}
           onChange={(time, hours) => replaceView({ ...parse(window.location.search), time, hours })}
         />
+        <LayerControl layers={view.layers} onChange={(layers) => replaceView({ ...parse(window.location.search), layers })} />
         <div className="share">
           <button type="button" onClick={() => copy(window.location.href, "link")}>Copy link</button>
           <button type="button" onClick={nearMe} disabled={near === "locating"}>{near === "locating" ? "Finding you…" : "Near me"}</button>

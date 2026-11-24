@@ -64,6 +64,10 @@ export default function Privacy() {
           <a href="https://openfreemap.org/">OpenFreeMap</a> (tiles.openfreemap.org) draws the map underneath the events:
           land, borders and place names. Like any map server, it is asked for the part of the world you are looking at.
         </li>
+        <li>
+          When a map layer is on, your browser asks NOAA (nowcoast.noaa.gov) for radar, or NASA (gibs.earthdata.nasa.gov)
+          for satellite imagery, of the part of the world you are looking at. With the layers off, neither is asked.
+        </li>
       </ul>
       <p>
         Nothing else. Our fonts come from our own site. Event data from USGS, NASA EONET, the National Weather Service

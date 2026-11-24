@@ -1,5 +1,6 @@
-import type { ExpressionSpecification, StyleSpecification } from "maplibre-gl";
+import type { ExpressionSpecification, LayerSpecification, SourceSpecification, StyleSpecification } from "maplibre-gl";
 import tokens from "../../../brand/tokens.json";
+import { radarTiles, satelliteTiles } from "./layers";
 import type { Theme } from "./tokens";
 
 /** OpenFreeMap's vector tiles, which have no service guarantee: a fork or a fallback sets its own. */
@@ -7,6 +8,8 @@ export const TILES_URL = process.env.NEXT_PUBLIC_TILES_URL ?? "https://tiles.ope
 export const GLYPHS_URL = process.env.NEXT_PUBLIC_GLYPHS_URL ?? "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";
 
 const SOURCES_CREDIT = 'Events: USGS, NASA EONET, NWS, GDACS | Places: <a href="https://www.geonames.org/">GeoNames</a>';
+const RADAR_CREDIT = 'Radar: <a href="https://nowcoast.noaa.gov/">NOAA nowCOAST</a>';
+const SATELLITE_CREDIT = 'Imagery: <a href="https://earthdata.nasa.gov/gibs">NASA GIBS</a>';
 const EMPTY = { type: "FeatureCollection" as const, features: [] };
 
 /** Lines every 30 degrees, drawn faint like a survey sheet's grid. */
@@ -30,9 +33,28 @@ export function typeColor(theme: Theme): ExpressionSpecification {
 /** The image name a mark layer asks for; MapView draws it when the map first needs it. */
 export const markImageName = (theme: Theme): ExpressionSpecification => ["concat", `${theme}:`, ["get", "type"], ":", ["get", "fill"]];
 
-/** The map's whole style for a theme: the basemap from the tokens, and the two event layers. */
-export function mapStyle(theme: Theme): StyleSpecification {
+/** The imagery that is on: radar with its five-minute stamp, satellite with its day. */
+export type Imagery = { radar?: number; satellite?: string };
+
+/**
+ * The map's whole style for a theme: the basemap from the tokens, the imagery that is on, and
+ * the event layers. Imagery that is off has no source at all, so its host is never asked.
+ */
+export function mapStyle(theme: Theme, on: Imagery = {}): StyleSpecification {
   const c = tokens.color[theme];
+  const imagery: Record<string, SourceSpecification> = {};
+  // Under the grid, coasts and borders, which stay readable over the photo.
+  const satellite: LayerSpecification[] = [];
+  // Over the borders, under the warning areas, the names and the marks.
+  const radar: LayerSpecification[] = [];
+  if (on.satellite) {
+    imagery.satellite = { type: "raster", tiles: [satelliteTiles(on.satellite)], tileSize: 256, maxzoom: 9, attribution: SATELLITE_CREDIT };
+    satellite.push({ id: "satellite", type: "raster", source: "satellite" });
+  }
+  if (on.radar !== undefined) {
+    imagery.radar = { type: "raster", tiles: [radarTiles(on.radar)], tileSize: 256, attribution: RADAR_CREDIT };
+    radar.push({ id: "radar", type: "raster", source: "radar", paint: { "raster-opacity": 0.7 } });
+  }
   const quake = tokens.event.earthquake[theme];
   const q = tokens.mark["quake-radius"];
   // A ring's radius from its magnitude at world zoom (brand/BRAND.md), growing as the map zooms in.
@@ -57,6 +79,7 @@ export function mapStyle(theme: Theme): StyleSpecification {
       me: { type: "geojson", data: EMPTY },
       areas: { type: "geojson", data: EMPTY },
       tracks: { type: "geojson", data: EMPTY },
+      ...imagery,
     },
     layers: [
       { id: "land", type: "background", paint: { "background-color": c.land } },
@@ -68,6 +91,7 @@ export function mapStyle(theme: Theme): StyleSpecification {
         filter: ["!=", ["get", "brunnel"], "tunnel"],
         paint: { "fill-color": c.ocean },
       },
+      ...satellite,
       { id: "grid", type: "line", source: "graticule", paint: { "line-color": c.grid, "line-width": 0.6 } },
       {
         id: "coast",
@@ -85,6 +109,7 @@ export function mapStyle(theme: Theme): StyleSpecification {
         filter: ["all", ["==", ["get", "admin_level"], 2], ["!=", ["get", "maritime"], 1]],
         paint: { "line-color": c.coast, "line-width": ["interpolate", ["linear"], ["zoom"], 1, 0.3, 6, 0.9], "line-dasharray": [3, 2] },
       },
+      ...radar,
       // Areas and tracks from zoom 3, under the names so the names stay readable. The fill is
       // faint enough that overlapping areas still show each other's edges.
       { id: "area-fill", type: "fill", source: "areas", minzoom: 3, paint: { "fill-color": typeColor(theme), "fill-opacity": 0.12 } },

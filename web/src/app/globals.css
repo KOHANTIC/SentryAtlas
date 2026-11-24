@@ -201,6 +201,8 @@ a { color: var(--action); }
 .time-presets button { flex: 1; min-height: 32px; background: none; border: 0; border-right: 1px solid var(--ink); color: var(--ink); cursor: pointer; font: 700 var(--size-xs)/1 var(--nf-label), var(--font-label); letter-spacing: var(--label-tracking); text-transform: uppercase; }
 .time-presets button:last-child { border-right: 0; }
 .time-presets button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+.layers { display: grid; gap: var(--s2); }
+.layer-note { font-size: var(--size-xs); }
 .time-slider { display: grid; gap: var(--s1); font-size: var(--size-sm); }
 .time-slider input { width: 100%; accent-color: var(--action); min-height: 24px; }
 .time-note { font-size: var(--size-xs); }

@@ -33,6 +33,13 @@ describe("URL state", () => {
     expect(parse("?hours=abc")).toEqual({ time: "7d" });
   });
 
+  it("carries the layers that are on, in one order, and drops names it does not know", () => {
+    expect(serialize({ time: "30d", layers: ["satellite", "radar"], event: "usgs-x" })).toBe("?time=30d&layers=radar,satellite&event=usgs-x");
+    expect(parse("?layers=satellite,clouds,satellite")).toEqual({ time: "7d", layers: ["satellite"] });
+    expect(parse("?layers=clouds")).toEqual({ time: "7d" });
+    expect(serialize({ time: "7d", layers: [] })).toBe("");
+  });
+
   it("keeps NWS ids, which hold colons, through a round trip", () => {
     const event = "noaa-urn:oid:2.49.0.1.840.0.d5372f24080570d0330457c696ac9389960c1ab5.001.1";
     expect(parse(serialize({ time: "7d", event })).event).toBe(event);
