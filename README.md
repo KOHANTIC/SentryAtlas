@@ -110,6 +110,8 @@ curl "https://map.sentryatlas.com/api/v1/events?types=earthquake&format=json&lim
 
 All four are public and keyless.
 
+Two optional map layers come from NOAA nowCOAST (radar, US) and NASA GIBS (satellite imagery), both public and keyless.
+
 ## Deployment
 
 ### The API

@@ -35,6 +35,12 @@ describe("_headers", () => {
       expect(csp("/*")).toContain(d);
     }
   });
+  it("lets the map fetch radar and satellite tiles (#48)", () => {
+    const directive = (name: string) => csp("/*").split(";").map((d) => d.trim().split(" ")).find((d) => d[0] === name || d[1] === name) ?? [];
+    for (const name of ["img-src", "connect-src"]) {
+      expect(directive(name)).toEqual(expect.arrayContaining(["https://nowcoast.noaa.gov", "https://gibs.earthdata.nasa.gov"]));
+    }
+  });
   it("lets other sites frame the embed (#50), with the same policy otherwise", () => {
     const embed = rules.get("/embed/") ?? [];
     // Rules that match together join their values, so the embed must drop the policy that refuses frames.

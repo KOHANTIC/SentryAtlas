@@ -1,5 +1,6 @@
 import tokens from "../../../brand/tokens.json";
 import { PRESETS, type EventType, type Preset } from "./filters";
+import { LAYERS, type Layer } from "./layers";
 
 /** Everything a /map/ link carries. Absent fields mean the defaults. */
 export type ViewState = {
@@ -11,6 +12,8 @@ export type ViewState = {
   time: Preset;
   /** Narrows the time window to its last this many hours. */
   hours?: number;
+  /** The imagery turned on under the events. */
+  layers?: Layer[];
   event?: string;
 };
 
@@ -22,7 +25,7 @@ const round = (x: number, d: number) => Number(x.toFixed(d));
 const wrap = (lon: number) => ((((lon + 180) % 360) + 360) % 360) - 180;
 
 /**
- * Reads a query string such as `?at=20.1,10,2.3&types=flood,wildfire&time=30d&event=usgs-x`.
+ * Reads a query string such as `?at=20.1,10,2.3&types=flood,wildfire&time=30d&layers=radar&event=usgs-x`.
  * `at` is latitude, longitude, zoom and an optional bearing. Anything malformed is dropped,
  * never an error: a link should open the best view it can.
  */
@@ -42,6 +45,10 @@ export function parse(search: string): ViewState {
   const hours = Math.round(Number(q.get("hours")));
   const most = PRESETS[v.time].ms / 3_600_000;
   if (q.has("hours") && hours >= 1 && hours < most) v.hours = hours;
+  const layers = q.get("layers")?.split(",");
+  // Known names only, in one order, so two links to the same layers read the same.
+  const on = LAYERS.filter((l) => layers?.includes(l));
+  if (on.length) v.layers = on;
   const event = q.get("event");
   if (event && /^(usgs|eonet|noaa|gdacs)-.+/.test(event)) v.event = event;
   return v;
@@ -58,6 +65,7 @@ export function serialize(v: ViewState): string {
   if (v.types?.length) q.set("types", v.types.join(","));
   if (v.time !== DEFAULT_TIME) q.set("time", v.time);
   if (v.hours) q.set("hours", String(Math.round(v.hours)));
+  if (v.layers?.length) q.set("layers", LAYERS.filter((l) => v.layers?.includes(l)).join(","));
   if (v.event) q.set("event", v.event);
   const s = q.toString().replaceAll("%2C", ",");
   return s ? `?${s}` : "";

@@ -2,13 +2,14 @@
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import type { Map as MapLibre, GeoJSONSource } from "maplibre-gl";
+import type { Map as MapLibre, GeoJSONSource, RasterTileSource } from "maplibre-gl";
 import tokens from "../../../brand/tokens.json";
 import type { Event } from "@/lib/api.gen";
 import { toAreas, toFeatures, toTracks, zoneOnly } from "@/lib/features";
 import { getZones, loadZones, subscribeZones, type ZoneShapes } from "@/lib/zones";
 import type { BBox } from "@/lib/filters";
-import { mapStyle } from "@/lib/mapStyle";
+import { radarStamp, radarTiles, satelliteDay, type Layer } from "@/lib/layers";
+import { mapStyle, type Imagery } from "@/lib/mapStyle";
 import { markImage, type Fill, type Shape } from "@/lib/marks";
 import type { Theme } from "@/lib/tokens";
 
@@ -30,6 +31,12 @@ function hasWebGL2(): boolean {
 }
 const noSubscribe = () => () => {};
 
+/** The imagery for a list of layers, as of now: radar's current stamp, the satellite's latest full day. */
+function imagery(layers: string[]): Imagery {
+  const now = Date.now();
+  return { radar: layers.includes("radar") ? radarStamp(now) : undefined, satellite: layers.includes("satellite") ? satelliteDay(now) : undefined };
+}
+
 export type Camera = { center: [number, number]; zoom: number; bearing: number };
 
 type Props = {
@@ -46,6 +53,8 @@ type Props = {
   cooperative?: boolean;
   /** What to say instead of the map when the browser cannot draw it. */
   fallback?: string;
+  /** The imagery to draw under the events. */
+  layers?: readonly Layer[];
   /** The viewer's position, drawn as a dot. It never leaves the browser. */
   me?: [number, number];
   /** A box to fit the map to; a new key fits it again. */
@@ -67,6 +76,7 @@ export default function MapView({
   interactive = true,
   cooperative = false,
   fallback = "This browser cannot draw the map: it needs WebGL2. The list has every event.",
+  layers,
   me,
   fit,
 }: Props) {
@@ -90,13 +100,17 @@ export default function MapView({
   const canDraw = useSyncExternalStore(noSubscribe, hasWebGL2, () => true);
   const zones = useSyncExternalStore(subscribeZones, getZones, () => undefined);
   const zonesNow = useRef(zones);
+  // A string, so a new array with the same layers does not restyle the map.
+  const layerKey = (layers ?? []).join(",");
 
-  // Create the map once, and give it the theme's style when the theme changes.
+  // Create the map once, and restyle it when the theme or the layers change. The style's diff
+  // adds or removes only the imagery that changed.
   useEffect(() => {
     if (!canDraw || !container.current) return;
     let cancelled = false;
+    const style = mapStyle(t, imagery(layerKey.split(",")));
     if (map.current) {
-      map.current.setStyle(mapStyle(t));
+      map.current.setStyle(style);
       return;
     }
     void import("maplibre-gl").then(({ Map, setWorkerUrl }) => {
@@ -111,7 +125,7 @@ export default function MapView({
       const on = c?.center ? undefined : chosen.current?.at;
       const m = new Map({
         container: container.current,
-        style: mapStyle(t),
+        style,
         center: c?.center ?? on ?? [10, 20],
         zoom: c?.zoom ?? (on ? 5 : Math.max(0.5, Math.log2((0.85 * side) / 136))),
         bearing: c?.bearing ?? 0,
@@ -175,9 +189,19 @@ export default function MapView({
     return () => {
       cancelled = true;
     };
-  }, [canDraw, t, interactive, cooperative]);
+  }, [canDraw, t, interactive, cooperative, layerKey]);
 
   useEffect(() => () => map.current?.remove(), []);
+
+  // Radar left on asks for nowCOAST's newest picture every five minutes.
+  const radarOn = layerKey.split(",").includes("radar");
+  useEffect(() => {
+    if (!radarOn) return;
+    const timer = window.setInterval(() => {
+      (map.current?.getSource("radar") as RasterTileSource | undefined)?.setTiles([radarTiles(radarStamp(Date.now()))]);
+    }, 5 * 60_000);
+    return () => window.clearInterval(timer);
+  }, [radarOn]);
 
   // The viewer's dot, and fitting the view around it.
   const [mx, my] = me ?? [];
