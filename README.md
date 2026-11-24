@@ -7,7 +7,7 @@
 ![Go](https://img.shields.io/badge/Go-1.27-00ADD8?logo=go&logoColor=white)
 ![Node](https://img.shields.io/badge/Node-22-339933?logo=node.js&logoColor=white)
 
-SentryAtlas aggregates live disaster data from four trusted public sources and plots it on a single interactive map. Earthquakes, wildfires, floods, storms — see it all at a glance.
+SentryAtlas aggregates live disaster data from four public agencies and plots it on a single interactive map. Earthquakes, wildfires, floods, storms — see it all at a glance.
 
 **[sentryatlas.com](https://sentryatlas.com)** · **[Open the map](https://sentryatlas.com/map/)**
 
@@ -107,8 +107,9 @@ curl "https://map.sentryatlas.com/api/v1/events?types=earthquake&format=json&lim
 | NASA EONET | Wildfires, volcanoes, storms, icebergs | [eonet.gsfc.nasa.gov](https://eonet.gsfc.nasa.gov) |
 | NOAA / NWS | Floods, tornadoes, hurricanes, winter storms | [weather.gov](https://www.weather.gov) |
 | GDACS | Cyclones, droughts, floods, volcanoes, earthquakes | [gdacs.org](https://www.gdacs.org) |
+| NWS tsunami warning centers | Tsunami warnings, advisories, watches | [tsunami.gov](https://www.tsunami.gov) |
 
-All four are public and keyless.
+All are public and keyless.
 
 Two optional map layers come from NOAA nowCOAST (radar, US) and NASA GIBS (satellite imagery), both public and keyless.
 

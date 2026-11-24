@@ -40,6 +40,10 @@ describe("URL state", () => {
     expect(serialize({ time: "7d", layers: [] })).toBe("");
   });
 
+  it("keeps a tsunami bulletin's id through a round trip", () => {
+    expect(parse(serialize({ time: "7d", event: "tsunami-PHEB-26327000" })).event).toBe("tsunami-PHEB-26327000");
+  });
+
   it("keeps NWS ids, which hold colons, through a round trip", () => {
     const event = "noaa-urn:oid:2.49.0.1.840.0.d5372f24080570d0330457c696ac9389960c1ab5.001.1";
     expect(parse(serialize({ time: "7d", event })).event).toBe(event);

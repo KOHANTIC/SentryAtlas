@@ -66,6 +66,7 @@ func TestSchemaMatchesTheGoTypes(t *testing.T) {
 		"Severity": Severity{}, "Magnitude": Magnitude{}, "Time": Time{},
 		"Location": Location{}, "Geometry": Geometry{}, "Details": Details{},
 		"USGS": USGS{}, "EONET": EONET{}, "NWS": NWS{}, "GDACS": GDACS{}, "Link": Link{},
+		"Tsunami": Tsunami{}, "Quake": Quake{},
 	}
 	for name, v := range types {
 		def, ok := schema.Defs[name]

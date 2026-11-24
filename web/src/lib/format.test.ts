@@ -54,10 +54,12 @@ describe("sourceNotes", () => {
       { source: "usgs", ok: true, stale: false, silentMinutes: 1, count: 3 },
       { source: "noaa", ok: true, stale: true, silentMinutes: 20, count: 9 },
       { source: "gdacs", ok: false, stale: false, count: 0 },
+      { source: "tsunami", ok: true, stale: true, silentMinutes: 31, count: 0 },
     ]);
     expect(notes).toEqual([
       { name: "NWS", note: "has not answered for 20 minutes; showing its last update." },
       { name: "GDACS", note: "is unavailable." },
+      { name: "NWS tsunami", note: "has not answered for 31 minutes; showing its last update." },
     ]);
   });
 });

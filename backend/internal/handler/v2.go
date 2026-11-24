@@ -203,6 +203,11 @@ func brief(e event.Event) event.Event {
 		nws.Instruction = ""
 		e.Details.NOAA = &nws
 	}
+	if e.Details.Tsunami != nil && e.Details.Tsunami.Instruction != "" {
+		t := *e.Details.Tsunami
+		t.Instruction = ""
+		e.Details.Tsunami = &t
+	}
 	return e
 }
 

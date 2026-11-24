@@ -30,13 +30,13 @@
         "count": { "type": "integer", "minimum": 0 }
       }
     },
-    "Source": { "enum": ["usgs", "eonet", "noaa", "gdacs"] },
+    "Source": { "enum": ["usgs", "eonet", "noaa", "gdacs", "tsunami"] },
     "Event": {
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "source", "type", "title", "time", "details"],
       "properties": {
-        "id": { "type": "string", "pattern": "^(usgs|eonet|noaa|gdacs)-.+", "description": "<source>-<upstream id>. Stays the same when the source updates the event." },
+        "id": { "type": "string", "pattern": "^(usgs|eonet|noaa|gdacs|tsunami)-.+", "description": "<source>-<upstream id>. Stays the same when the source updates the event." },
         "group_id": { "type": "string", "description": "Shared by the reports of one real event from different sources. Worked out again on every fetch: never a key." },
         "primary": { "type": "boolean", "description": "Set on the one member of a group to draw; the others are the same event from another source. Absent outside a group." },
         "source": { "$ref": "#/$defs/Source" },
@@ -132,7 +132,8 @@
         "usgs": { "$ref": "#/$defs/USGS" },
         "eonet": { "$ref": "#/$defs/EONET" },
         "noaa": { "$ref": "#/$defs/NWS" },
-        "gdacs": { "$ref": "#/$defs/GDACS" }
+        "gdacs": { "$ref": "#/$defs/GDACS" },
+        "tsunami": { "$ref": "#/$defs/Tsunami" }
       }
     },
     "USGS": {
@@ -190,6 +191,34 @@
         "current": { "type": "boolean" },
         "severity_text": { "type": "string" },
         "footprint_url": { "type": "string", "description": "GDACS's polygon endpoint for the event's footprint." }
+      }
+    },
+    "Tsunami": {
+      "description": "A bulletin of the NWS tsunami warning centers. Only warnings, advisories, watches and threat messages are events; information statements and cancellations are not.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["center", "event", "urgency", "certainty", "message_type", "area", "quake"],
+      "properties": {
+        "center": { "type": "string", "description": "PTWC (Honolulu) or NTWC (Palmer, Alaska)." },
+        "event": { "type": "string", "description": "The product, such as Tsunami Warning." },
+        "urgency": { "type": "string" },
+        "certainty": { "type": "string" },
+        "response": { "type": "string" },
+        "message_type": { "type": "string" },
+        "area": { "type": "string", "description": "The region the center reports on." },
+        "instruction": { "type": "string", "description": "The bulletin's safety text, word for word. Only the event-detail endpoint carries it." },
+        "quake": { "$ref": "#/$defs/Quake" }
+      }
+    },
+    "Quake": {
+      "description": "The earthquake a tsunami bulletin is about, as the center first measured it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "magnitude": { "type": "number" },
+        "magnitude_type": { "type": "string" },
+        "depth_km": { "type": "number" },
+        "origin": { "type": "string", "format": "date-time" }
       }
     },
     "Link": {

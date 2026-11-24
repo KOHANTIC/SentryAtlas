@@ -109,16 +109,17 @@ export default function EventPanel({ id, choices, brief, group, onSelect, onClos
           <dl className="facts">
             {formatMagnitude(e) && (<><dt>Magnitude</dt><dd>{formatMagnitude(e)}</dd></>)}
             {e.details.usgs?.depth_km !== undefined && (<><dt>Depth</dt><dd>{e.details.usgs.depth_km.toFixed(1)} km</dd></>)}
+            {quake(e) && (<><dt>Earthquake</dt><dd>{quake(e)}</dd></>)}
             {place(e) && (<><dt>Where</dt><dd>{place(e)}</dd></>)}
             <dt>Began</dt><dd>{formatTime(e.time.started)}</dd>
             <dt>Updated</dt><dd>{formatTime(e.time.updated)}</dd>
             {e.time.ends && (<><dt>Ends</dt><dd>{formatTime(e.time.ends)}</dd></>)}
             {e.time.expires && (<><dt>Expires</dt><dd>{formatTime(e.time.expires)}</dd></>)}
           </dl>
-          {e.details.noaa?.instruction && (
+          {instruction(e) && (
             <div className="do">
               <b>What to do</b>
-              {paragraphs(e.details.noaa.instruction).map((p, i) => <p key={i} className="text">{p}</p>)}
+              {paragraphs(instruction(e) ?? "").map((p, i) => <p key={i} className="text">{p}</p>)}
             </div>
           )}
           {e.description && paragraphs(e.description).map((p, i) => <p key={i} className="text">{p}</p>)}
@@ -127,7 +128,9 @@ export default function EventPanel({ id, choices, brief, group, onSelect, onClos
           {detail?.status === "ended" && <p className="muted">This event has left its source&apos;s feed; its full text is gone.</p>}
           {e.url && (
             <p>
-              <a href={e.url} target="_blank" rel="noopener noreferrer">Open it on {SOURCE_NAMES[e.source]}</a>
+              <a href={e.url} target="_blank" rel="noopener noreferrer">
+                {e.source === "tsunami" ? "Read the bulletin on tsunami.gov" : `Open it on ${SOURCE_NAMES[e.source]}`}
+              </a>
             </p>
           )}
           {group.length > 0 && (
@@ -150,5 +153,18 @@ export default function EventPanel({ id, choices, brief, group, onSelect, onClos
 
 /** Where the source says the event is, in its own words. */
 function place(e: Event): string | undefined {
-  return e.details.usgs?.place ?? e.details.noaa?.area ?? e.details.gdacs?.countries?.join(", ");
+  return e.details.usgs?.place ?? e.details.noaa?.area ?? e.details.tsunami?.area ?? e.details.gdacs?.countries?.join(", ");
+}
+
+/** The safety text of an NWS alert or a tsunami bulletin, word for word. */
+function instruction(e: Event): string | undefined {
+  return e.details.noaa?.instruction || e.details.tsunami?.instruction || undefined;
+}
+
+/** The earthquake a tsunami bulletin is about: "M 6.5 (Mwp), 614 km deep". */
+function quake(e: Event): string | undefined {
+  const q = e.details.tsunami?.quake;
+  if (q?.magnitude === undefined) return undefined;
+  const size = `M ${q.magnitude.toFixed(1)}${q.magnitude_type ? ` (${q.magnitude_type})` : ""}`;
+  return q.depth_km === undefined ? size : `${size}, ${q.depth_km.toLocaleString("en")} km deep`;
 }

@@ -69,3 +69,35 @@ test("a zone-only alert loads the zone outlines to draw its area", async ({ page
   await page.goto(`/map/?time=30d&event=${encodeURIComponent(zoned.id)}`);
   await zones;
 });
+
+test("a tsunami warning shows the center's instructions and the earthquake it is about", async ({ page }) => {
+  const warning = {
+    id: "tsunami-PHEB-26327000",
+    source: "tsunami",
+    type: "tsunami",
+    title: "Tsunami Warning: VANUATU REGION",
+    severity: { level: "extreme", source_level: "Tsunami Warning" },
+    time: { started: "2026-11-22T20:40:57Z", updated: "2026-11-22T20:49:16Z", expires: "2026-11-22T23:49:16Z" },
+    location: { center: [172.279, -13.546], geometry: { type: "Point", coordinates: [172.279, -13.546] } },
+    url: "https://www.tsunami.gov/events/PHEB/2026/11/22/26327000/2/WEGM42/WEGM42.txt",
+    details: {
+      tsunami: {
+        center: "PTWC",
+        event: "Tsunami Warning",
+        urgency: "Immediate",
+        certainty: "Likely",
+        message_type: "Alert",
+        area: "VANUATU REGION",
+        quake: { magnitude: 6.5, magnitude_type: "Mwp", depth_km: 614, origin: "2026-11-22T20:40:57Z" },
+      },
+    },
+  };
+  const full = { ...warning, details: { tsunami: { ...warning.details.tsunami, instruction: "Move to high ground now." } } };
+  await page.route("**/api/v2/snapshot*", (r) => r.fulfill({ contentType: "application/json", body: JSON.stringify({ ...example, events: [...example.events, warning] }) }));
+  await page.route(`**/api/v2/events/${warning.id}`, (r) => r.fulfill({ contentType: "application/json", body: JSON.stringify({ event: full, source: example.sources[0] }) }));
+  await page.goto(`/map/?event=${warning.id}`);
+  await expect(page.getByRole("heading", { level: 2, name: warning.title })).toBeVisible();
+  await expect(page.locator(".panel .do")).toContainText("Move to high ground now.");
+  await expect(page.locator(".panel .facts")).toContainText("M 6.5 (Mwp), 614 km deep");
+  await expect(page.getByRole("link", { name: "Read the bulletin on tsunami.gov" })).toHaveAttribute("href", warning.url);
+});
