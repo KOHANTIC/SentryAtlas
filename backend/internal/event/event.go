@@ -15,6 +15,8 @@ const (
 	SourceEONET = "eonet"
 	SourceNOAA  = "noaa"
 	SourceGDACS = "gdacs"
+	// SourceTsunami is the NWS tsunami warning centers, PTWC and NTWC.
+	SourceTsunami = "tsunami"
 )
 
 // Severity levels, most severe first. Each source's own level maps onto
@@ -104,10 +106,11 @@ type Geometry struct {
 // Details holds what only one source says about an event. Exactly the field
 // named by Event.Source is set.
 type Details struct {
-	USGS  *USGS  `json:"usgs,omitempty"`
-	EONET *EONET `json:"eonet,omitempty"`
-	NOAA  *NWS   `json:"noaa,omitempty"`
-	GDACS *GDACS `json:"gdacs,omitempty"`
+	USGS    *USGS    `json:"usgs,omitempty"`
+	EONET   *EONET   `json:"eonet,omitempty"`
+	NOAA    *NWS     `json:"noaa,omitempty"`
+	GDACS   *GDACS   `json:"gdacs,omitempty"`
+	Tsunami *Tsunami `json:"tsunami,omitempty"`
 }
 
 // USGS is what the USGS feed says beyond the shared fields.
@@ -168,6 +171,34 @@ type GDACS struct {
 	SeverityText string   `json:"severity_text,omitempty"`
 	// FootprintURL is GDACS's polygon endpoint for the event's footprint.
 	FootprintURL string `json:"footprint_url,omitempty"`
+}
+
+// Tsunami is what a tsunami warning center's bulletin says beyond the shared
+// fields: its CAP message and the earthquake it is about.
+type Tsunami struct {
+	// Center is "PTWC" (Honolulu) or "NTWC" (Palmer, Alaska).
+	Center string `json:"center"`
+	// Event is the product, such as "Tsunami Warning".
+	Event       string `json:"event"`
+	Urgency     string `json:"urgency"`
+	Certainty   string `json:"certainty"`
+	Response    string `json:"response,omitempty"`
+	MessageType string `json:"message_type"`
+	// Area names the region the center reports on.
+	Area string `json:"area"`
+	// Instruction is the bulletin's safety text, word for word. Long, so only
+	// the event-detail endpoint carries it.
+	Instruction string `json:"instruction,omitempty"`
+	Quake       Quake  `json:"quake"`
+}
+
+// Quake is the earthquake a tsunami bulletin is about, as the center first
+// measured it.
+type Quake struct {
+	Magnitude     *float64   `json:"magnitude,omitempty"`
+	MagnitudeType string     `json:"magnitude_type,omitempty"`
+	DepthKm       *float64   `json:"depth_km,omitempty"`
+	Origin        *time.Time `json:"origin,omitempty"`
 }
 
 // Link is a source's id for an event and its page.

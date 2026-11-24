@@ -50,7 +50,7 @@ export function parse(search: string): ViewState {
   const on = LAYERS.filter((l) => layers?.includes(l));
   if (on.length) v.layers = on;
   const event = q.get("event");
-  if (event && /^(usgs|eonet|noaa|gdacs)-.+/.test(event)) v.event = event;
+  if (event && /^(usgs|eonet|noaa|gdacs|tsunami)-.+/.test(event)) v.event = event;
   return v;
 }
 

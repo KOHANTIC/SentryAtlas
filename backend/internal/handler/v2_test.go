@@ -269,3 +269,15 @@ func TestSnapshotGroupsTheSameQuake(t *testing.T) {
 		t.Errorf("usgs %q primary %v, gdacs %q primary %v; want one group with USGS primary", u.GroupID, u.Primary, g.GroupID, g.Primary)
 	}
 }
+
+func TestBriefLeavesOutTsunamiInstructions(t *testing.T) {
+	e := event.Event{ID: "tsunami-PHEB-26327000", Source: "tsunami", Description: "Long bulletin text",
+		Details: event.Details{Tsunami: &event.Tsunami{Event: "Tsunami Warning", Instruction: "Move to high ground now."}}}
+	b := brief(e)
+	if b.Description != "" || b.Details.Tsunami.Instruction != "" {
+		t.Errorf("the snapshot's copy carries the long text: %+v", b.Details.Tsunami)
+	}
+	if e.Details.Tsunami.Instruction != "Move to high ground now." {
+		t.Error("brief changed the store's own event")
+	}
+}

@@ -50,7 +50,7 @@ jobs:
         id: check
         run: |
           set -o pipefail
-          LIVE_CONTRACT=1 go test ./internal/adapters -run 'TestLiveContract$' -count=1 -v 2>&1 | tee "$RUNNER_TEMP/check.log"
+          LIVE_CONTRACT=1 go test ./internal/adapters -run 'TestLive(Contract|Tsunami)$' -count=1 -v 2>&1 | tee "$RUNNER_TEMP/check.log"
       - name: Summary
         if: always()
         run: |

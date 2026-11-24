@@ -190,3 +190,38 @@ func TestFieldChanges(t *testing.T) {
 		t.Errorf("added = %v, want [properties.felt properties.magnitude]", added)
 	}
 }
+
+// TestLiveTsunami checks the tsunami centers' live feeds the way
+// TestLiveContract checks the JSON sources: each feed still links a CAP
+// message, and each message still has what the adapter reads. Their
+// bulletins are XML, which the JSON field comparison cannot read.
+//
+//	LIVE_CONTRACT=1 go test ./internal/adapters -run LiveTsunami -count=1 -v
+func TestLiveTsunami(t *testing.T) {
+	if os.Getenv("LIVE_CONTRACT") == "" {
+		t.Skip("set LIVE_CONTRACT=1 to check the adapters against the live sources")
+	}
+	a := NewTsunamiAdapter(&http.Client{Timeout: time.Minute}, "SentryAtlas live source check")
+	for _, feed := range tsunamiFeeds {
+		var f atomFeed
+		if err := a.getXML(context.Background(), feed, &f); err != nil {
+			t.Fatalf("%s: %v", feed, err)
+		}
+		links := f.capLinks()
+		if len(links) == 0 {
+			t.Errorf("%s links no CAP message: its format changed", feed)
+		}
+		for _, link := range links {
+			var c capAlert
+			if err := a.getXML(context.Background(), link, &c); err != nil {
+				t.Fatalf("%s: %v", link, err)
+			}
+			if c.Identifier == "" || c.Sent == "" || len(c.Info) == 0 || c.Info[0].Event == "" || c.Info[0].param("EventLatLon") == "" {
+				t.Errorf("%s lacks an identifier, sent time, event or EventLatLon: its format changed", link)
+			}
+		}
+	}
+	if _, err := a.FetchV2(context.Background()); err != nil {
+		t.Errorf("FetchV2: %v", err)
+	}
+}

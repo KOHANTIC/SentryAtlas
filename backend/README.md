@@ -10,6 +10,7 @@ Go API server that aggregates natural disaster data from multiple public sources
 | NASA EONET | Wildfires, volcanoes, storms, icebergs | `eonet.gsfc.nasa.gov/api/v3/events` |
 | NOAA/NWS | Floods, storms, tornados, hurricanes, winter storms | `api.weather.gov/alerts/active` |
 | GDACS | Earthquakes, cyclones, floods, volcanoes, droughts, wildfires | `www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH` |
+| NWS tsunami warning centers (v2 only) | Tsunami warnings, advisories, watches, threat messages | `www.tsunami.gov/events/xml/PAAQAtom.xml` and `PHEBAtom.xml`, with each bulletin's CAP message |
 
 ## Prerequisites
 
@@ -50,7 +51,7 @@ Every variable has a default, so none is required. A number that is set but not 
 
 ### `GET /health`
 
-Each source is polled on its own schedule (NWS every 2 minutes, USGS every 5, EONET and GDACS every 10), and `/health` reports where that stands. It answers `503` with `"status":"starting"` until every source has been polled once, then `200` with `"status":"ok"`, so a new deploy takes traffic only once it has data. A source that fails is reported, not a reason for `503`. It is not rate-limited or cached.
+Each source is polled on its own schedule (NWS and the tsunami centers every 2 minutes, USGS every 5, EONET and GDACS every 10), and `/health` reports where that stands. It answers `503` with `"status":"starting"` until every source has been polled once, then `200` with `"status":"ok"`, so a new deploy takes traffic only once it has data. A source that fails is reported, not a reason for `503`. It is not rate-limited or cached.
 
 ```json
 {
@@ -76,7 +77,7 @@ For an outside monitor. Answers `503` with `"status":"stale"` while any source's
 
 | Source | Limit | Polled every |
 |---|---|---|
-| NWS | 30 minutes | 2 minutes |
+| NWS, tsunami | 30 minutes | 2 minutes |
 | USGS | 1 hour | 5 minutes |
 | EONET, GDACS | 2 hours | 10 minutes |
 

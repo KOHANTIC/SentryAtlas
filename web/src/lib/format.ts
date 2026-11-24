@@ -2,7 +2,7 @@ import tokens from "../../../brand/tokens.json";
 import type { Event, Source } from "./api.gen";
 import type { Preset, SourceFreshness } from "./filters";
 
-export const SOURCE_NAMES: Record<Source, string> = { usgs: "USGS", eonet: "NASA EONET", noaa: "NWS", gdacs: "GDACS" };
+export const SOURCE_NAMES: Record<Source, string> = { usgs: "USGS", eonet: "NASA EONET", noaa: "NWS", gdacs: "GDACS", tsunami: "NWS tsunami" };
 
 export const PRESET_LABELS: Record<Preset, string> = { "24h": "24 hours", "7d": "7 days", "30d": "30 days" };
 

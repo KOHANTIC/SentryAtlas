@@ -17,7 +17,7 @@ Both are read from copies the server polls on its own, never from a source while
 The whole world in one response that every visitor shares, for a client to filter itself.
 
 - **`window`:** `7d` (the default) or `30d`, the events whose `time.updated` falls in that many days. Any other parameter or value is a `400`, so the responses stay few enough for a cache to keep.
-- **Contents:** a snapshot as in `schema.json`. Events leave out `description` and `details.noaa.instruction`, which only the detail endpoint carries. `sources[].count` counts this snapshot's events.
+- **Contents:** a snapshot as in `schema.json`. Events leave out `description`, `details.noaa.instruction` and `details.tsunami.instruction`, which only the detail endpoint carries. `sources[].count` counts this snapshot's events.
 - **Built once per poll:** the server builds and gzips it when a poll is recorded, or after a minute so expired events leave, not per request.
 - **Caching:**
   - `Cache-Control: public, max-age=30` and `Vary: Accept-Encoding`;
@@ -71,6 +71,7 @@ A waiting list for location alerts. These two routes are not part of the read AP
   - EONET: its event id.
   - GDACS: `<type>-<event id>`.
   - NWS: the alert's first message, so an update keeps the id. The messages of one alert (its updates, and parallel messages for different zones, found by their shared VTEC event) are one event.
+  - Tsunami: `<center code>-<incident>`, such as `tsunami-PHEB-26327000`: a center's later bulletins on the same earthquake update one event. The codes are `PHEB` (PTWC, Honolulu) and `PAAQ` (NTWC, Palmer, Alaska). Only warnings, advisories, watches and threat messages are events; information statements, which say no tsunami is expected, and cancellations are not. v1 does not serve this source.
 - **`group_id`** is shared by reports of one real event from different sources, and **`primary`** marks the one to draw. Both are in the snapshot only, worked out again on every build: never store a group id as a key. An event with no twin has neither.
   - **Quakes:** GDACS repeats USGS's. A GDACS quake within 30 s, 50 km and 0.5 magnitude of a USGS quake is that quake, each matched once, closest first. On 2026-11-22 the pairs were a median 0.5 s, 0.8 km and 0.0 magnitude apart, and these limits paired 516 of 519.
   - **EONET:** an event is grouped with the GDACS report it lists among its sources.
@@ -78,18 +79,20 @@ A waiting list for location alerts. These two routes are not part of the read AP
   - Storms, fires and floods from different sources are not matched by place.
 - **`type`** is one of the 15 v1 types.
 - **`description`**, and an NWS alert's **`details.noaa.instruction`**, are long. Only the event-detail endpoint carries them.
-- **`details`** holds exactly the part named by `source`: `usgs`, `eonet`, `noaa` or `gdacs`.
+- **`details`** holds exactly the part named by `source`: `usgs`, `eonet`, `noaa`, `gdacs` or `tsunami`. A tsunami bulletin's `details.tsunami.quake` is the earthquake it is about, as the center first measured it.
 
 ## Severity
 
 One scale for every source, with the source's own word in `source_level`:
 
-| `level` | USGS PAGER | NWS | GDACS | EONET |
-|---|---|---|---|---|
-| `extreme` | red | Extreme | Red | none |
-| `severe` | orange | Severe | Orange | none |
-| `moderate` | yellow | Moderate | none | none |
-| `minor` | green | Minor | Green | none |
+| `level` | USGS PAGER | NWS | GDACS | EONET | Tsunami |
+|---|---|---|---|---|---|
+| `extreme` | red | Extreme | Red | none | Extreme |
+| `severe` | orange | Severe | Orange | none | Severe |
+| `moderate` | yellow | Moderate | none | none | Moderate |
+| `minor` | green | Minor | Green | none | Minor |
+
+A tsunami bulletin's `source_level` is its product, such as `Tsunami Warning`.
 
 An event with no level from its source has no `severity`.
 
@@ -107,12 +110,12 @@ A `value` and the `unit` the source gives:
 
 All in UTC, each with one meaning:
 
-| Field | Meaning | USGS | EONET | NWS | GDACS |
-|---|---|---|---|---|---|
-| `started` | when the event began | origin time | first observation | onset (or effective, or sent) | `fromdate` |
-| `updated` | when the source last changed its record | `updated` | latest observation | latest message's `sent` | `datemodified` |
-| `ends` | when the source expects it over | none | none | `ends` | `todate` |
-| `expires` | when the record stops being valid | none | none | `expires` | none |
+| Field | Meaning | USGS | EONET | NWS | GDACS | Tsunami |
+|---|---|---|---|---|---|---|
+| `started` | when the event began | origin time | first observation | onset (or effective, or sent) | `fromdate` | the earthquake's origin |
+| `updated` | when the source last changed its record | `updated` | latest observation | latest message's `sent` | `datemodified` | the bulletin's `sent` |
+| `ends` | when the source expects it over | none | none | `ends` | `todate` | none |
+| `expires` | when the record stops being valid | none | none | `expires` | none | `expires` |
 
 ## Location
 

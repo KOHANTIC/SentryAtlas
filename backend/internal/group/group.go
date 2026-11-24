@@ -22,7 +22,7 @@ const (
 
 // rank orders which member of a group is primary: the source closest to the
 // event first.
-var rank = map[string]int{event.SourceUSGS: 0, event.SourceGDACS: 1, event.SourceNOAA: 2, event.SourceEONET: 3}
+var rank = map[string]int{event.SourceUSGS: 0, event.SourceGDACS: 1, event.SourceNOAA: 2, event.SourceEONET: 3, event.SourceTsunami: 4}
 
 // Assign sets GroupID on every event that has a twin in another source,
 // the same for all of a group, and Primary on one member of each. Ids are

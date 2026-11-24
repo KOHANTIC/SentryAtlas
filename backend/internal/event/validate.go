@@ -23,14 +23,14 @@ func RoundCoordinate(v float64) float64 {
 	return math.Round(v*scale) / scale
 }
 
-var sources = map[string]bool{SourceUSGS: true, SourceEONET: true, SourceNOAA: true, SourceGDACS: true}
+var sources = map[string]bool{SourceUSGS: true, SourceEONET: true, SourceNOAA: true, SourceGDACS: true, SourceTsunami: true}
 
 var severityLevels = map[string]bool{SeverityExtreme: true, SeveritySevere: true, SeverityModerate: true, SeverityMinor: true}
 
 // Validate reports the first way e breaks the v2 model's rules, or nil.
 func (e *Event) Validate() error {
 	if !sources[e.Source] {
-		return fmt.Errorf("source %q is not one of usgs, eonet, noaa, gdacs", e.Source)
+		return fmt.Errorf("source %q is not one of usgs, eonet, noaa, gdacs, tsunami", e.Source)
 	}
 	if !strings.HasPrefix(e.ID, e.Source+"-") || len(e.ID) == len(e.Source)+1 {
 		return fmt.Errorf("id %q is not %q followed by the upstream id", e.ID, e.Source+"-")
@@ -149,10 +149,11 @@ func (g *Geometry) validate() error {
 
 func (d Details) validate(source string) error {
 	set := map[string]bool{
-		SourceUSGS:  d.USGS != nil,
-		SourceEONET: d.EONET != nil,
-		SourceNOAA:  d.NOAA != nil,
-		SourceGDACS: d.GDACS != nil,
+		SourceUSGS:    d.USGS != nil,
+		SourceEONET:   d.EONET != nil,
+		SourceNOAA:    d.NOAA != nil,
+		SourceGDACS:   d.GDACS != nil,
+		SourceTsunami: d.Tsunami != nil,
 	}
 	for name, present := range set {
 		if present != (name == source) {

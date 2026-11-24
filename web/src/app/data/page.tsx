@@ -23,6 +23,13 @@ const SOURCES = [
     every: "2 minutes",
   },
   {
+    name: "NWS tsunami",
+    full: "NWS Pacific and National Tsunami Warning Centers",
+    url: "https://www.tsunami.gov",
+    what: "Tsunami warnings, advisories, watches and threat messages from the Pacific and National Tsunami Warning Centers. Information statements, which say no tsunami is expected, are left out.",
+    every: "2 minutes",
+  },
+  {
     name: "GDACS",
     full: "Global Disaster Alert and Coordination System",
     url: "https://www.gdacs.org",

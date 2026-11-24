@@ -67,7 +67,9 @@ func run(logger *slog.Logger) error {
 	eonet := adapters.NewEONETAdapter(httpClient)
 	noaa := adapters.NewNOAAAdapter(httpClient, nwsUserAgent)
 	gdacs := adapters.NewGDACSAdapter(httpClient)
+	// v1 serves these four only, as it always has; the tsunami centers are v2's.
 	adapterList := []adapters.Adapter{usgs, eonet, noaa, gdacs}
+	tsunami := adapters.NewTsunamiAdapter(httpClient, nwsUserAgent)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -80,12 +82,15 @@ func run(logger *slog.Logger) error {
 		store.Source{Name: eonet.Source()},
 		store.Source{Name: noaa.Source(), MaxAge: time.Hour},
 		store.Source{Name: gdacs.Source()},
+		// Like NWS's, a tsunami copy an hour old may hold a warning since cancelled.
+		store.Source{Name: tsunami.Source(), MaxAge: time.Hour},
 	)
 	waitPollers := store.Run(ctx, st, []store.Poll{
 		{Fetcher: usgs, Interval: 5 * time.Minute},
 		{Fetcher: eonet, Interval: 10 * time.Minute},
 		{Fetcher: noaa, Interval: 2 * time.Minute},
 		{Fetcher: gdacs, Interval: 10 * time.Minute},
+		{Fetcher: tsunami, Interval: 2 * time.Minute},
 	}, store.Config{Timeout: fetchTimeout, RetryAfter: 30 * time.Second})
 	defer waitPollers()
 
@@ -167,10 +172,11 @@ func run(logger *slog.Logger) error {
 	// What an outside monitor alarms on: a source's copy older than this has
 	// missed many polls in a row (NWS's copy is withdrawn after an hour).
 	r.Get("/health/stale", handler.Stale(st, map[string]time.Duration{
-		noaa.Source():  30 * time.Minute,
-		usgs.Source():  time.Hour,
-		eonet.Source(): 2 * time.Hour,
-		gdacs.Source(): 2 * time.Hour,
+		noaa.Source():    30 * time.Minute,
+		usgs.Source():    time.Hour,
+		eonet.Source():   2 * time.Hour,
+		gdacs.Source():   2 * time.Hour,
+		tsunami.Source(): 30 * time.Minute,
 	}))
 
 	// Keyed on the address from CLIENT_IP_HEADER only: headers a client can
